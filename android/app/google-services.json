@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "686615310489",
+    "firebase_url": "https://sortika-c0f5c.firebaseio.com",
+    "project_id": "sortika-c0f5c",
+    "storage_bucket": "sortika-c0f5c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:686615310489:android:868ca199cb929ab0ca4808",
+        "android_client_info": {
+          "package_name": "com.sortika.wealth"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "686615310489-nk5927dhen4joetpe9qjf3g227eip36k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAcb7-_RQ6PXg2AX6W6rVLQZzGTTCyC0P4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "686615310489-nk5927dhen4joetpe9qjf3g227eip36k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
