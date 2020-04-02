@@ -228,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
           _buildSocialBtn(
             () {},
             AssetImage(
-              'assets/logos/google.jpg',
+              'assets/logos/google.png',
             ),
           ),
         ],

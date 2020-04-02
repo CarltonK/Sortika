@@ -3,19 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 //LabelStyle
 final labelStyle = GoogleFonts.muli(
-  textStyle: TextStyle(
-  color: Colors.white,
-  fontWeight: FontWeight.bold
-  )
-);
+    textStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold));
 
 //HintStyle
 final hintStyle = GoogleFonts.muli(
-  textStyle: TextStyle(
-  color: Colors.white54,
-  fontWeight: FontWeight.w600
-  )
-);
+    textStyle: TextStyle(color: Colors.white54, fontWeight: FontWeight.w600));
 
 //BoxDecoration
 final boxDecorationStyle = BoxDecoration(
