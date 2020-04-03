@@ -248,7 +248,6 @@ class _LoginScreenState extends State<LoginScreen> {
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                 color: Colors.white,
-                fontSize: 18.0,
                 fontWeight: FontWeight.w400,
               )),
             ),
@@ -257,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                 color: Colors.white,
-                fontSize: 18.0,
+                fontSize: 16.0,
                 fontWeight: FontWeight.bold,
               )),
             ),

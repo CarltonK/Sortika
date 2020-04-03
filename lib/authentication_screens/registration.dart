@@ -266,6 +266,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
+  //Sign Up Button
+  Widget _buildSignInBtn() {
+    return FlatButton(
+      onPressed: () => Navigator.of(context).pop(),
+      child: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: 'Already have an account? ',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w400,
+              )),
+            ),
+            TextSpan(
+              text: 'Sign In',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              )),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     // Dispose FocusNodes
@@ -339,7 +369,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       height: 30,
                     ),
                     _confirmPasswordTF(),
-                    _registerBtn()
+                    _registerBtn(),
+                    _buildSignInBtn()
                   ],
                 ),
               ),

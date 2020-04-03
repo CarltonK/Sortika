@@ -2,6 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/utilities/styles.dart';
+import 'package:wealth/widgets/borrow_page.dart';
+import 'package:wealth/widgets/investment_goal.dart';
+import 'package:wealth/widgets/savings_goal.dart';
 
 class AchievePreference extends StatefulWidget {
   @override
@@ -12,7 +15,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
   //PageView Controller
   final PageController _pageController = PageController(initialPage: 0);
   //Define number of screens
-  final int _numPages = 3;
+  final int _numPages = 2;
   //Placeholder for current page
   int _currentPage = 0;
 
@@ -40,13 +43,10 @@ class _AchievePreferenceState extends State<AchievePreference> {
     );
   }
 
-
   TextStyle _subtitleStyle() {
     return GoogleFonts.muli(
-        textStyle: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-        letterSpacing: 0.5));
+        textStyle:
+            TextStyle(color: Colors.white, fontSize: 16, letterSpacing: 0.5));
   }
 
   //Final Dropdown item
@@ -59,9 +59,8 @@ class _AchievePreferenceState extends State<AchievePreference> {
       child: Text(
         'Borrow Money',
         style: GoogleFonts.muli(
-            textStyle: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w600)),
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
     DropdownMenuItem(
@@ -69,9 +68,8 @@ class _AchievePreferenceState extends State<AchievePreference> {
       child: Text(
         'Save Money',
         style: GoogleFonts.muli(
-            textStyle: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w600)),
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
     DropdownMenuItem(
@@ -79,9 +77,8 @@ class _AchievePreferenceState extends State<AchievePreference> {
       child: Text(
         'Invest Money',
         style: GoogleFonts.muli(
-            textStyle: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w600)),
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
     DropdownMenuItem(
@@ -89,12 +86,103 @@ class _AchievePreferenceState extends State<AchievePreference> {
       child: Text(
         'Group Savings',
         style: GoogleFonts.muli(
-            textStyle: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w600)),
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     )
   ];
+
+  //Page One
+  Widget _pageOne() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          child: Image(
+            fit: BoxFit.fitHeight,
+            image: AssetImage('assets/images/borrow.png'),
+          ),
+        ),
+        SizedBox(
+          height: 15,
+        ),
+        Text(
+          'Tell us what you want to achieve with Sortika',
+          textAlign: TextAlign.center,
+          style: _subtitleStyle(),
+        ),
+        SizedBox(
+          height: 15,
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 6.0,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          height: 60,
+          child: DropdownButton(
+            items: items,
+            underline: Divider(
+              color: Colors.transparent,
+            ),
+            value: goal,
+            hint: Text(
+              'Goal',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600)),
+            ),
+            icon: Icon(
+              CupertinoIcons.down_arrow,
+              color: Colors.black,
+            ),
+            isExpanded: true,
+            onChanged: (value) {
+              setState(() {
+                goal = value;
+                //Change color according to value of goal
+                if (value == 'Borrow Money') {
+                  color = Colors.brown;
+                }
+                if (value == 'Save Money') {
+                  color = Colors.green;
+                }
+                if (value == 'Invest Money') {
+                  color = Colors.red[600];
+                }
+                if (value == 'Group Savings') {
+                  color = Colors.purple;
+                }
+              });
+              //print(goal);
+            },
+          ),
+        )
+      ],
+    );
+  }
+
+  //Page Two
+  //Determined by page one selection
+
+  Widget _pageTwo() {
+    return goal == 'Borrow Money'
+        ? BorrowPage()
+        : goal == 'Save Money'
+            ? SavingsGoal()
+            : goal == 'Invest Money' ? InvestmentGoal() : Column();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +205,8 @@ class _AchievePreferenceState extends State<AchievePreference> {
                     child: FlatButton(
                         onPressed: () {
                           print('I want to skip and go home page');
+                          //Takes you directly to home page
+                          Navigator.of(context).popAndPushNamed('/home');
                         },
                         child: Text(
                           'Skip',
@@ -127,101 +217,27 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                   fontWeight: FontWeight.w600)),
                         )),
                   ),
-                  Container(
-                    height: MediaQuery.of(context).size.height * 0.75,
-                    padding: EdgeInsets.all(40),
-                    child: PageView(
-                      physics: ClampingScrollPhysics(),
-                      controller: _pageController,
-                      onPageChanged: (int page) {
-                        setState(() {
-                          _currentPage = page;
-                        });
-                      },
-                      children: <Widget>[
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            Expanded(
-                              child: Image(
-                                fit: BoxFit.fitHeight,
-                                image: AssetImage('assets/images/borrow.png'),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 15,
-                            ),
-                            Text(
-                              'Tell us what you want to achieve with Sortika',
-                              textAlign: TextAlign.center,
-                              style: _subtitleStyle(),
-                            ),
-                            SizedBox(
-                              height: 15,
-                            ),
-                            Container(
-                              alignment: Alignment.centerLeft,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 6.0,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              padding: EdgeInsets.symmetric(horizontal: 12),
-                              height: 60,
-                              child: DropdownButton(
-                                  items: items,
-                                  underline: Divider(
-                                    color: Colors.transparent,
-                                  ),
-                                  value: goal,
-                                  hint: Text(
-                                    'Goal',
-                                    style: GoogleFonts.muli(
-                                        textStyle: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600)),
-                                  ),
-                                  icon: Icon(CupertinoIcons.down_arrow, color: Colors.black,),
-                                  isExpanded: true,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      goal = value;
-                                      if (value == 'Borrow Money') {
-                                        color = Colors.brown;
-                                      }
-                                      if (value == 'Save Money') {
-                                        color = Colors.green;
-                                      }
-                                      if (value == 'Invest Money') {
-                                        color = Colors.red[600];
-                                      }
-                                      if (value == 'Group Savings') {
-                                        color = Colors.purple;
-                                      }
-                                    });
-                                    print(goal);
-                                  },),
-                            )
-                          ],
-                        ),
-                        Column(),
-                        Column()],
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(30),
+                      child: PageView(
+                        physics: NeverScrollableScrollPhysics(),
+                        controller: _pageController,
+                        onPageChanged: (int page) {
+                          setState(() {
+                            _currentPage = page;
+                          });
+                        },
+                        children: <Widget>[
+                          _pageOne(),
+                          _pageTwo(),
+                        ],
+                      ),
                     ),
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: _buildPageIndicator(),
-                  ),
-                  Row(
                     children: <Widget>[
-                      _currentPage + 3 != _numPages
+                      _currentPage + 2 != _numPages
                           ? Expanded(
                               child: Align(
                               alignment: FractionalOffset.bottomLeft,
@@ -233,7 +249,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.only(
-                                        bottom: 20, top: 20),
+                                        bottom: 10, top: 10),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -256,25 +272,76 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                   )),
                             ))
                           : Text(''),
-                      _currentPage != _numPages - 1
+                      _currentPage != _numPages
                           ? Expanded(
                               child: Align(
                               alignment: FractionalOffset.bottomRight,
                               child: FlatButton(
                                   onPressed: () {
-                                    _pageController.nextPage(
-                                        duration: Duration(milliseconds: 500),
-                                        curve: Curves.ease);
+                                    //Page One. Goal must not be null
+                                    if (_currentPage == 0) {
+                                      if (goal == null) {
+                                        print('Please enter a goal');
+                                        //Show a prompt
+                                        showCupertinoModalPopup(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return CupertinoActionSheet(
+                                                title: Text(
+                                                  'Please select  a goal',
+                                                  style: GoogleFonts.muli(
+                                                      textStyle: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 16,
+                                                          color: Colors.black)),
+                                                ),
+                                                message: Icon(
+                                                  Icons.warning,
+                                                  size: 35,
+                                                  color: Colors.red,
+                                                ),
+                                                cancelButton:
+                                                    CupertinoActionSheetAction(
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(),
+                                                        child: Text(
+                                                          'CANCEL',
+                                                          style: GoogleFonts.muli(
+                                                              textStyle: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: Colors
+                                                                      .red)),
+                                                        )),
+                                              );
+                                            });
+                                      } else {
+                                        _pageController.nextPage(
+                                            duration:
+                                                Duration(milliseconds: 500),
+                                            curve: Curves.ease);
+                                      }
+                                    }
+                                    //Page Two
+                                    //Peer to Peer request, then create a loan fund goal
+                                    if (_currentPage == 1) {}
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.only(
-                                        bottom: 20, top: 20),
+                                        bottom: 10, top: 10),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       mainAxisSize: MainAxisSize.min,
                                       children: <Widget>[
-                                        Text('Next',
+                                        Text(
+                                            _currentPage != _numPages - 1
+                                                ? 'Next'
+                                                : 'Proceed',
                                             style: GoogleFonts.muli(
                                                 textStyle: TextStyle(
                                                     color: Colors.white,

@@ -287,7 +287,7 @@ class _OnBoardingState extends State<OnBoarding> {
       ),
       bottomSheet: _currentPage == _numPages - 1
           ? Container(
-              height: 80,
+              height: 70,
               width: double.infinity,
               color: Color(0xFF398AE5),
               child: GestureDetector(

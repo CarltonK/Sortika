@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/authentication_screens/passwordreset.dart';
 import 'package:wealth/authentication_screens/registration.dart';
+import 'package:wealth/home_screens/home.dart';
 import 'package:wealth/onboarding.dart';
 import 'package:wealth/pre_login/achieve_preference.dart';
 
@@ -26,6 +27,8 @@ class MyApp extends StatelessWidget {
         '/password-reset': (context) => PasswordResetScreen(),
         //Pre-Login Screens
         '/achieve-pref': (context) => AchievePreference(),
+        //Home Screens
+        '/home': (context) => Home()
       },
       theme: ThemeData(
         primarySwatch: Colors.blue,
