@@ -249,7 +249,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       width: double.infinity,
       child: RaisedButton(
         elevation: 5,
-        onPressed: () {},
+        onPressed: () => Navigator.of(context).pushNamed('/achieve-pref'),
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         color: Colors.white,
