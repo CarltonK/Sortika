@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/utilities/styles.dart';
 import 'package:wealth/widgets/borrow_page.dart';
+import 'package:wealth/widgets/group_savings.dart';
 import 'package:wealth/widgets/investment_goal.dart';
 import 'package:wealth/widgets/savings_goal.dart';
 
@@ -181,7 +182,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
         ? BorrowPage()
         : goal == 'Save Money'
             ? SavingsGoal()
-            : goal == 'Invest Money' ? InvestmentGoal() : Column();
+            : goal == 'Invest Money' ? InvestmentGoal() : GroupSavings();
   }
 
   @override

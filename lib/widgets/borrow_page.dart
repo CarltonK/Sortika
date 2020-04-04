@@ -282,8 +282,7 @@ class _BorrowPageState extends State<BorrowPage> {
             height: 10,
           ),
           typeLoan == 'p2p'
-              ? Expanded(
-                  child: Row(
+              ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: <Widget>[
                     FlatButton(
@@ -307,7 +306,7 @@ class _BorrowPageState extends State<BorrowPage> {
                       ),
                     )
                   ],
-                ))
+                )
               : Text('')
         ],
       ),

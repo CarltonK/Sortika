@@ -10,9 +10,8 @@ class InvestmentGoal extends StatefulWidget {
 }
 
 class _InvestmentGoalState extends State<InvestmentGoal> {
-
   final styleLabel =
-  GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 15));
+      GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 15));
 
   //Investment Asset Class
   String classInvestment;
@@ -29,7 +28,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         'Fixed Income',
         style: GoogleFonts.muli(
             textStyle:
-            TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
   ];
@@ -41,7 +40,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         'Treasury Bill (9.7%)',
         style: GoogleFonts.muli(
             textStyle:
-            TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
   ];
@@ -106,7 +105,9 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
               },
             ),
           ),
-          SizedBox(height: 20,),
+          SizedBox(
+            height: 20,
+          ),
           Text(
             'Investment Goal',
             style: styleLabel,
@@ -159,9 +160,8 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
               },
             ),
           ),
-          SizedBox(height: 20,),
           SizedBox(
-            height: 10,
+            height: 20,
           ),
           Text(
             'Target Amount',
@@ -198,7 +198,9 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
                   ))
             ],
           ),
-          SizedBox(height: 20,),
+          SizedBox(
+            height: 20,
+          ),
           Text(
             'Target Period',
             style: styleLabel,
@@ -217,7 +219,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
                     if (durationGoalList.any((item) => item.isSelected)) {
                       setState(() {
                         durationGoalList[index].isSelected =
-                        !durationGoalList[index].isSelected;
+                            !durationGoalList[index].isSelected;
                       });
                     } else {
                       setState(() {
