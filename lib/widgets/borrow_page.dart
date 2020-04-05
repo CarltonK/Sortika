@@ -29,6 +29,10 @@ class _BorrowPageState extends State<BorrowPage> {
   double interestLoan = 1;
   //L+IC placeholder
   double interestCoverLoan = 0;
+  /*
+  Loan + IC = (Loan Amount/Total Investments) * 100
+  In the initial stage, it is 0%
+  */
 
   //Define Dropdown Menu Items
   List<DropdownMenuItem> items = [
@@ -57,258 +61,260 @@ class _BorrowPageState extends State<BorrowPage> {
     return Container(
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Which type of loan do you want ?',
-            style: styleLabel,
-          ),
-          SizedBox(
-            height: 5,
-          ),
-          Container(
-            alignment: Alignment.centerLeft,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 6.0,
-                  offset: Offset(0, 2),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              'Which type of loan do you want ?',
+              style: styleLabel,
+            ),
+            SizedBox(
+              height: 5,
+            ),
+            Container(
+              alignment: Alignment.centerLeft,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 6.0,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButton(
+                items: items,
+                underline: Divider(
+                  color: Colors.transparent,
                 ),
+                value: typeLoan,
+                hint: Text(
+                  '',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600)),
+                ),
+                icon: Icon(
+                  CupertinoIcons.down_arrow,
+                  color: Colors.black,
+                ),
+                isExpanded: true,
+                onChanged: (value) {
+                  setState(() {
+                    typeLoan = value;
+                    //Change color according to value of goal
+                    if (value == 'self') {
+                      // color = Colors.brown;
+                    }
+                    if (value == 'p2p') {
+                      // color = Colors.green;
+                    }
+                  });
+                  //print(goal);
+                },
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Text(
+              'Amount',
+              style: styleLabel,
+            ),
+            SizedBox(
+              height: 12,
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: Slider.adaptive(
+                      value: amountLoan,
+                      inactiveColor: Colors.white,
+                      divisions: 10,
+                      min: 0,
+                      max: 5000,
+                      label: amountLoan.toInt().toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          amountLoan = value;
+                        });
+                      }),
+                ),
+                Expanded(
+                    flex: 1,
+                    child: Center(
+                      child: Text(
+                        '${amountLoan.toInt().toString()} KES',
+                        style: labelStyle,
+                      ),
+                    ))
               ],
             ),
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: DropdownButton(
-              items: items,
-              underline: Divider(
-                color: Colors.transparent,
-              ),
-              value: typeLoan,
-              hint: Text(
-                '',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600)),
-              ),
-              icon: Icon(
-                CupertinoIcons.down_arrow,
-                color: Colors.black,
-              ),
-              isExpanded: true,
-              onChanged: (value) {
-                setState(() {
-                  typeLoan = value;
-                  //Change color according to value of goal
-                  if (value == 'self') {
-                    // color = Colors.brown;
-                  }
-                  if (value == 'p2p') {
-                    // color = Colors.green;
-                  }
-                });
-                //print(goal);
-              },
+            Text(
+              'Interest Offer',
+              style: styleLabel,
             ),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Text(
-            'Amount',
-            style: styleLabel,
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                flex: 3,
-                child: Slider.adaptive(
-                    value: amountLoan,
-                    inactiveColor: Colors.white,
-                    divisions: 10,
-                    min: 0,
-                    max: 5000,
-                    label: amountLoan.toInt().toString(),
-                    onChanged: (value) {
-                      setState(() {
-                        amountLoan = value;
-                      });
-                    }),
-              ),
-              Expanded(
-                  flex: 1,
-                  child: Center(
-                    child: Text(
-                      '${amountLoan.toInt().toString()} KES',
-                      style: labelStyle,
-                    ),
-                  ))
-            ],
-          ),
-          Text(
-            'Interest Offer',
-            style: styleLabel,
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                flex: 3,
-                child: Slider.adaptive(
-                    value: interestLoan,
-                    inactiveColor: Colors.white,
-                    divisions: 20,
-                    min: 0,
-                    max: 20,
-                    label: interestLoan.toInt().toString(),
-                    onChanged: (value) {
-                      setState(() {
-                        interestLoan = value;
-                      });
-                    }),
-              ),
-              Expanded(
-                  flex: 1,
-                  child: Center(
-                    child: Text(
-                      '${interestLoan.toInt().toString()} %',
-                      style: labelStyle,
-                    ),
-                  ))
-            ],
-          ),
-          Text(
-            'Period',
-            style: styleLabel,
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            height: 70,
-            child: ListView.builder(
-              itemCount: durationList.length,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    if (durationList.any((item) => item.isSelected)) {
-                      setState(() {
-                        durationList[index].isSelected =
-                            !durationList[index].isSelected;
-                      });
-                    } else {
-                      setState(() {
-                        durationList[index].isSelected = true;
-                      });
-                    }
-                    print(durationList[index].duration);
-                  },
-                  child: Card(
-                    color: durationList[index].isSelected
-                        ? Colors.white
-                        : Colors.white70,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      width: 60,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Icon(
-                            Icons.calendar_today,
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            '${durationList[index].duration}',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 15,
-                                    letterSpacing: 2)),
-                          )
-                        ],
+            SizedBox(
+              height: 12,
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: Slider.adaptive(
+                      value: interestLoan,
+                      inactiveColor: Colors.white,
+                      divisions: 20,
+                      min: 0,
+                      max: 20,
+                      label: interestLoan.toInt().toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          interestLoan = value;
+                        });
+                      }),
+                ),
+                Expanded(
+                    flex: 1,
+                    child: Center(
+                      child: Text(
+                        '${interestLoan.toInt().toString()} %',
+                        style: labelStyle,
+                      ),
+                    ))
+              ],
+            ),
+            Text(
+              'Period',
+              style: styleLabel,
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Container(
+              height: 70,
+              child: ListView.builder(
+                itemCount: durationList.length,
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                    onTap: () {
+                      if (durationList.any((item) => item.isSelected)) {
+                        setState(() {
+                          durationList[index].isSelected =
+                              !durationList[index].isSelected;
+                        });
+                      } else {
+                        setState(() {
+                          durationList[index].isSelected = true;
+                        });
+                      }
+                      print(durationList[index].duration);
+                    },
+                    child: Card(
+                      color: durationList[index].isSelected
+                          ? Colors.white
+                          : Colors.white70,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        width: 60,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              Icons.calendar_today,
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Text(
+                              '${durationList[index].duration}',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 15,
+                                      letterSpacing: 2)),
+                            )
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                flex: 3,
-                child: Text(
-                  'Loan + Interest Cover',
-                  style: styleLabel,
-                ),
+                  );
+                },
               ),
-              Expanded(
-                flex: 1,
-                child: Center(
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
                   child: Text(
-                    '${interestCoverLoan.toInt().toString()} KES',
-                    style: labelStyle,
+                    'Loan + Interest Cover',
+                    style: styleLabel,
                   ),
                 ),
-              )
-            ],
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          typeLoan == 'p2p'
-              ? Text(
-                  'Who will receive the request',
-                  style: styleLabel,
-                )
-              : Text(''),
-          SizedBox(
-            height: 10,
-          ),
-          typeLoan == 'p2p'
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    FlatButton(
-                      onPressed: () {},
-                      color: Colors.white70,
-                      child: Text(
-                        'All',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black, letterSpacing: 2)),
-                      ),
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: Text(
+                      '${interestCoverLoan.toInt().toString()} %',
+                      style: labelStyle,
                     ),
-                    FlatButton(
-                      onPressed: () {},
-                      color: Colors.blue,
-                      child: Text(
-                        'Specific',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.white, letterSpacing: 2)),
-                      ),
-                    )
-                  ],
+                  ),
                 )
-              : Text('')
-        ],
+              ],
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            typeLoan == 'p2p'
+                ? Text(
+                    'Who will receive the request',
+                    style: styleLabel,
+                  )
+                : Text(''),
+            SizedBox(
+              height: 10,
+            ),
+            typeLoan == 'p2p'
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: <Widget>[
+                      FlatButton(
+                        onPressed: () {},
+                        color: Colors.white70,
+                        child: Text(
+                          'All',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.black, letterSpacing: 2)),
+                        ),
+                      ),
+                      FlatButton(
+                        onPressed: () {},
+                        color: Colors.blue,
+                        child: Text(
+                          'Specific',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white, letterSpacing: 2)),
+                        ),
+                      )
+                    ],
+                  )
+                : Text('')
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:wealth/models/loanDuration.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -52,6 +53,34 @@ class _SavingsGoalState extends State<SavingsGoal> {
       ),
     ),
   ];
+
+  var _date;
+  // static var formatter = new DateFormat('yMMMd');
+  // String dateFormatted = formatter.format(_date);
+
+  //Custom Period
+  Widget _customPeriod() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6.0,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      margin: EdgeInsets.only(top: 10),
+      height: 50,
+      child: Text(_date == null ? 'December 25, 2020' : '${_date.toString()}',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+    );
+  }
 
   //Capture custom goal name
   String _customGoal = '';
@@ -337,6 +366,43 @@ class _SavingsGoalState extends State<SavingsGoal> {
                   );
                 },
               ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Text(
+              '-- OR --',
+              style: styleLabel,
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Text(
+              'I want to set an end date',
+              style: styleLabel,
+            ),
+            Row(
+              children: [
+                Expanded(child: _customPeriod()),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.date_range, size: 30, color: Colors.white),
+                    splashColor: Colors.greenAccent[700],
+                    onPressed: () {
+                      showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(Duration(days: 1000)),
+                      ).then((value) {
+                        setState(() {
+                          _date = value;
+                        });
+                      });
+                    },
+                  ),
+                )
+              ],
             ),
             SizedBox(
               height: 20,

@@ -390,21 +390,17 @@ class _GroupSavingsState extends State<GroupSavings> {
           ),
           Expanded(
               child: Container(
-            child: Row(
-              children: <Widget>[
-                Theme(
-                    data: ThemeData(unselectedWidgetColor: Colors.purple),
-                    child: Checkbox(
-                        value: _canSeeSavings,
-                        checkColor: Colors.white,
-                        activeColor: Colors.purple,
-                        onChanged: (bool value) {
-                          setState(() {
-                            _canSeeSavings = value;
-                          });
-                        })),
-              ],
-            ),
+            child: Theme(
+                data: ThemeData(unselectedWidgetColor: Colors.purple),
+                child: Checkbox(
+                    value: _canSeeSavings,
+                    checkColor: Colors.white,
+                    activeColor: Colors.purple,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _canSeeSavings = value;
+                      });
+                    })),
           ))
         ],
       ),

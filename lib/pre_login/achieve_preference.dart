@@ -5,6 +5,7 @@ import 'package:wealth/utilities/styles.dart';
 import 'package:wealth/widgets/borrow_page.dart';
 import 'package:wealth/widgets/group_savings.dart';
 import 'package:wealth/widgets/investment_goal.dart';
+import 'package:wealth/widgets/lend_page.dart';
 import 'package:wealth/widgets/savings_goal.dart';
 
 class AchievePreference extends StatefulWidget {
@@ -59,6 +60,15 @@ class _AchievePreferenceState extends State<AchievePreference> {
       value: 'Borrow Money',
       child: Text(
         'Borrow Money',
+        style: GoogleFonts.muli(
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    ),
+     DropdownMenuItem(
+      value: 'Lend Money',
+      child: Text(
+        'Lend Money',
         style: GoogleFonts.muli(
             textStyle:
                 TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
@@ -156,6 +166,9 @@ class _AchievePreferenceState extends State<AchievePreference> {
                 if (value == 'Borrow Money') {
                   color = Colors.brown;
                 }
+                if (value == 'Lend Money') {
+                  color = Colors.amber;
+                }
                 if (value == 'Save Money') {
                   color = Colors.green;
                 }
@@ -180,9 +193,13 @@ class _AchievePreferenceState extends State<AchievePreference> {
   Widget _pageTwo() {
     return goal == 'Borrow Money'
         ? BorrowPage()
+        : goal == 'Lend Money'
+        ? LendPage()
         : goal == 'Save Money'
-            ? SavingsGoal()
-            : goal == 'Invest Money' ? InvestmentGoal() : GroupSavings();
+        ? SavingsGoal()
+        : goal == 'Invest Money' 
+        ? InvestmentGoal() 
+        : GroupSavings();
   }
 
   @override
@@ -329,7 +346,10 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                     }
                                     //Page Two
                                     //Peer to Peer request, then create a loan fund goal
-                                    if (_currentPage == 1) {}
+                                    if (_currentPage == 1) {
+                                      _pageController.dispose();
+                                      Navigator.of(context).popAndPushNamed('/home');
+                                    }
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.only(
