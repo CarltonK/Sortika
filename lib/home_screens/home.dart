@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share/share.dart';
+import 'package:wealth/utilities/styles.dart';
 
 final menuLabelStyle = GoogleFonts.muli(
     textStyle: TextStyle(
@@ -47,15 +49,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         Text(
           'Sortika',
           style: GoogleFonts.muli(
-              textStyle: TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 24, letterSpacing: 1)),
+              textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 24)),
         ),
         IconButton(icon: Icon(Icons.settings), onPressed: () {}),
       ],
     );
   }
 
-  //Breakdown
+  //Savings Target Breakdown
   Widget _targetSavings() {
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -89,8 +90,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 Text(
                   'Daily',
                   style: GoogleFonts.muli(
-                      textStyle:
-                          TextStyle(letterSpacing: 0.5, color: Colors.white)),
+                      textStyle: TextStyle(color: Colors.white)),
                 ),
                 SizedBox(
                   height: 10,
@@ -100,7 +100,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       textStyle: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16),
+                          fontSize: 15),
                     ))
               ],
             ),
@@ -134,8 +134,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 Text(
                   'Weekly',
                   style: GoogleFonts.muli(
-                      textStyle:
-                          TextStyle(letterSpacing: 0.5, color: Colors.white)),
+                      textStyle: TextStyle(color: Colors.white)),
                 ),
                 SizedBox(
                   height: 10,
@@ -145,7 +144,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       textStyle: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16),
+                          fontSize: 15),
                     ))
               ],
             ),
@@ -179,8 +178,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 Text(
                   'Monthly',
                   style: GoogleFonts.muli(
-                      textStyle:
-                          TextStyle(letterSpacing: 0.5, color: Colors.white)),
+                      textStyle: TextStyle(color: Colors.white)),
                 ),
                 SizedBox(
                   height: 10,
@@ -190,7 +188,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       textStyle: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16),
+                          fontSize: 15),
                     ))
               ],
             ),
@@ -225,7 +223,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 Align(
                   alignment: Alignment.topLeft,
                   child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                     decoration: BoxDecoration(
                         borderRadius:
                             BorderRadius.only(bottomRight: Radius.circular(20)),
@@ -233,8 +231,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     child: Text(
                       'Savings goal',
                       style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              letterSpacing: 0.5, fontWeight: FontWeight.w600)),
+                          textStyle: TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ),
@@ -272,15 +269,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                       fontWeight: FontWeight.bold)),
                             ),
                             Expanded(
-                              flex: 4,
                               child: Slider(
                                   value: 2000,
                                   min: 0,
-                                  max: 5200,
+                                  max: 5000,
                                   onChanged: (value) {}),
                             ),
                             Text(
-                              '5200',
+                              '5000',
                               style: GoogleFonts.muli(
                                   textStyle: TextStyle(
                                       color: Colors.white,
@@ -309,7 +305,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           'Allocation',
                           style: GoogleFonts.muli(
                               textStyle: TextStyle(
-                                  letterSpacing: 0.5,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600)),
                         ),
@@ -320,7 +315,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           '70 %',
                           style: GoogleFonts.muli(
                               textStyle: TextStyle(
-                                  letterSpacing: 0.5,
                                   fontSize: 18,
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold)),
@@ -346,7 +340,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           'Ends on',
                           style: GoogleFonts.muli(
                               textStyle: TextStyle(
-                                  letterSpacing: 0.5,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600)),
                         ),
@@ -357,7 +350,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           'Dec 25, 2020',
                           style: GoogleFonts.muli(
                               textStyle: TextStyle(
-                                  letterSpacing: 0.5,
                                   fontSize: 16,
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold)),
@@ -393,8 +385,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     child: Text(
                       'Investments goal',
                       style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              letterSpacing: 0.5, fontWeight: FontWeight.w600)),
+                          textStyle: TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ),
@@ -436,11 +427,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               child: Slider(
                                   value: 4500,
                                   min: 0,
-                                  max: 5200,
+                                  max: 5000,
                                   onChanged: (value) {}),
                             ),
                             Text(
-                              '5200',
+                              '5000',
                               style: GoogleFonts.muli(
                                   textStyle: TextStyle(
                                       color: Colors.white,
@@ -469,7 +460,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           'Allocation',
                           style: GoogleFonts.muli(
                               textStyle: TextStyle(
-                                  letterSpacing: 0.5,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600)),
                         ),
@@ -480,7 +470,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           '30 %',
                           style: GoogleFonts.muli(
                               textStyle: TextStyle(
-                                  letterSpacing: 0.5,
                                   fontSize: 18,
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold)),
@@ -506,7 +495,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           'Ends on',
                           style: GoogleFonts.muli(
                               textStyle: TextStyle(
-                                  letterSpacing: 0.5,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600)),
                         ),
@@ -517,7 +505,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           'May 1, 2020',
                           style: GoogleFonts.muli(
                               textStyle: TextStyle(
-                                  letterSpacing: 0.5,
                                   fontSize: 16,
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold)),
@@ -542,12 +529,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Welcome John',
+            'Welcome Jon',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 24,
-                    letterSpacing: 1)),
+              fontWeight: FontWeight.w600,
+              fontSize: 24,
+            )),
           ),
           SizedBox(
             height: 5,
@@ -555,21 +542,17 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           RichText(
               text: TextSpan(children: [
             TextSpan(
-                text: 'We went ahead and set a savings target of ',
+                text: 'We went ahead and setup for you a loan fund goal of ',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(color: Colors.black))),
             TextSpan(
-                text: '5200 KES',
+                text: '5200',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
                         fontSize: 18),
                     decoration: TextDecoration.underline)),
-            TextSpan(
-                text: ' yearly for you',
-                style:
-                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)))
           ])),
           SizedBox(
             height: 10,
@@ -578,6 +561,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Divider(
               color: Colors.blueGrey,
+              thickness: 1.5,
             ),
           ),
           SizedBox(
@@ -633,9 +617,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 10,
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    padding: const EdgeInsets.symmetric(horizontal: 50),
                     child: Divider(
                       color: Colors.blueGrey,
+                      thickness: 1.5,
                     ),
                   ),
                   Padding(
@@ -656,6 +641,137 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  final _formKey = GlobalKey<FormState>();
+  int _budget = 0;
+  void _handleSubmittedBudget(String value) {
+    _budget = int.parse(value);
+    print('Budget: $_budget');
+  }
+
+  //Confirm Password Widget
+  Widget _customGoalName() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Container(
+          alignment: Alignment.centerLeft,
+          decoration: boxDecorationStyle,
+          height: 60,
+          child: TextFormField(
+              keyboardType: TextInputType.number,
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                color: Colors.white,
+              )),
+              validator: (value) {
+                if (value.isEmpty) {
+                  return 'You have not entered an amount';
+                }
+                return null;
+              },
+              onFieldSubmitted: (value) {
+                FocusScope.of(context).unfocus();
+              },
+              onSaved: _handleSubmittedBudget,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.only(top: 14),
+                  prefixIcon: Icon(Icons.monetization_on, color: Colors.white),
+                  hintText: 'Enter your budget',
+                  hintStyle: hintStyle)),
+        )
+      ],
+    );
+  }
+
+  //Planner Intro
+  Widget _plannerIntro() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                'Set up a monthly budget',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                  fontSize: 18,
+                )),
+              ),
+              IconButton(
+                icon: Icon(Icons.create),
+                onPressed: () {
+                  //Show a popup to enter budget
+                  showCupertinoModalPopup(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          content: Container(
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  _customGoalName(),
+                                ],
+                              ),
+                            ),
+                          ),
+                          actions: <Widget>[
+                            FlatButton(
+                                onPressed: () {
+                                  if (_formKey.currentState.validate()) {
+                                    _formKey.currentState.save();
+
+                                    //Dismiss the dialog
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                                child: Text(
+                                  'Submit',
+                                  style: GoogleFonts.muli(
+                                      textStyle: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold)),
+                                ))
+                          ],
+                        );
+                      });
+                },
+              )
+            ],
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          Row(
+            children: <Widget>[
+              Text(
+                'Total budget is',
+                style: GoogleFonts.muli(textStyle: TextStyle()),
+              ),
+              SizedBox(
+                width: 5,
+              ),
+              Text('${_budget.toString()} KES',
+                  style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16),
+                  ))
+            ],
+          )
+        ],
       ),
     );
   }
@@ -691,7 +807,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   SizedBox(
                     height: 10,
                   ),
-                  _introText(),
+                  _plannerIntro(),
                   SizedBox(
                     height: 10,
                   ),
@@ -728,182 +844,286 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       position: _slideAnimation,
       child: ScaleTransition(
         scale: _menuScaleAnimation,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16, top: 25),
-                        child: CircleAvatar(
-                          radius: 50,
-                          child: Icon(
-                            Icons.person,
-                            size: 50,
-                          ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, top: 30),
+                      child: CircleAvatar(
+                        radius: 50,
+                        child: Icon(
+                          Icons.person,
+                          size: 50,
                         ),
                       ),
-                      SizedBox(
-                        height: 10,
+                    ),
+                    SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Text(
+                        'Jon Snow',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold)),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: Text(
-                          'Jon Snow',
-                          style: GoogleFonts.muli(
-                              textStyle:
-                                  TextStyle(color: Colors.white, fontSize: 20)),
-                        ),
-                      )
-                    ],
-                  ),
+                    )
+                  ],
                 ),
-                SizedBox(
-                  height: 30,
-                ),
-                FlatButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Investments',
-                    style: menuLabelStyle,
-                  ),
-                ),
-                FlatButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Savings',
-                    style: menuLabelStyle,
-                  ),
-                ),
-                FlatButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Groups',
-                    style: menuLabelStyle,
-                  ),
-                ),
-                FlatButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Loans',
-                    style: menuLabelStyle,
-                  ),
-                ),
-                FlatButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Wallet',
-                    style: menuLabelStyle,
-                  ),
-                ),
-                FlatButton(
-                  onPressed: () {
+              ),
+              Expanded(child: Container()),
+              FlatButton(
+                onPressed: () {
                     setState(() {
-                      _pageSelection = 'plan';
-                    });
-                  },
-                  child: Text(
-                    'Planner',
-                    style: menuLabelStyle,
-                  ),
+                    _pageSelection = 'main';
+                    if (isCollapsed) {
+                      _controller.forward();
+                    } else {
+                      _controller.reverse();
+                    }
+                    isCollapsed = !isCollapsed;
+                  });
+                },
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                child: Text(
+                  'Home',
+                  style: menuLabelStyle,
                 ),
-                FlatButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Promotions',
-                    style: menuLabelStyle,
-                  ),
+              ),
+              FlatButton(
+                onPressed: () {},
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                child: Text(
+                  'Investments',
+                  style: menuLabelStyle,
                 ),
-                SizedBox(
-                  height: 50,
+              ),
+              FlatButton(
+                onPressed: () {},
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                child: Text(
+                  'Savings',
+                  style: menuLabelStyle,
                 ),
-                Expanded(
-                    child: Container(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Column(
-                        children: <Widget>[
-                          Text(
-                            'Share',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w300)),
+              ),
+              FlatButton(
+                onPressed: () {},
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                child: Text(
+                  'Groups',
+                  style: menuLabelStyle,
+                ),
+              ),
+              FlatButton(
+                onPressed: () {},
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                child: Text(
+                  'Loans',
+                  style: menuLabelStyle,
+                ),
+              ),
+              FlatButton(
+                onPressed: () {},
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                child: Text(
+                  'Wallet',
+                  style: menuLabelStyle,
+                ),
+              ),
+              FlatButton(
+                onPressed: () {
+                  setState(() {
+                    _pageSelection = 'plan';
+                    if (isCollapsed) {
+                      _controller.forward();
+                    } else {
+                      _controller.reverse();
+                    }
+                    isCollapsed = !isCollapsed;
+                  });
+                },
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                child: Text(
+                  'Planner',
+                  style: menuLabelStyle,
+                ),
+              ),
+              FlatButton(
+                onPressed: () {},
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                child: Text(
+                  'Promotions',
+                  style: menuLabelStyle,
+                ),
+              ),
+              Expanded(child: Container()),
+              Container(
+                padding: const EdgeInsets.only(left: 8),
+                margin: EdgeInsets.only(bottom: 16),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Card(
+                      elevation: 10,
+                      color: Color(0xFF73AEF5),
+                      child: InkWell(
+                        splashColor: Colors.greenAccent[700],
+                        onTap: () {
+                          //Implement Firebase Dynamic Links Here
+                          //Else use share package
+                          try {
+                            Share.share('Check out our website https://www.sortika.com');
+                          }
+                          catch (error) {
+                            print('SHARE ERROR: $error');
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                          child: Column(
+                            children: <Widget>[
+                              Text(
+                                'Share',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w300)),
+                              ),
+                              SizedBox(height: 5,),
+                              Icon(Icons.share, color: Colors.white),
+                            ],
                           ),
-                          IconButton(
-                              icon: Icon(Icons.share, color: Colors.white),
-                              onPressed: () {}),
-                        ],
+                        ),
                       ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Column(
-                        children: <Widget>[
-                          Text(
-                            'Rate',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w300)),
+                    ),
+                    Card(
+                      elevation: 10,
+                      color: Color(0xFF73AEF5),
+                      child: InkWell(
+                        splashColor: Colors.greenAccent[700],
+                        onTap: () {
+                          
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          child: Column(
+                            children: <Widget>[
+                              Text(
+                                'Rate',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w300)),
+                              ),
+                              SizedBox(height: 5,),
+                              Icon(Icons.rate_review, color: Colors.white),
+                            ],
                           ),
-                          IconButton(
-                              icon:
-                                  Icon(Icons.rate_review, color: Colors.white),
-                              onPressed: () {}),
-                        ],
+                        ),
                       ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Column(
-                        children: <Widget>[
-                          Text(
-                            'Support',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w300)),
+                    ),
+                    Card(
+                      elevation: 10,
+                      color: Color(0xFF73AEF5),
+                      child: InkWell(
+                        splashColor: Colors.greenAccent[700],
+                        onTap: () {
+                          
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          child: Column(
+                            children: <Widget>[
+                              Text(
+                                'Help',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w300)),
+                              ),
+                              SizedBox(height: 5,),
+                              Icon(Icons.feedback, color: Colors.white),
+                            ],
                           ),
-                          IconButton(
-                              icon: Icon(Icons.feedback, color: Colors.white),
-                              onPressed: () {}),
-                        ],
+                        ),
                       ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Column(
-                        children: <Widget>[
-                          Text(
-                            'Exit',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w300)),
+                    ),
+                    Card(
+                      elevation: 10,
+                      color: Color(0xFF73AEF5),
+                      child: InkWell(
+                        splashColor: Colors.greenAccent[700],
+                        onTap: () {
+                          showCupertinoModalPopup(
+                            context: context, 
+                            builder: (BuildContext context) {
+                              return CupertinoAlertDialog(
+                                title: Text(
+                                'Are you sure',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle()),
+                              ),
+                              actions: [
+                                FlatButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop();
+                                  }, 
+                                  child: Text(
+                                'YES',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold)),
+                              )),
+                              FlatButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  }, 
+                                  child: Text(
+                                'NO',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.bold)),
+                              ))
+                              ],
+                              );
+                            });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          child: Column(
+                            children: <Widget>[
+                              Text(
+                                'Exit',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w300)),
+                              ),
+                              SizedBox(height: 5,),
+                              Icon(Icons.exit_to_app, color: Colors.white),
+                            ],
                           ),
-                          IconButton(
-                              icon:
-                                  Icon(Icons.exit_to_app, color: Colors.white),
-                              onPressed: () {}),
-                        ],
-                      )
-                    ],
-                  ),
-                ))
-              ],
-            ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ],
           ),
         ),
       ),
@@ -918,17 +1138,22 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     screenWidth = size.width;
     final Duration duration = const Duration(milliseconds: 500);
 
-    return WillPopScope(
-      onWillPop: () {
-        setState(() {
-          _pageSelection = 'main';
-        });
-      },
-      child: Scaffold(
-        body: AnnotatedRegion<SystemUiOverlayStyle>(
-            child: Stack(
-              children: [
-                Container(
+    return Scaffold(
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+          child: Stack(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (isCollapsed) {
+                      _controller.forward();
+                    } else {
+                      _controller.reverse();
+                    }
+                    isCollapsed = !isCollapsed;
+                  });
+                },
+                child: Container(
                   height: screenHeight,
                   width: screenWidth,
                   decoration: BoxDecoration(
@@ -948,32 +1173,32 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         0.9
                       ])),
                 ),
-                _menu(context),
-                _pageSelection == 'main'
-                    ? _goalsPage(context)
-                    : _plannerPage(context)
-              ],
-            ),
-            value: SystemUiOverlayStyle.light),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            showCupertinoModalPopup(
-                context: context,
-                builder: (BuildContext context) {
-                  return CupertinoActionSheet(
-                    actions: [
-                      CupertinoActionSheetAction(
-                          onPressed: () {}, child: Text('Deposit')),
-                      CupertinoActionSheetAction(
-                          onPressed: () {}, child: Text('Create a goal'))
-                    ],
-                  );
-                });
-          },
-          splashColor: Colors.blue,
-          child: Icon(Icons.add),
-          backgroundColor: Colors.greenAccent[700],
-        ),
+              ),
+              _menu(context),
+              _pageSelection == 'main'
+                  ? _goalsPage(context)
+                  : _plannerPage(context)
+            ],
+          ),
+          value: SystemUiOverlayStyle.light),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showCupertinoModalPopup(
+              context: context,
+              builder: (BuildContext context) {
+                return CupertinoActionSheet(
+                  actions: [
+                    CupertinoActionSheetAction(
+                        onPressed: () {}, child: Text('Deposit')),
+                    CupertinoActionSheetAction(
+                        onPressed: () {}, child: Text('Create a goal'))
+                  ],
+                );
+              });
+        },
+        splashColor: Colors.blue,
+        child: Icon(Icons.add),
+        backgroundColor: Colors.greenAccent[700],
       ),
     );
   }

@@ -91,7 +91,6 @@ class _SavingsGoalState extends State<SavingsGoal> {
   }
 
   //Custom goal name
-  //Confirm Password Widget
   Widget _customGoalName() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

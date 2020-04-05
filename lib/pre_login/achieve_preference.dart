@@ -65,7 +65,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
                 TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
-     DropdownMenuItem(
+    DropdownMenuItem(
       value: 'Lend Money',
       child: Text(
         'Lend Money',
@@ -194,12 +194,10 @@ class _AchievePreferenceState extends State<AchievePreference> {
     return goal == 'Borrow Money'
         ? BorrowPage()
         : goal == 'Lend Money'
-        ? LendPage()
-        : goal == 'Save Money'
-        ? SavingsGoal()
-        : goal == 'Invest Money' 
-        ? InvestmentGoal() 
-        : GroupSavings();
+            ? LendPage()
+            : goal == 'Save Money'
+                ? SavingsGoal()
+                : goal == 'Invest Money' ? InvestmentGoal() : GroupSavings();
   }
 
   @override
@@ -348,7 +346,8 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                     //Peer to Peer request, then create a loan fund goal
                                     if (_currentPage == 1) {
                                       _pageController.dispose();
-                                      Navigator.of(context).popAndPushNamed ('/home');
+                                      Navigator.of(context)
+                                          .popAndPushNamed('/home');
                                     }
                                   },
                                   child: Padding(

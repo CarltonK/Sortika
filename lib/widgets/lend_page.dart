@@ -9,10 +9,9 @@ class LendPage extends StatefulWidget {
 }
 
 class _LendPageState extends State<LendPage> {
-
   final styleLabel =
       GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 15));
-      
+
   //Placeholder of amount
   double targetAmount = 0;
 
@@ -56,105 +55,107 @@ class _LendPageState extends State<LendPage> {
                 color: Colors.white,
               ),
             ),
-            SizedBox(height: 30,),
+            SizedBox(
+              height: 30,
+            ),
             Text(
-            'How much are you willing to lend?',
-            style: styleLabel,
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          Row(
-            children: <Widget>[
-              Expanded(
-                flex: 3,
-                child: Slider.adaptive(
-                    value: targetAmount,
-                    inactiveColor: Colors.white,
-                    divisions: 10,
-                    min: 0,
-                    max: 100000,
-                    label: targetAmount.toInt().toString(),
-                    onChanged: (value) {
-                      setState(() {
-                        targetAmount = value;
-                      });
-                    }),
-              ),
-              Expanded(
-                  flex: 1,
-                  child: Center(
-                    child: Text(
-                      '${targetAmount.toInt().toString()} KES',
-                      textAlign: TextAlign.center,
-                      style: labelStyle,
-                    ),
-                  ))
-            ],
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Text(
-            'For how long?',
-            style: styleLabel,
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            height: 70,
-            child: ListView.builder(
-              itemCount: durationGoalList.length,
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    if (durationGoalList.any((item) => item.isSelected)) {
-                      setState(() {
-                        durationGoalList[index].isSelected =
-                            !durationGoalList[index].isSelected;
-                      });
-                    } else {
-                      setState(() {
-                        durationGoalList[index].isSelected = true;
-                      });
-                    }
-                    print(durationGoalList[index].duration);
-                  },
-                  child: Card(
-                    color: durationGoalList[index].isSelected
-                        ? Colors.white
-                        : Colors.white70,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      width: 60,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Icon(
-                            Icons.calendar_today,
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            '${durationGoalList[index].duration}',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 15,
-                                    letterSpacing: 2)),
-                          )
-                        ],
+              'How much are you willing to lend?',
+              style: styleLabel,
+            ),
+            SizedBox(
+              height: 12,
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: Slider.adaptive(
+                      value: targetAmount,
+                      inactiveColor: Colors.white,
+                      divisions: 10,
+                      min: 0,
+                      max: 100000,
+                      label: targetAmount.toInt().toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          targetAmount = value;
+                        });
+                      }),
+                ),
+                Expanded(
+                    flex: 1,
+                    child: Center(
+                      child: Text(
+                        '${targetAmount.toInt().toString()} KES',
+                        textAlign: TextAlign.center,
+                        style: labelStyle,
+                      ),
+                    ))
+              ],
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Text(
+              'For how long?',
+              style: styleLabel,
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Container(
+              height: 70,
+              child: ListView.builder(
+                itemCount: durationGoalList.length,
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                    onTap: () {
+                      if (durationGoalList.any((item) => item.isSelected)) {
+                        setState(() {
+                          durationGoalList[index].isSelected =
+                              !durationGoalList[index].isSelected;
+                        });
+                      } else {
+                        setState(() {
+                          durationGoalList[index].isSelected = true;
+                        });
+                      }
+                      print(durationGoalList[index].duration);
+                    },
+                    child: Card(
+                      color: durationGoalList[index].isSelected
+                          ? Colors.white
+                          : Colors.white70,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        width: 60,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              Icons.calendar_today,
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Text(
+                              '${durationGoalList[index].duration}',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 15,
+                                      letterSpacing: 2)),
+                            )
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-          )
+                  );
+                },
+              ),
+            )
           ],
         ),
       ),

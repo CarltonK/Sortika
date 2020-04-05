@@ -245,7 +245,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   //Register Button
   Widget _registerBtn() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 25),
+      padding: EdgeInsets.symmetric(vertical: 20),
       width: double.infinity,
       child: RaisedButton(
         elevation: 5,
