@@ -348,7 +348,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                     //Peer to Peer request, then create a loan fund goal
                                     if (_currentPage == 1) {
                                       _pageController.dispose();
-                                      Navigator.of(context).popAndPushNamed('/home');
+                                      Navigator.of(context).popAndPushNamed ('/home');
                                     }
                                   },
                                   child: Padding(
