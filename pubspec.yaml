@@ -26,6 +26,8 @@ dependencies:
   intl: ^0.16.1
   # Share
   share: any
+  # Fonts
+  flutter_icons: ^1.0.0+1
 
 
   # The following adds the Cupertino Icons font to your application.

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share/share.dart';
+import 'package:wealth/models/budgetItem.dart';
 import 'package:wealth/utilities/styles.dart';
 
 final menuLabelStyle = GoogleFonts.muli(
@@ -22,6 +23,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Animation<double> _scaleAnimation;
   Animation<double> _menuScaleAnimation;
   Animation<Offset> _slideAnimation;
+  PageController _controllerBudget = PageController(viewportFraction: 0.7);
   //Saved amount
   double saved = 2000;
   //String page Selection
@@ -647,6 +649,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   final _formKey = GlobalKey<FormState>();
   int _budget = 0;
+  double _budgetSlector = 0;
   void _handleSubmittedBudget(String value) {
     _budget = int.parse(value);
     print('Budget: $_budget');
@@ -698,12 +701,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Text(
-                'Set up a monthly budget',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                  fontSize: 18,
-                )),
+              Expanded(
+                child: Text(
+                  'Set up a monthly budget',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                    fontSize: 18,
+                  )),
+                ),
               ),
               IconButton(
                 icon: Icon(Icons.create),
@@ -762,7 +767,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               SizedBox(
                 width: 5,
               ),
-              Text('${_budget.toString()} KES',
+              Text('${_budget.toInt().toString()} KES',
                   style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.black,
@@ -776,6 +781,95 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+  //Budget Item currently active
+  bool isItemActive = false;
+
+  //Budget Item
+  Widget _budgetItem(IconData icon, String title, int amount) {
+    return AnimatedContainer(
+      duration: duration,
+      margin: EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16), color: Colors.blue),
+      padding: EdgeInsets.all(8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+              child: Icon(
+                icon,
+                color: Colors.white,
+              ),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: Colors.lightBlue)),
+          SizedBox(
+            width: 10,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$title',
+                style:
+                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.white)),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Text(
+                '${amount.toString()} KES',
+                style: labelStyle,
+              ),
+            ],
+          ),
+          SizedBox(
+            width: 5,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _budgetScroll() {
+    return Container(
+      height: 80,
+      child: PageView(
+        scrollDirection: Axis.horizontal,
+        controller: _controllerBudget,
+        onPageChanged: (value) {},
+        children: budgetItems
+            .map((map) => _budgetItem(map.icon, map.title, map.amount))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _planEditBox() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Expanded(
+              child: Container(
+            child: TextFormField(
+              decoration: InputDecoration(
+                  border: OutlineInputBorder(borderSide: BorderSide())),
+            ),
+          )),
+          IconButton(
+            icon: Icon(Icons.keyboard),
+            onPressed: () {},
+          )
+        ],
+      ),
+    );
+  }
+
+  Color _colorBudget = Colors.blue[800];
   //Planning Page
   Widget _plannerPage(context) {
     return AnimatedPositioned(
@@ -809,7 +903,71 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   ),
                   _plannerIntro(),
                   SizedBox(
-                    height: 10,
+                    height: 20,
+                  ),
+                  _budgetScroll(),
+                  SizedBox(
+                    height: 50,
+                  ),
+                  _planEditBox(),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  AnimatedContainer(
+                    duration: duration,
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    height: 300,
+                    width: screenWidth,
+                    decoration: BoxDecoration(
+                        color: _colorBudget,
+                        borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(40),
+                            topLeft: Radius.circular(40))),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.symmetric(vertical: 15),
+                          child: Slider(
+                              value: _budgetSlector,
+                              min: 0,
+                              max: (_budget == 0) ? 1000 : _budget.toDouble(),
+                              activeColor: Colors.greenAccent[700],
+                              inactiveColor: Colors.white,
+                              onChanged: (value) {
+                                setState(() {
+                                  _budgetSlector = value;
+                                  if (value > (_budget / 0.25)) {
+                                    _colorBudget = Colors.red;
+                                  } else {
+                                    _colorBudget = Colors.blue[800];
+                                  }
+                                });
+                              }),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            'Normal',
+                            style: labelStyle,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10),
+                          child: Text(
+                            'That\'s an acceptable range',
+                            style: hintStyle,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -858,12 +1016,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 16, top: 30),
-                      child: CircleAvatar(
-                        radius: 50,
-                        child: Icon(
-                          Icons.person,
-                          size: 50,
+                      padding: const EdgeInsets.only(left: 16, top: 40),
+                      child: GestureDetector(
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/profile'),
+                        child: CircleAvatar(
+                          radius: 50,
+                          child: Icon(
+                            Icons.person,
+                            size: 50,
+                          ),
                         ),
                       ),
                     ),
@@ -885,7 +1047,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               Expanded(child: Container()),
               FlatButton(
                 onPressed: () {
-                    setState(() {
+                  setState(() {
                     _pageSelection = 'main';
                     if (isCollapsed) {
                       _controller.forward();
@@ -983,14 +1145,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           //Implement Firebase Dynamic Links Here
                           //Else use share package
                           try {
-                            Share.share('Check out our website https://www.sortika.com');
-                          }
-                          catch (error) {
+                            Share.share(
+                                'Check out our website https://www.sortika.com');
+                          } catch (error) {
                             print('SHARE ERROR: $error');
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 8),
                           child: Column(
                             children: <Widget>[
                               Text(
@@ -1000,7 +1163,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                         color: Colors.white,
                                         fontWeight: FontWeight.w300)),
                               ),
-                              SizedBox(height: 5,),
+                              SizedBox(
+                                height: 5,
+                              ),
                               Icon(Icons.share, color: Colors.white),
                             ],
                           ),
@@ -1012,11 +1177,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       color: Color(0xFF73AEF5),
                       child: InkWell(
                         splashColor: Colors.greenAccent[700],
-                        onTap: () {
-                          
-                        },
+                        onTap: () {},
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 10),
                           child: Column(
                             children: <Widget>[
                               Text(
@@ -1026,7 +1190,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                         color: Colors.white,
                                         fontWeight: FontWeight.w300)),
                               ),
-                              SizedBox(height: 5,),
+                              SizedBox(
+                                height: 5,
+                              ),
                               Icon(Icons.rate_review, color: Colors.white),
                             ],
                           ),
@@ -1038,11 +1204,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       color: Color(0xFF73AEF5),
                       child: InkWell(
                         splashColor: Colors.greenAccent[700],
-                        onTap: () {
-                          
-                        },
+                        onTap: () {},
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 10),
                           child: Column(
                             children: <Widget>[
                               Text(
@@ -1052,7 +1217,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                         color: Colors.white,
                                         fontWeight: FontWeight.w300)),
                               ),
-                              SizedBox(height: 5,),
+                              SizedBox(
+                                height: 5,
+                              ),
                               Icon(Icons.feedback, color: Colors.white),
                             ],
                           ),
@@ -1066,44 +1233,45 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         splashColor: Colors.greenAccent[700],
                         onTap: () {
                           showCupertinoModalPopup(
-                            context: context, 
-                            builder: (BuildContext context) {
-                              return CupertinoAlertDialog(
-                                title: Text(
-                                'Are you sure',
-                                style: GoogleFonts.muli(
-                                    textStyle: TextStyle()),
-                              ),
-                              actions: [
-                                FlatButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
-                                  }, 
-                                  child: Text(
-                                'YES',
-                                style: GoogleFonts.muli(
-                                    textStyle: TextStyle(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold)),
-                              )),
-                              FlatButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  }, 
-                                  child: Text(
-                                'NO',
-                                style: GoogleFonts.muli(
-                                    textStyle: TextStyle(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold)),
-                              ))
-                              ],
-                              );
-                            });
+                              context: context,
+                              builder: (BuildContext context) {
+                                return CupertinoAlertDialog(
+                                  title: Text(
+                                    'Are you sure',
+                                    style: GoogleFonts.muli(
+                                        textStyle: TextStyle()),
+                                  ),
+                                  actions: [
+                                    FlatButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(
+                                          'YES',
+                                          style: GoogleFonts.muli(
+                                              textStyle: TextStyle(
+                                                  color: Colors.green,
+                                                  fontWeight: FontWeight.bold)),
+                                        )),
+                                    FlatButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(
+                                          'NO',
+                                          style: GoogleFonts.muli(
+                                              textStyle: TextStyle(
+                                                  color: Colors.red,
+                                                  fontWeight: FontWeight.bold)),
+                                        ))
+                                  ],
+                                );
+                              });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 10),
                           child: Column(
                             children: <Widget>[
                               Text(
@@ -1113,7 +1281,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                         color: Colors.white,
                                         fontWeight: FontWeight.w300)),
                               ),
-                              SizedBox(height: 5,),
+                              SizedBox(
+                                height: 5,
+                              ),
                               Icon(Icons.exit_to_app, color: Colors.white),
                             ],
                           ),
@@ -1189,9 +1359,19 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 return CupertinoActionSheet(
                   actions: [
                     CupertinoActionSheetAction(
-                        onPressed: () {}, child: Text('Deposit')),
+                        onPressed: () {
+                          //Pop the dialog first then open page
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushNamed('/deposit');
+                        },
+                        child: Text('Deposit')),
                     CupertinoActionSheetAction(
-                        onPressed: () {}, child: Text('Create a goal'))
+                        onPressed: () {
+                          //Pop the dialog first then open page
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pushNamed('/create-goal');
+                        },
+                        child: Text('Create a goal'))
                   ],
                 );
               });

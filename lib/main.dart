@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/authentication_screens/passwordreset.dart';
 import 'package:wealth/authentication_screens/registration.dart';
+import 'package:wealth/home_screens/create_goal.dart';
+import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/home_screens/home.dart';
+import 'package:wealth/home_screens/profile.dart';
 import 'package:wealth/onboarding.dart';
 import 'package:wealth/pre_login/achieve_preference.dart';
 
@@ -28,7 +31,10 @@ class MyApp extends StatelessWidget {
         //Pre-Login Screens
         '/achieve-pref': (context) => AchievePreference(),
         //Home Screens
-        '/home': (context) => Home()
+        '/home': (context) => Home(),
+        '/profile': (context) => ProfilePage(),
+        '/create-goal': (context) => CreateGoal(),
+        '/deposit': (context) => Deposit()
       },
       theme: ThemeData(
         primarySwatch: Colors.blue,
