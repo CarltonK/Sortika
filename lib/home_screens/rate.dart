@@ -163,8 +163,8 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
                           width: 150.0,
                           height: 50.0,
                           decoration: BoxDecoration(
-                              gradient:
-                                  LinearGradient(colors: [startColor, endColor]),
+                              gradient: LinearGradient(
+                                  colors: [startColor, endColor]),
                               borderRadius: BorderRadius.circular(12)),
                           alignment: Alignment.center,
                           child: Text(

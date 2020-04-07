@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share/share.dart';
 import 'package:wealth/models/budgetItem.dart';
 import 'package:wealth/utilities/styles.dart';
+import 'package:wealth/widgets/investment_colored.dart';
+import 'package:wealth/widgets/portfolio.dart';
 
 final menuLabelStyle = GoogleFonts.muli(
     textStyle: TextStyle(
@@ -655,6 +657,93 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+  //PageView Controller
+  final PageController _pageController = PageController(initialPage: 0);
+  //Define number of screens
+  final int _numPages = 2;
+  //Placeholder for current page
+  int _currentPage = 0;
+
+  List<Widget> _buildPageIndicator() {
+    List<Widget> list = [];
+    for (int i = 0; i < _numPages; i++) {
+      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
+    }
+    return list;
+  }
+
+  //Page Indicator i.e Slider
+  Widget _indicator(bool isActive) {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      height: 8,
+      width: isActive ? 24 : 16,
+      decoration: BoxDecoration(
+          color: isActive ? Colors.blue : Colors.lightBlue[100],
+          borderRadius: BorderRadius.circular(12)),
+    );
+  }
+
+  Widget _investmentPage(context) {
+    return AnimatedPositioned(
+      duration: duration,
+      curve: Curves.ease,
+      top: 0,
+      bottom: 0,
+      left: isCollapsed ? 0 : 0.6 * screenWidth,
+      right: isCollapsed ? 0 : -0.4 * screenWidth,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Material(
+          elevation: 10,
+          animationDuration: duration,
+          borderRadius: isCollapsed
+              ? BorderRadius.circular(0)
+              : BorderRadius.circular(30),
+          color: Colors.white,
+          child: Container(
+            padding: EdgeInsets.only(
+              top: 30,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _appBar(),
+                SizedBox(
+                  height: 10,
+                ),
+                Expanded(
+                    child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (value) {
+                    setState(() {
+                      _currentPage = value;
+                      _pageController.animateToPage(value,
+                          duration: Duration(milliseconds: 100),
+                          curve: Curves.ease);
+                    });
+                  },
+                  children: [Portfolio(), InvestmentColored()],
+                )),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: _buildPageIndicator(),
+                ),
+                SizedBox(
+                  height: 10,
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   //Goals Page
   Widget _goalsPage(context) {
     return AnimatedPositioned(
@@ -1172,15 +1261,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 child: InkWell(
                   splashColor: Colors.blueGrey,
                   onTap: () {
-                    //    setState(() {
-                    //   _pageSelection = 'main';
-                    //   if (isCollapsed) {
-                    //     _controller.forward();
-                    //   } else {
-                    //     _controller.reverse();
-                    //   }
-                    //   isCollapsed = !isCollapsed;
-                    // });
+                    setState(() {
+                      _pageSelection = 'invest';
+                      if (isCollapsed) {
+                        _controller.forward();
+                      } else {
+                        _controller.reverse();
+                      }
+                      isCollapsed = !isCollapsed;
+                    });
                   },
                   child: Container(
                     padding:
@@ -1573,7 +1662,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               _menu(context),
               _pageSelection == 'main'
                   ? _goalsPage(context)
-                  : _plannerPage(context)
+                  : _pageSelection == 'invest'
+                      ? _investmentPage(context)
+                      : _plannerPage(context)
             ],
           ),
           value: SystemUiOverlayStyle.light),

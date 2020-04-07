@@ -28,6 +28,8 @@ dependencies:
   share: any
   # Fonts
   flutter_icons: ^1.0.0+1
+  # Pie Chart
+  pie_chart: ^3.1.1
 
 
   # The following adds the Cupertino Icons font to your application.
