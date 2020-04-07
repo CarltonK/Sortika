@@ -165,36 +165,45 @@ class _DepositState extends State<Deposit> {
       decoration: BoxDecoration(
           color: Colors.white, borderRadius: BorderRadius.circular(12)),
       child: ExpansionTile(
-          title: Text('Manual Deposit',
+        title: Text('Manual Deposit',
+            style: GoogleFonts.muli(
+              textStyle: TextStyle(color: Colors.black),
+            )),
+        children: [
+          Text('Go to your M-PESA menu',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.black),
               )),
-              children: [
-                Text('Go to your M-PESA menu',
+          SizedBox(
+            height: 5,
+          ),
+          Text('Enter SORTIKA paybill number XXXXXX',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.black),
               )),
-              SizedBox(height: 5,),
-              Text('Enter SORTIKA paybill number XXXXXX',
+          SizedBox(
+            height: 5,
+          ),
+          Text('Enter XXXX as account number',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.black),
               )),
-              SizedBox(height: 5,),
-              Text('Enter XXXX as account number',
+          SizedBox(
+            height: 5,
+          ),
+          Text('Enter the amount',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.black),
               )),
-              SizedBox(height: 5,),
-              Text('Enter the amount',
-              style: GoogleFonts.muli(
-                textStyle: TextStyle(color: Colors.black),
-              )),
-              SizedBox(height: 5,),
-              Text('Enter your M-PESA pin',
+          SizedBox(
+            height: 5,
+          ),
+          Text('Enter your M-PESA pin',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.black),
               ))
-              ],),
+        ],
+      ),
     );
   }
 

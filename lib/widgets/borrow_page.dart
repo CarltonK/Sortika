@@ -56,7 +56,7 @@ class _BorrowPageState extends State<BorrowPage> {
     ),
   ];
 
-    var _date;
+  var _date;
   // static var formatter = new DateFormat('yMMMd');
   // String dateFormatted = formatter.format(_date);
 

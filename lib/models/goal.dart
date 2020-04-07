@@ -5,9 +5,10 @@ class Goal {
   Goal({this.title, this.subtitle});
 }
 
-Goal _savings = new Goal(title: 'Savings', subtitle: '');
-Goal _investment = new Goal(title: 'Investment', subtitle: '');
-Goal _loanFund = new Goal(title: 'Loan Fund', subtitle: '');
-Goal _group = new Goal(title: 'Group Savings', subtitle: '');
+Goal _savings = new Goal(title: 'Savings', subtitle: 'Define your life goals');
+Goal _investment =
+    new Goal(title: 'Investment', subtitle: 'Invest to grow your wealth');
+Goal _group =
+    new Goal(title: 'Group Savings', subtitle: 'Together we are stronger');
 
-List<Goal> goals = [_savings, _investment, _loanFund, _group];
+List<Goal> goals = [_savings, _investment, _group];

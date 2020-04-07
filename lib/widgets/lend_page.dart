@@ -15,7 +15,7 @@ class _LendPageState extends State<LendPage> {
   //Placeholder of amount
   double targetAmount = 0;
 
-    var _date;
+  var _date;
   // static var formatter = new DateFormat('yMMMd');
   // String dateFormatted = formatter.format(_date);
 

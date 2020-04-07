@@ -45,7 +45,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
     ),
   ];
 
-      var _date;
+  var _date;
   // static var formatter = new DateFormat('yMMMd');
   // String dateFormatted = formatter.format(_date);
 
@@ -291,42 +291,42 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
               ),
             ),
             SizedBox(
-                height: 10,
-              ),
-              Text(
-                '-- OR --',
-                style: styleLabel,
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                'I want to set an end date',
-                style: styleLabel,
-              ),
-              Row(
-                children: [
-                  Expanded(child: _customPeriod()),
-                  Center(
-                    child: IconButton(
-                      icon: Icon(Icons.date_range, size: 30, color: Colors.white),
-                      splashColor: Colors.greenAccent[700],
-                      onPressed: () {
-                        showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(Duration(days: 1000)),
-                        ).then((value) {
-                          setState(() {
-                            _date = value;
-                          });
+              height: 10,
+            ),
+            Text(
+              '-- OR --',
+              style: styleLabel,
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Text(
+              'I want to set an end date',
+              style: styleLabel,
+            ),
+            Row(
+              children: [
+                Expanded(child: _customPeriod()),
+                Center(
+                  child: IconButton(
+                    icon: Icon(Icons.date_range, size: 30, color: Colors.white),
+                    splashColor: Colors.greenAccent[700],
+                    onPressed: () {
+                      showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(Duration(days: 1000)),
+                      ).then((value) {
+                        setState(() {
+                          _date = value;
                         });
-                      },
-                    ),
-                  )
-                ],
-              ),
+                      });
+                    },
+                  ),
+                )
+              ],
+            ),
           ],
         ),
       ),

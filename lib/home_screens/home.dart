@@ -238,6 +238,64 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   ),
                 ),
                 Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      showCupertinoModalPopup(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return CupertinoActionSheet(
+                              title: Text(
+                                'Goal Options',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black)),
+                              ),
+                              actions: [
+                                CupertinoActionSheetAction(
+                                    onPressed: () {},
+                                    child: Text(
+                                      'Edit',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                    )),
+                                CupertinoActionSheetAction(
+                                    onPressed: () {},
+                                    child: Text(
+                                      'Redeem',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                    )),
+                              ],
+                              cancelButton: CupertinoActionSheetAction(
+                                  onPressed: () {},
+                                  child: Text(
+                                    'Delete',
+                                    style: GoogleFonts.muli(
+                                        textStyle: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.red)),
+                                  )),
+                            );
+                          });
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(20)),
+                          color: Colors.transparent),
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
                   alignment: Alignment.center,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -388,6 +446,20 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       'Investments goal',
                       style: GoogleFonts.muli(
                           textStyle: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.only(bottomLeft: Radius.circular(20)),
+                        color: Colors.transparent),
+                    child: Icon(
+                      Icons.edit,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -637,7 +709,29 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   SizedBox(
                     height: 10,
                   ),
-                  _goalDisplay()
+                  _goalDisplay(),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 50),
+                    child: Divider(
+                      color: Colors.blueGrey,
+                      thickness: 1.5,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'Activity',
+                      style: GoogleFonts.muli(
+                          textStyle:
+                              TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                    ),
+                  )
                 ],
               ),
             ),
@@ -1012,7 +1106,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               Container(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Padding(
@@ -1045,88 +1139,220 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 ),
               ),
               Expanded(child: Container()),
-              FlatButton(
-                onPressed: () {
-                  setState(() {
-                    _pageSelection = 'main';
-                    if (isCollapsed) {
-                      _controller.forward();
-                    } else {
-                      _controller.reverse();
-                    }
-                    isCollapsed = !isCollapsed;
-                  });
-                },
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                child: Text(
-                  'Home',
-                  style: menuLabelStyle,
+              Card(
+                color: Colors.transparent,
+                elevation: 0,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    setState(() {
+                      _pageSelection = 'main';
+                      if (isCollapsed) {
+                        _controller.forward();
+                      } else {
+                        _controller.reverse();
+                      }
+                      isCollapsed = !isCollapsed;
+                    });
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    color: Colors.transparent,
+                    child: Text(
+                      'Home',
+                      style: menuLabelStyle,
+                    ),
+                  ),
                 ),
               ),
-              FlatButton(
-                onPressed: () {},
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                child: Text(
-                  'Investments',
-                  style: menuLabelStyle,
+              Card(
+                color: Colors.transparent,
+                elevation: 0,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    //    setState(() {
+                    //   _pageSelection = 'main';
+                    //   if (isCollapsed) {
+                    //     _controller.forward();
+                    //   } else {
+                    //     _controller.reverse();
+                    //   }
+                    //   isCollapsed = !isCollapsed;
+                    // });
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    color: Colors.transparent,
+                    child: Text(
+                      'Investments',
+                      style: menuLabelStyle,
+                    ),
+                  ),
                 ),
               ),
-              FlatButton(
-                onPressed: () {},
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                child: Text(
-                  'Savings',
-                  style: menuLabelStyle,
+              Card(
+                color: Colors.transparent,
+                elevation: 0,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    //    setState(() {
+                    //   _pageSelection = 'main';
+                    //   if (isCollapsed) {
+                    //     _controller.forward();
+                    //   } else {
+                    //     _controller.reverse();
+                    //   }
+                    //   isCollapsed = !isCollapsed;
+                    // });
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    color: Colors.transparent,
+                    child: Text(
+                      'Savings',
+                      style: menuLabelStyle,
+                    ),
+                  ),
                 ),
               ),
-              FlatButton(
-                onPressed: () {},
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                child: Text(
-                  'Groups',
-                  style: menuLabelStyle,
+              Card(
+                color: Colors.transparent,
+                elevation: 0,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    //    setState(() {
+                    //   _pageSelection = 'main';
+                    //   if (isCollapsed) {
+                    //     _controller.forward();
+                    //   } else {
+                    //     _controller.reverse();
+                    //   }
+                    //   isCollapsed = !isCollapsed;
+                    // });
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    color: Colors.transparent,
+                    child: Text(
+                      'Groups',
+                      style: menuLabelStyle,
+                    ),
+                  ),
                 ),
               ),
-              FlatButton(
-                onPressed: () {},
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                child: Text(
-                  'Loans',
-                  style: menuLabelStyle,
+              Card(
+                color: Colors.transparent,
+                elevation: 0,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    //    setState(() {
+                    //   _pageSelection = 'main';
+                    //   if (isCollapsed) {
+                    //     _controller.forward();
+                    //   } else {
+                    //     _controller.reverse();
+                    //   }
+                    //   isCollapsed = !isCollapsed;
+                    // });
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    color: Colors.transparent,
+                    child: Text(
+                      'Loans',
+                      style: menuLabelStyle,
+                    ),
+                  ),
                 ),
               ),
-              FlatButton(
-                onPressed: () {},
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                child: Text(
-                  'Wallet',
-                  style: menuLabelStyle,
+              Card(
+                color: Colors.transparent,
+                elevation: 0,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    //    setState(() {
+                    //   _pageSelection = 'main';
+                    //   if (isCollapsed) {
+                    //     _controller.forward();
+                    //   } else {
+                    //     _controller.reverse();
+                    //   }
+                    //   isCollapsed = !isCollapsed;
+                    // });
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    color: Colors.transparent,
+                    child: Text(
+                      'Wallet',
+                      style: menuLabelStyle,
+                    ),
+                  ),
                 ),
               ),
-              FlatButton(
-                onPressed: () {
-                  setState(() {
-                    _pageSelection = 'plan';
-                    if (isCollapsed) {
-                      _controller.forward();
-                    } else {
-                      _controller.reverse();
-                    }
-                    isCollapsed = !isCollapsed;
-                  });
-                },
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                child: Text(
-                  'Planner',
-                  style: menuLabelStyle,
+              Card(
+                color: Colors.transparent,
+                elevation: 0,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    setState(() {
+                      _pageSelection = 'plan';
+                      if (isCollapsed) {
+                        _controller.forward();
+                      } else {
+                        _controller.reverse();
+                      }
+                      isCollapsed = !isCollapsed;
+                    });
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    color: Colors.transparent,
+                    child: Text(
+                      'Planner',
+                      style: menuLabelStyle,
+                    ),
+                  ),
                 ),
               ),
-              FlatButton(
-                onPressed: () {},
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                child: Text(
-                  'Promotions',
-                  style: menuLabelStyle,
+              Card(
+                color: Colors.transparent,
+                elevation: 0,
+                child: InkWell(
+                  splashColor: Colors.blueGrey,
+                  onTap: () {
+                    //    setState(() {
+                    //   _pageSelection = 'main';
+                    //   if (isCollapsed) {
+                    //     _controller.forward();
+                    //   } else {
+                    //     _controller.reverse();
+                    //   }
+                    //   isCollapsed = !isCollapsed;
+                    // });
+                  },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                    color: Colors.transparent,
+                    child: Text(
+                      'Promotions',
+                      style: menuLabelStyle,
+                    ),
+                  ),
                 ),
               ),
               Expanded(child: Container()),
@@ -1177,7 +1403,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       color: Color(0xFF73AEF5),
                       child: InkWell(
                         splashColor: Colors.greenAccent[700],
-                        onTap: () {},
+                        onTap: () => Navigator.of(context).pushNamed('/rate'),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               vertical: 5, horizontal: 10),
