@@ -68,7 +68,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
 
   Widget _proceedBtn() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 25),
+      padding: EdgeInsets.symmetric(vertical: 10),
       width: double.infinity,
       child: RaisedButton(
         elevation: 3,
@@ -85,6 +85,203 @@ class _InvestmentColoredState extends State<InvestmentColored> {
                   fontSize: 18,
                   fontWeight: FontWeight.bold)),
         ),
+      ),
+    );
+  }
+
+  Widget _amountSelector() {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          flex: 3,
+          child: Slider.adaptive(
+              value: targetAmount,
+              inactiveColor: Colors.grey,
+              divisions: 10,
+              min: 0,
+              max: 100000,
+              label: targetAmount.toInt().toString(),
+              onChanged: (value) {
+                setState(() {
+                  targetAmount = value;
+                });
+              }),
+        ),
+        Expanded(
+            flex: 1,
+            child: Center(
+              child: Text(
+                '${targetAmount.toInt().toString()} KES',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.bold)),
+              ),
+            ))
+      ],
+    );
+  }
+
+  Widget _enterDate() {
+    return Row(
+      children: [
+        Expanded(child: _customPeriod()),
+        Center(
+          child: GestureDetector(
+            onTap: () {
+              showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(Duration(days: 1000)),
+              ).then((value) {
+                setState(() {
+                  _date = value;
+                });
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.date_range, size: 30, color: Colors.black),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _periodSelector() {
+    return Container(
+      height: 70,
+      child: ListView.builder(
+        itemCount: durationGoalList.length,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (BuildContext context, int index) {
+          return GestureDetector(
+            onTap: () {
+              if (durationGoalList.any((item) => item.isSelected)) {
+                setState(() {
+                  durationGoalList[index].isSelected =
+                      !durationGoalList[index].isSelected;
+                });
+              } else {
+                setState(() {
+                  durationGoalList[index].isSelected = true;
+                });
+              }
+              print(durationGoalList[index].duration);
+            },
+            child: Card(
+              color: durationGoalList[index].isSelected
+                  ? Colors.white
+                  : Colors.white70,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                width: 60,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(
+                      Icons.calendar_today,
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      '${durationGoalList[index].duration}',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 15,
+                              letterSpacing: 2)),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _goalType() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButton(
+        items: itemsGoals,
+        underline: Divider(
+          color: Colors.transparent,
+        ),
+        value: goalInvestment,
+        hint: Text(
+          '',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600)),
+        ),
+        icon: Icon(
+          CupertinoIcons.down_arrow,
+          color: Colors.black,
+        ),
+        isExpanded: true,
+        onChanged: (value) {
+          setState(() {
+            goalInvestment = value;
+            //Change color according to value of goal
+            if (value == 'billGoal') {
+              // color = Colors.brown;
+            }
+          });
+          //print(goal);
+        },
+      ),
+    );
+  }
+
+  Widget _goalClass() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButton(
+        items: itemsAsset,
+        underline: Divider(
+          color: Colors.transparent,
+        ),
+        value: classInvestment,
+        hint: Text(
+          '',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600)),
+        ),
+        icon: Icon(
+          CupertinoIcons.down_arrow,
+          color: Colors.black,
+        ),
+        isExpanded: true,
+        onChanged: (value) {
+          setState(() {
+            classInvestment = value;
+            //Change color according to value of goal
+            if (value == 'fixed') {}
+          });
+          //print(goal);
+        },
       ),
     );
   }
@@ -117,44 +314,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
             SizedBox(
               height: 5,
             ),
-            Container(
-              alignment: Alignment.centerLeft,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: DropdownButton(
-                items: itemsAsset,
-                underline: Divider(
-                  color: Colors.transparent,
-                ),
-                value: classInvestment,
-                hint: Text(
-                  '',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600)),
-                ),
-                icon: Icon(
-                  CupertinoIcons.down_arrow,
-                  color: Colors.black,
-                ),
-                isExpanded: true,
-                onChanged: (value) {
-                  setState(() {
-                    classInvestment = value;
-                    //Change color according to value of goal
-                    if (value == 'fixed') {
-                      // color = Colors.brown;
-                    }
-                  });
-                  //print(goal);
-                },
-              ),
-            ),
+            _goalClass(),
             SizedBox(
               height: 20,
             ),
@@ -165,44 +325,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
             SizedBox(
               height: 5,
             ),
-            Container(
-              alignment: Alignment.centerLeft,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: DropdownButton(
-                items: itemsGoals,
-                underline: Divider(
-                  color: Colors.transparent,
-                ),
-                value: goalInvestment,
-                hint: Text(
-                  '',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600)),
-                ),
-                icon: Icon(
-                  CupertinoIcons.down_arrow,
-                  color: Colors.black,
-                ),
-                isExpanded: true,
-                onChanged: (value) {
-                  setState(() {
-                    goalInvestment = value;
-                    //Change color according to value of goal
-                    if (value == 'billGoal') {
-                      // color = Colors.brown;
-                    }
-                  });
-                  //print(goal);
-                },
-              ),
-            ),
+            _goalType(),
             SizedBox(
               height: 20,
             ),
@@ -213,37 +336,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
             SizedBox(
               height: 12,
             ),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  flex: 3,
-                  child: Slider.adaptive(
-                      value: targetAmount,
-                      inactiveColor: Colors.grey,
-                      divisions: 10,
-                      min: 0,
-                      max: 100000,
-                      label: targetAmount.toInt().toString(),
-                      onChanged: (value) {
-                        setState(() {
-                          targetAmount = value;
-                        });
-                      }),
-                ),
-                Expanded(
-                    flex: 1,
-                    child: Center(
-                      child: Text(
-                        '${targetAmount.toInt().toString()} KES',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                    ))
-              ],
-            ),
+            _amountSelector(),
             SizedBox(
               height: 20,
             ),
@@ -254,59 +347,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
             SizedBox(
               height: 10,
             ),
-            Container(
-              height: 70,
-              child: ListView.builder(
-                itemCount: durationGoalList.length,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (BuildContext context, int index) {
-                  return GestureDetector(
-                    onTap: () {
-                      if (durationGoalList.any((item) => item.isSelected)) {
-                        setState(() {
-                          durationGoalList[index].isSelected =
-                              !durationGoalList[index].isSelected;
-                        });
-                      } else {
-                        setState(() {
-                          durationGoalList[index].isSelected = true;
-                        });
-                      }
-                      print(durationGoalList[index].duration);
-                    },
-                    child: Card(
-                      color: durationGoalList[index].isSelected
-                          ? Colors.white
-                          : Colors.white70,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        width: 60,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Icon(
-                              Icons.calendar_today,
-                            ),
-                            SizedBox(
-                              height: 5,
-                            ),
-                            Text(
-                              '${durationGoalList[index].duration}',
-                              style: GoogleFonts.muli(
-                                  textStyle: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 15,
-                                      letterSpacing: 2)),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+            _periodSelector(),
             SizedBox(
               height: 10,
             ),
@@ -321,29 +362,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
               'I want to set an end date',
               style: styleLabel,
             ),
-            Row(
-              children: [
-                Expanded(child: _customPeriod()),
-                Center(
-                  child: IconButton(
-                    icon: Icon(Icons.date_range, size: 30, color: Colors.black),
-                    splashColor: Colors.greenAccent[700],
-                    onPressed: () {
-                      showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(Duration(days: 1000)),
-                      ).then((value) {
-                        setState(() {
-                          _date = value;
-                        });
-                      });
-                    },
-                  ),
-                )
-              ],
-            ),
+            _enterDate(),
             _proceedBtn()
           ],
         ),

@@ -137,7 +137,7 @@ class _PortfolioState extends State<Portfolio> {
   Widget build(BuildContext context) {
     Widget _portfolioSummary() {
       return Container(
-          height: MediaQuery.of(context).size.height * 0.45,
+          height: MediaQuery.of(context).size.height * 0.5,
           child: PageView(
             scrollDirection: Axis.horizontal,
             controller: _controller,

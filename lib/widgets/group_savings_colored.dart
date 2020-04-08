@@ -3,12 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/models/loanDuration.dart';
 import 'package:wealth/utilities/styles.dart';
 
-class GroupSavings extends StatefulWidget {
+class GroupSavingsColored extends StatefulWidget {
   @override
-  _GroupSavingsState createState() => _GroupSavingsState();
+  _GroupSavingsColoredState createState() => _GroupSavingsColoredState();
 }
 
-class _GroupSavingsState extends State<GroupSavings> {
+class _GroupSavingsColoredState extends State<GroupSavingsColored> {
+  @override
+
   //FocusNodes
   final focusObjective = FocusNode();
 
@@ -54,10 +56,10 @@ class _GroupSavingsState extends State<GroupSavings> {
       children: <Widget>[
         Text(
           'Group Name',
-          style: labelStyle,
+          style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
         ),
         SizedBox(
-          height: 20,
+          height: 5,
         ),
         Container(
           alignment: Alignment.centerLeft,
@@ -95,10 +97,10 @@ class _GroupSavingsState extends State<GroupSavings> {
       children: <Widget>[
         Text(
           'Group Objective',
-          style: labelStyle,
+          style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
         ),
         SizedBox(
-          height: 20,
+          height: 5,
         ),
         Container(
           alignment: Alignment.centerLeft,
@@ -230,7 +232,7 @@ class _GroupSavingsState extends State<GroupSavings> {
           flex: 5,
           child: Slider.adaptive(
               value: members,
-              inactiveColor: Colors.white,
+              inactiveColor: Colors.grey[300],
               divisions: 10,
               min: 1,
               max: 10,
@@ -248,14 +250,15 @@ class _GroupSavingsState extends State<GroupSavings> {
                 children: <Widget>[
                   Text(
                     '${members.toInt().toString()}',
-                    style: labelStyle,
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(color: Colors.black)),
                   ),
                   SizedBox(
                     width: 5,
                   ),
                   Icon(
                     members.toInt() == 1 ? Icons.person : Icons.people,
-                    color: Colors.white,
+                    color: Colors.black,
                   )
                 ],
               ),
@@ -348,7 +351,7 @@ class _GroupSavingsState extends State<GroupSavings> {
           flex: 5,
           child: Text(
             'Is this group registered?',
-            style: labelStyle,
+            style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
           ),
         ),
         Expanded(
@@ -356,11 +359,11 @@ class _GroupSavingsState extends State<GroupSavings> {
           child: Row(
             children: <Widget>[
               Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.white),
+                  data: ThemeData(unselectedWidgetColor: Colors.blue),
                   child: Checkbox(
                       value: _isRegistered,
-                      checkColor: Colors.greenAccent[700],
-                      activeColor: Colors.white,
+                      checkColor: Colors.white,
+                      activeColor: Colors.blue,
                       onChanged: (bool value) {
                         setState(() {
                           _isRegistered = value;
@@ -407,65 +410,103 @@ class _GroupSavingsState extends State<GroupSavings> {
     );
   }
 
-  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              _groupName(),
-              SizedBox(
-                height: 30,
-              ),
-              _groupObjective(),
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                'How many members are you targeting?',
-                style: labelStyle,
-              ),
-              SizedBox(
-                height: 8,
-              ),
-              _groupMemberTarget(),
-              _groupRegistrationStatus(),
-              Card(
-                child: ExpansionTile(
-                  leading: Icon(
-                    Icons.settings,
-                    color: Colors.purple,
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Setup a new group',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            _groupName(),
+            SizedBox(
+              height: 20,
+            ),
+            _groupObjective(),
+            SizedBox(
+              height: 20,
+            ),
+            Text(
+              'How many members are you targeting?',
+              style:
+                  GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+            ),
+            SizedBox(
+              height: 8,
+            ),
+            _groupMemberTarget(),
+            _groupRegistrationStatus(),
+            Card(
+              elevation: 3,
+              child: ExpansionTile(
+                leading: Icon(
+                  Icons.settings,
+                  color: Colors.purple,
+                ),
+                title: Text(
+                  'Group Settings',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.purple,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
+                ),
+                children: <Widget>[
+                  _groupTargetAmount(),
+                  SizedBox(
+                    height: 10,
                   ),
-                  title: Text(
-                    'Group Settings',
+                  _savingsPeriod(),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  _groupTargetAmountpp(),
+                  _shouldMembersSeeTotal(),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            MaterialButton(
+              onPressed: () {},
+              color: Color(0xFF6CA8F1),
+              padding: EdgeInsets.all(12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    Icons.share,
+                    color: Colors.white,
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  Text(
+                    'Send invitations',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
-                            color: Colors.purple,
+                            color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold)),
                   ),
-                  children: <Widget>[
-                    _groupTargetAmount(),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    _savingsPeriod(),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    _groupTargetAmountpp(),
-                    _shouldMembersSeeTotal()
-                  ],
-                ),
+                ],
               ),
-            ],
-          ),
+            )
+          ],
         ),
       ),
     );
