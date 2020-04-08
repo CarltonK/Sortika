@@ -105,6 +105,7 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
       body: Container(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
+        color: Colors.white,
         child: Column(children: [
           SizedBox(
             height: 20,

@@ -372,7 +372,26 @@ class _CreateGoalState extends State<CreateGoal> {
         value: SystemUiOverlayStyle.light,
         child: Stack(
           children: [
-            backgroundWidget(),
+            Container(
+              height: double.infinity,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                    Color(0xFF73AEF5),
+                    Color(0xFF73AEF5),
+                    Color(0xFF73AEF5),
+                    Color(0xFF73AEF5),
+                  ],
+                      stops: [
+                    0.1,
+                    0.4,
+                    0.7,
+                    0.9
+                  ])),
+            ),
             Container(
               height: MediaQuery.of(context).size.height,
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
