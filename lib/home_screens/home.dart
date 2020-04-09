@@ -41,33 +41,35 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   String _pageSelection = 'main';
 
   //Custom AppBar
-  Widget _appBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        IconButton(
-          icon: Icon(Icons.subject),
-          onPressed: () {
-            setState(() {
-              if (isCollapsed) {
-                _controller.forward();
-              } else {
-                _controller.reverse();
-              }
-              isCollapsed = !isCollapsed;
-            });
-          },
-        ),
-        Text(
-          'Sortika',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 24)),
-        ),
-        IconButton(icon: Icon(Icons.settings), onPressed: () {}),
-      ],
-    );
-  }
+  // Widget _appBar() {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //     mainAxisSize: MainAxisSize.max,
+  //     children: [
+  //       IconButton(
+  //         icon: Icon(Icons.subject),
+  //         onPressed: () {
+  //           setState(() {
+  //             if (isCollapsed) {
+  //               _controller.forward();
+  //             } else {
+  //               _controller.reverse();
+  //             }
+  //             isCollapsed = !isCollapsed;
+  //           });
+  //         },
+  //       ),
+  //       Text(
+  //         'Sortika',
+  //         style: GoogleFonts.muli(
+  //             textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 24)),
+  //       ),
+  //       IconButton(
+  //           icon: Icon(Icons.settings),
+  //           onPressed: () => Navigator.of(context).pushNamed('/settings')),
+  //     ],
+  //   );
+  // }
 
   //Savings Target Breakdown
   Widget _targetSavings() {
@@ -257,11 +259,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           builder: (BuildContext context) {
                             return CupertinoActionSheet(
                               title: Text(
-                                'Goal Options',
+                                'You have 67 days to achieve your goal target\n\nYou have been saving Kes 30 daily towards this goal which is 25% lower than the required amount\n\nYour required daily saving has gone up by 50%.',
                                 style: GoogleFonts.muli(
-                                    textStyle: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black)),
+                                    textStyle: TextStyle(color: Colors.black)),
                               ),
                               actions: [
                                 CupertinoActionSheetAction(
@@ -640,17 +640,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     decoration: TextDecoration.underline)),
           ])),
           SizedBox(
-            height: 10,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Divider(
-              color: Colors.blueGrey,
-              thickness: 1.5,
-            ),
-          ),
-          SizedBox(
-            height: 10,
+            height: 20,
           ),
           Text(
             'Savings targets',
@@ -713,12 +703,40 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 30,
+              top: 25,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _appBar(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.subject),
+                      onPressed: () {
+                        setState(() {
+                          if (isCollapsed) {
+                            _controller.forward();
+                          } else {
+                            _controller.reverse();
+                          }
+                          isCollapsed = !isCollapsed;
+                        });
+                      },
+                    ),
+                    Text(
+                      'Savings',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 24)),
+                    ),
+                    IconButton(
+                        icon: Icon(Icons.settings),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/settings')),
+                  ],
+                ),
                 SizedBox(
                   height: 10,
                 ),
@@ -771,12 +789,40 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             child: Container(
               height: MediaQuery.of(context).size.height,
               padding: EdgeInsets.only(
-                top: 30,
+                top: 25,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _appBar(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.subject),
+                        onPressed: () {
+                          setState(() {
+                            if (isCollapsed) {
+                              _controller.forward();
+                            } else {
+                              _controller.reverse();
+                            }
+                            isCollapsed = !isCollapsed;
+                          });
+                        },
+                      ),
+                      Text(
+                        'Loans',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 24)),
+                      ),
+                      IconButton(
+                          icon: Icon(Icons.settings),
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed('/settings')),
+                    ],
+                  ),
                   SizedBox(
                     height: 10,
                   ),
@@ -1686,6 +1732,325 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         duration: duration);
   }
 
+  Widget _walletPage(context) {
+    return AnimatedPositioned(
+        child: ScaleTransition(
+          scale: _scaleAnimation,
+          child: Material(
+            elevation: 10,
+            animationDuration: duration,
+            borderRadius: isCollapsed
+                ? BorderRadius.circular(0)
+                : BorderRadius.circular(30),
+            color: Colors.white,
+            child: Container(
+              padding: EdgeInsets.only(
+                top: 25,
+              ),
+              child: SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    //App Bar
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.subject),
+                          onPressed: () {
+                            setState(() {
+                              if (isCollapsed) {
+                                _controller.forward();
+                              } else {
+                                _controller.reverse();
+                              }
+                              isCollapsed = !isCollapsed;
+                            });
+                          },
+                        ),
+                        Text(
+                          'Wallet',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  fontWeight: FontWeight.w600, fontSize: 24)),
+                        ),
+                        IconButton(
+                            icon: Icon(Icons.settings), onPressed: () {}),
+                      ],
+                    ),
+                    Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Balance',
+                              style: GoogleFonts.muli(textStyle: TextStyle()),
+                            ),
+                            SizedBox(
+                              height: 5,
+                            ),
+                            Text(
+                              '1,200 KES',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700)),
+                            )
+                          ],
+                        )),
+                    Card(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        elevation: 4,
+                        child: ExpansionTile(
+                          title: Text('Earnings',
+                              style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green),
+                              )),
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              margin: EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 5),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: Colors.grey[200],
+                                    ),
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          child: Icon(
+                                            Icons.arrow_upward,
+                                            color: Colors.green,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            color: Colors.grey[50],
+                                          ),
+                                          padding: EdgeInsets.all(16),
+                                        ),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Expanded(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(16)),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'Loan Fund',
+                                                      style: GoogleFonts.muli(
+                                                          textStyle: TextStyle(
+                                                              color:
+                                                                  Colors.green,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600)),
+                                                    ),
+                                                    Text(
+                                                      '',
+                                                      style: GoogleFonts.muli(
+                                                          textStyle: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal)),
+                                                    )
+                                                  ],
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      '2000 KES',
+                                                      style: GoogleFonts.muli(
+                                                          textStyle: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600)),
+                                                    ),
+                                                    Text(
+                                                      '23 Dec',
+                                                      style: GoogleFonts.muli(
+                                                          textStyle: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal)),
+                                                    )
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            )
+                          ],
+                        )),
+                    Card(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        elevation: 4,
+                        child: ExpansionTile(
+                          title: Text(
+                            'Withdrawals',
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w600)),
+                          ),
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              margin: EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 5),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: Colors.grey[200],
+                                    ),
+                                    padding: EdgeInsets.all(16),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          child: Icon(
+                                            Icons.arrow_downward,
+                                            color: Colors.red,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            color: Colors.grey[50],
+                                          ),
+                                          padding: EdgeInsets.all(16),
+                                        ),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Expanded(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(16)),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'M-PESA',
+                                                      style: GoogleFonts.muli(
+                                                          textStyle: TextStyle(
+                                                              color: Colors.red,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600)),
+                                                    ),
+                                                    Text(
+                                                      '',
+                                                      style: GoogleFonts.muli(
+                                                          textStyle: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal)),
+                                                    )
+                                                  ],
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      '2000 KES',
+                                                      style: GoogleFonts.muli(
+                                                          textStyle: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600)),
+                                                    ),
+                                                    Text(
+                                                      '23 Dec',
+                                                      style: GoogleFonts.muli(
+                                                          textStyle: TextStyle(
+                                                              color:
+                                                                  Colors.black,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal)),
+                                                    )
+                                                  ],
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            )
+                          ],
+                        ))
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        curve: Curves.ease,
+        top: 0,
+        bottom: 0,
+        left: isCollapsed ? 0 : 0.6 * screenWidth,
+        right: isCollapsed ? 0 : -0.4 * screenWidth,
+        duration: duration);
+  }
+
   Widget _groupsPage(context) {
     return AnimatedPositioned(
         child: ScaleTransition(
@@ -1699,12 +2064,40 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             color: Colors.white,
             child: Container(
               padding: EdgeInsets.only(
-                top: 30,
+                top: 25,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _appBar(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.subject),
+                        onPressed: () {
+                          setState(() {
+                            if (isCollapsed) {
+                              _controller.forward();
+                            } else {
+                              _controller.reverse();
+                            }
+                            isCollapsed = !isCollapsed;
+                          });
+                        },
+                      ),
+                      Text(
+                        'Groups',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 24)),
+                      ),
+                      IconButton(
+                          icon: Icon(Icons.settings),
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed('/settings')),
+                    ],
+                  ),
                   SizedBox(
                     height: 10,
                   ),
@@ -1763,12 +2156,40 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 30,
+              top: 25,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _appBar(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.subject),
+                      onPressed: () {
+                        setState(() {
+                          if (isCollapsed) {
+                            _controller.forward();
+                          } else {
+                            _controller.reverse();
+                          }
+                          isCollapsed = !isCollapsed;
+                        });
+                      },
+                    ),
+                    Text(
+                      'Investments',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 24)),
+                    ),
+                    IconButton(
+                        icon: Icon(Icons.settings),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/settings')),
+                  ],
+                ),
                 SizedBox(
                   height: 10,
                 ),
@@ -1823,27 +2244,48 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 30,
+              top: 25,
             ),
             child: SingleChildScrollView(
               physics: ClampingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _appBar(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.subject),
+                        onPressed: () {
+                          setState(() {
+                            if (isCollapsed) {
+                              _controller.forward();
+                            } else {
+                              _controller.reverse();
+                            }
+                            isCollapsed = !isCollapsed;
+                          });
+                        },
+                      ),
+                      Text(
+                        'Home',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 24)),
+                      ),
+                      IconButton(
+                          icon: Icon(Icons.settings),
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed('/settings')),
+                    ],
+                  ),
                   SizedBox(
                     height: 10,
                   ),
                   _introText(),
                   SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 50),
-                    child: Divider(
-                      color: Colors.blueGrey,
-                      thickness: 1.5,
-                    ),
+                    height: 20,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1859,17 +2301,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   ),
                   _goalDisplay(),
                   SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 50),
-                    child: Divider(
-                      color: Colors.blueGrey,
-                      thickness: 1.5,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
+                    height: 20,
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -2132,14 +2564,42 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 30,
+              top: 25,
             ),
             child: SingleChildScrollView(
               physics: ClampingScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _appBar(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.subject),
+                        onPressed: () {
+                          setState(() {
+                            if (isCollapsed) {
+                              _controller.forward();
+                            } else {
+                              _controller.reverse();
+                            }
+                            isCollapsed = !isCollapsed;
+                          });
+                        },
+                      ),
+                      Text(
+                        'Planner',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 24)),
+                      ),
+                      IconButton(
+                          icon: Icon(Icons.settings),
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed('/settings')),
+                    ],
+                  ),
                   SizedBox(
                     height: 10,
                   ),
@@ -2154,62 +2614,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   _planEditBox(),
                   SizedBox(
                     height: 30,
-                  ),
-                  AnimatedContainer(
-                    duration: duration,
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                    height: 300,
-                    width: screenWidth,
-                    decoration: BoxDecoration(
-                        color: _colorBudget,
-                        borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(40),
-                            topLeft: Radius.circular(40))),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(vertical: 15),
-                          child: Slider(
-                              value: _budgetSlector,
-                              min: 0,
-                              max: (_budget == 0) ? 1000 : _budget.toDouble(),
-                              activeColor: Colors.greenAccent[700],
-                              inactiveColor: Colors.white,
-                              onChanged: (value) {
-                                setState(() {
-                                  _budgetSlector = value;
-                                  if (value > (_budget / 0.25)) {
-                                    _colorBudget = Colors.red;
-                                  } else {
-                                    _colorBudget = Colors.blue[800];
-                                  }
-                                });
-                              }),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            'Normal',
-                            style: labelStyle,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            'That\'s an acceptable range',
-                            style: hintStyle,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),
@@ -2317,8 +2721,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               splashColor: Colors.greenAccent[700],
               onTap: () => Navigator.of(context).pushNamed('/rate'),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 child: Column(
                   children: <Widget>[
                     Text(
@@ -2342,10 +2745,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             color: Color(0xFF73AEF5),
             child: InkWell(
               splashColor: Colors.greenAccent[700],
-              onTap: () {},
+              onTap: () => Navigator.of(context).pushNamed('/help'),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 child: Column(
                   children: <Widget>[
                     Text(
@@ -2407,8 +2809,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     });
               },
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 child: Column(
                   children: <Widget>[
                     Text(
@@ -2600,15 +3001,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 child: InkWell(
                   splashColor: Colors.blueGrey,
                   onTap: () {
-                    //    setState(() {
-                    //   _pageSelection = 'main';
-                    //   if (isCollapsed) {
-                    //     _controller.forward();
-                    //   } else {
-                    //     _controller.reverse();
-                    //   }
-                    //   isCollapsed = !isCollapsed;
-                    // });
+                    setState(() {
+                      _pageSelection = 'wallet';
+                      if (isCollapsed) {
+                        _controller.forward();
+                      } else {
+                        _controller.reverse();
+                      }
+                      isCollapsed = !isCollapsed;
+                    });
                   },
                   child: Container(
                     padding:
@@ -2743,7 +3144,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               ? _groupsPage(context)
                               : _pageSelection == 'loan'
                                   ? _LoansPage(context)
-                                  : _plannerPage(context)
+                                  : _pageSelection == 'wallet'
+                                      ? _walletPage(context)
+                                      : _plannerPage(context)
             ],
           ),
           value: SystemUiOverlayStyle.light),

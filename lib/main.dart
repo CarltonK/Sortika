@@ -4,9 +4,11 @@ import 'package:wealth/authentication_screens/passwordreset.dart';
 import 'package:wealth/authentication_screens/registration.dart';
 import 'package:wealth/home_screens/create_goal.dart';
 import 'package:wealth/home_screens/deposit.dart';
+import 'package:wealth/home_screens/help.dart';
 import 'package:wealth/home_screens/home.dart';
 import 'package:wealth/home_screens/profile.dart';
 import 'package:wealth/home_screens/rate.dart';
+import 'package:wealth/home_screens/settings.dart';
 import 'package:wealth/onboarding.dart';
 import 'package:wealth/pre_login/achieve_preference.dart';
 
@@ -37,6 +39,8 @@ class MyApp extends StatelessWidget {
         '/create-goal': (context) => CreateGoal(),
         '/deposit': (context) => Deposit(),
         '/rate': (context) => Rate(),
+        '/help': (context) => Help(),
+        '/settings': (context) => Settings(),
       },
       theme: ThemeData(
         primarySwatch: Colors.blue,

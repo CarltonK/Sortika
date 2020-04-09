@@ -32,6 +32,10 @@ dependencies:
   pie_chart: ^3.1.1
   # Chart
   fl_chart: ^0.8.7
+  # Url Launcher
+  url_launcher: ^5.4.2
+  # Open Whatsapp
+  flutter_open_whatsapp: ^0.1.2
 
 
   # The following adds the Cupertino Icons font to your application.

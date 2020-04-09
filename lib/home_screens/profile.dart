@@ -14,8 +14,6 @@ class _ProfilePageState extends State<ProfilePage> {
   String _dateDay = '04';
   int _dateMonth = 7;
   String _dateYear = '2020';
-  double _passiveRate = 5;
-  double _loanLimitRate = 75;
 
   //Month Names
   List<String> monthNames = [
@@ -158,13 +156,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-          FlatButton(
-              onPressed: () {},
-              child: Text(
-                'Verify',
-                style:
-                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.white)),
-              ))
         ],
       ),
     );
@@ -286,116 +277,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _passiveWidget() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Passive Savings',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w700)),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Text(
-            'The current rate is ${_passiveRate.toInt()} %',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w300)),
-          ),
-          Row(
-            children: [
-              Text(
-                '1 %',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-              Expanded(
-                child: Slider(
-                  value: _passiveRate,
-                  activeColor: Colors.lightBlue,
-                  inactiveColor: Colors.grey[200],
-                  onChanged: (value) {
-                    setState(() {
-                      _passiveRate = value;
-                    });
-                  },
-                  min: 1,
-                  max: 10,
-                ),
-              ),
-              Text(
-                '10 %',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w700)),
-              )
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _limitWidget() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Loan Limit',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w700)),
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Text(
-            'The current limit is ${_loanLimitRate.toInt()} %',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w300)),
-          ),
-          Row(
-            children: [
-              Text(
-                '1 %',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-              Expanded(
-                child: Slider(
-                  value: _loanLimitRate,
-                  activeColor: Colors.lightBlue,
-                  inactiveColor: Colors.grey[200],
-                  onChanged: (value) {
-                    setState(() {
-                      _loanLimitRate = value;
-                    });
-                  },
-                  min: 1,
-                  max: 100,
-                ),
-              ),
-              Text(
-                '100 %',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.w700)),
-              )
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
   Widget _backgroundWidget() {
     return Container(
       height: double.infinity,
@@ -481,14 +362,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         height: 30,
                       ),
                       _genderWidget(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _passiveWidget(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _limitWidget(),
                       _updateBtn()
                     ],
                   ),

@@ -1,6 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/models/depositmethods.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class Deposit extends StatefulWidget {
@@ -10,7 +13,11 @@ class Deposit extends StatefulWidget {
 
 class _DepositState extends State<Deposit> {
   //Identifiers
-  String _phone, _amount;
+  String _phone, _amount, _destination;
+
+  PageController _controller;
+  // Identifier
+  int _currentPage = 0;
 
   FocusNode focusAmount = FocusNode();
 
@@ -20,11 +27,87 @@ class _DepositState extends State<Deposit> {
     print('Phone: ' + _phone);
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = PageController(viewportFraction: 0.85);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
   //Handle Password Input
   void _handleSubmittedAmount(String value) {
     _amount = value;
     print('Amount: ' + _amount);
   }
+
+  //Define Dropdown Menu Items
+  List<DropdownMenuItem> destinations = [
+    //Send Money to Wallet
+    DropdownMenuItem(
+      value: 'wallet',
+      child: Text(
+        'Wallet',
+        style: GoogleFonts.muli(
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    ),
+
+    //General topup
+    DropdownMenuItem(
+      value: 'general',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            'General',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.black, fontWeight: FontWeight.w600)),
+          ),
+          Text('Divide between goals based on allocation',
+              style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 10),
+              )),
+        ],
+      ),
+    ),
+
+    //Send to a specific goal
+    DropdownMenuItem(
+      value: 'specific',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Text(
+            'Specific',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.black, fontWeight: FontWeight.w600)),
+          ),
+          Text(
+            'Deposit to a specific goal',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 10)),
+          ),
+        ],
+      ),
+    ),
+  ];
 
   Widget _depositPhone() {
     return Column(
@@ -154,8 +237,8 @@ class _DepositState extends State<Deposit> {
         TextSpan(
             text: '100 KES',
             style: GoogleFonts.muli(
-                decoration: TextDecoration.underline,
-                textStyle: TextStyle(fontWeight: FontWeight.bold))),
+                textStyle:
+                    TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
       ])),
     );
   }
@@ -207,6 +290,158 @@ class _DepositState extends State<Deposit> {
     );
   }
 
+  Widget _depositDestination() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6.0,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButton(
+        items: destinations,
+        underline: Divider(
+          color: Colors.transparent,
+        ),
+        value: _destination,
+        hint: Text(
+          '',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600)),
+        ),
+        icon: Icon(
+          CupertinoIcons.down_arrow,
+          color: Colors.black,
+        ),
+        isExpanded: true,
+        onChanged: (value) {
+          setState(() {
+            _destination = value;
+
+            if (value == 'wallet') {}
+            if (value == 'general') {}
+            if (value == 'specific') {
+              //Show a list of all goals
+              showCupertinoModalPopup(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      content: Container(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        child: ListView(
+                          children: [
+                            Card(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              color: Colors.grey[200],
+                              child: ListTile(
+                                title: Text('Buy a house',
+                                    style: GoogleFonts.muli(
+                                      textStyle: TextStyle(color: Colors.black),
+                                    )),
+                                subtitle: Text('Current: 200,000 KES',
+                                    style: GoogleFonts.muli(
+                                      textStyle: TextStyle(color: Colors.green),
+                                    )),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  });
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _depositMethodWidget() {
+    return Container(
+      height: 80,
+      child: PageView(
+        scrollDirection: Axis.horizontal,
+        controller: _controller,
+        onPageChanged: (value) {
+          setState(() {
+            _currentPage = value;
+          });
+        },
+        children: methods
+            .map((map) => _depositMethod(map.title, map.subtitle))
+            .toList(),
+      ),
+    );
+  }
+
+  //Budget Item
+  Widget _depositMethod(String title, String subtitle) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 5),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16), color: Colors.white),
+      padding: EdgeInsets.all(8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+              child: Icon(
+                MaterialCommunityIcons.cash_multiple,
+                color: Colors.white,
+              ),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: Color(0xFF73AEF5))),
+          SizedBox(
+            width: 10,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$title',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700)),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Text(
+                '$subtitle',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w400)),
+              ),
+            ],
+          ),
+          SizedBox(
+            width: 5,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -233,22 +468,34 @@ class _DepositState extends State<Deposit> {
                   children: [
                     _depositInfo(),
                     SizedBox(
-                      height: 10,
+                      height: 20,
                     ),
-                    Text('but you can change that',
+                    Text('Where do you want to deposit?',
                         style: GoogleFonts.muli(
                           textStyle: TextStyle(color: Colors.white),
                         )),
                     SizedBox(
-                      height: 30,
+                      height: 5,
                     ),
-                    _depositPhone(),
+                    _depositDestination(),
                     SizedBox(
-                      height: 30,
+                      height: 20,
                     ),
-                    _depositAmount(),
-                    _proceedBtn(),
-                    _depositManual()
+                    Text('How do you want to deposit?',
+                        style: GoogleFonts.muli(
+                          textStyle: TextStyle(color: Colors.white),
+                        )),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    _depositMethodWidget()
+                    // _depositPhone(),
+                    // SizedBox(
+                    //   height: 30,
+                    // ),
+                    // _depositAmount(),
+                    // _proceedBtn(),
+                    // _depositManual()
                   ],
                 ),
               ),
