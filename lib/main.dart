@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/authentication_screens/passwordreset.dart';
 import 'package:wealth/authentication_screens/registration.dart';
+import 'package:wealth/home_screens/borrowAll.dart';
 import 'package:wealth/home_screens/create_goal.dart';
 import 'package:wealth/home_screens/deposit.dart';
+import 'package:wealth/home_screens/editGoal.dart';
 import 'package:wealth/home_screens/help.dart';
 import 'package:wealth/home_screens/home.dart';
 import 'package:wealth/home_screens/profile.dart';
@@ -41,6 +43,8 @@ class MyApp extends StatelessWidget {
         '/rate': (context) => Rate(),
         '/help': (context) => Help(),
         '/settings': (context) => Settings(),
+        '/edit-goal': (context) => EditGoal(),
+        '/borrow': (context) => BorrowAll(),
       },
       theme: ThemeData(
         primarySwatch: Colors.blue,

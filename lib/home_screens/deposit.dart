@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/deposit/bankcard.dart';
+import 'package:wealth/deposit/mpesaAuto.dart';
+import 'package:wealth/deposit/mpesaManual.dart';
 import 'package:wealth/models/depositmethods.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -12,38 +15,25 @@ class Deposit extends StatefulWidget {
 }
 
 class _DepositState extends State<Deposit> {
-  //Identifiers
-  String _phone, _amount, _destination;
-
   PageController _controller;
-  // Identifier
+  PageController _controllerPages;
+
+  // Identifiers
   int _currentPage = 0;
-
-  FocusNode focusAmount = FocusNode();
-
-  //Handle Phone Input
-  void _handleSubmittedPhone(String value) {
-    _phone = value;
-    print('Phone: ' + _phone);
-  }
+  String _destination;
 
   @override
   void initState() {
     super.initState();
-
     _controller = PageController(viewportFraction: 0.85);
+    _controllerPages = PageController(viewportFraction: 1);
   }
 
   @override
   void dispose() {
     super.dispose();
     _controller.dispose();
-  }
-
-  //Handle Password Input
-  void _handleSubmittedAmount(String value) {
-    _amount = value;
-    print('Amount: ' + _amount);
+    _controllerPages.dispose();
   }
 
   //Define Dropdown Menu Items
@@ -109,123 +99,6 @@ class _DepositState extends State<Deposit> {
     ),
   ];
 
-  Widget _depositPhone() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'Phone',
-          style: labelStyle,
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: BoxDecoration(
-            color: Colors.greenAccent[700],
-            borderRadius: BorderRadius.circular(10.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 6.0,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.phone,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).requestFocus(focusAmount);
-              },
-              textInputAction: TextInputAction.next,
-              onSaved: _handleSubmittedPhone,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.phone, color: Colors.white),
-                  hintText: '07XXXXXXXX',
-                  hintStyle: hintStyle)),
-        )
-      ],
-    );
-  }
-
-  Widget _proceedBtn() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 25),
-      width: double.infinity,
-      child: RaisedButton(
-        elevation: 3,
-        onPressed: () {},
-        padding: EdgeInsets.all(15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        color: Colors.greenAccent[700],
-        child: Text(
-          'SEND',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-            letterSpacing: 1.5,
-            color: Colors.white,
-            fontSize: 20,
-          )),
-        ),
-      ),
-    );
-  }
-
-  Widget _depositAmount() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'Amount',
-          style: labelStyle,
-        ),
-        SizedBox(
-          height: 10,
-        ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: BoxDecoration(
-            color: Colors.greenAccent[700],
-            borderRadius: BorderRadius.circular(10.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 6.0,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.number,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).unfocus();
-              },
-              focusNode: focusAmount,
-              onSaved: _handleSubmittedAmount,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.monetization_on, color: Colors.white),
-                  hintText: 'Enter amount',
-                  hintStyle: hintStyle)),
-        )
-      ],
-    );
-  }
-
   Widget _depositInfo() {
     return Container(
       child: RichText(
@@ -240,53 +113,6 @@ class _DepositState extends State<Deposit> {
                 textStyle:
                     TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
       ])),
-    );
-  }
-
-  Widget _depositManual() {
-    return Container(
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        title: Text('Manual Deposit',
-            style: GoogleFonts.muli(
-              textStyle: TextStyle(color: Colors.black),
-            )),
-        children: [
-          Text('Go to your M-PESA menu',
-              style: GoogleFonts.muli(
-                textStyle: TextStyle(color: Colors.black),
-              )),
-          SizedBox(
-            height: 5,
-          ),
-          Text('Enter SORTIKA paybill number XXXXXX',
-              style: GoogleFonts.muli(
-                textStyle: TextStyle(color: Colors.black),
-              )),
-          SizedBox(
-            height: 5,
-          ),
-          Text('Enter XXXX as account number',
-              style: GoogleFonts.muli(
-                textStyle: TextStyle(color: Colors.black),
-              )),
-          SizedBox(
-            height: 5,
-          ),
-          Text('Enter the amount',
-              style: GoogleFonts.muli(
-                textStyle: TextStyle(color: Colors.black),
-              )),
-          SizedBox(
-            height: 5,
-          ),
-          Text('Enter your M-PESA pin',
-              style: GoogleFonts.muli(
-                textStyle: TextStyle(color: Colors.black),
-              ))
-        ],
-      ),
     );
   }
 
@@ -351,9 +177,9 @@ class _DepositState extends State<Deposit> {
                                     style: GoogleFonts.muli(
                                       textStyle: TextStyle(color: Colors.black),
                                     )),
-                                subtitle: Text('Current: 200,000 KES',
+                                subtitle: Text('Current: 20,000 KES',
                                     style: GoogleFonts.muli(
-                                      textStyle: TextStyle(color: Colors.green),
+                                      textStyle: TextStyle(color: Colors.black),
                                     )),
                               ),
                             )
@@ -378,6 +204,8 @@ class _DepositState extends State<Deposit> {
         onPageChanged: (value) {
           setState(() {
             _currentPage = value;
+            _controllerPages.animateToPage(value,
+                duration: Duration(milliseconds: 100), curve: Curves.ease);
           });
         },
         children: methods
@@ -442,6 +270,9 @@ class _DepositState extends State<Deposit> {
     );
   }
 
+  //List of pages
+  List<Widget> _pages = [MpesaAuto(), MpesaManual(), MpesaAuto(), BankCard()];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -488,14 +319,18 @@ class _DepositState extends State<Deposit> {
                     SizedBox(
                       height: 5,
                     ),
-                    _depositMethodWidget()
-                    // _depositPhone(),
-                    // SizedBox(
-                    //   height: 30,
-                    // ),
-                    // _depositAmount(),
-                    // _proceedBtn(),
-                    // _depositManual()
+                    _depositMethodWidget(),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    LimitedBox(
+                      maxHeight: double.maxFinite,
+                      child: PageView(
+                          controller: _controllerPages,
+                          physics: NeverScrollableScrollPhysics(),
+                          onPageChanged: (value) {},
+                          children: _pages),
+                    )
                   ],
                 ),
               ),

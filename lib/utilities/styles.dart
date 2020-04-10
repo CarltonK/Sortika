@@ -22,6 +22,8 @@ final boxDecorationStyle = BoxDecoration(
   ],
 );
 
+final commonColor = Color(0xFF73AEF5);
+
 Widget backgroundWidget() {
   return Container(
     height: double.infinity,

@@ -115,6 +115,87 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Widget _nameKinWidget() {
+    return Container(
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'First Name',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                      height: 50,
+                      child: TextFormField(
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.white)),
+                        decoration: InputDecoration(
+                          hintText: 'Sansa',
+                          hintStyle: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w300)),
+                          border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                        ),
+                      ))
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Last Name',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                      height: 50,
+                      child: TextFormField(
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.white)),
+                        decoration: InputDecoration(
+                          hintText: 'Stark',
+                          hintStyle: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w300)),
+                          border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                        ),
+                      ))
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   Widget _phoneWidget() {
     return Container(
       child: Row(
@@ -142,6 +223,144 @@ class _ProfilePageState extends State<ProfilePage> {
                         keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
                           hintText: '07xxxxxxxx',
+                          hintStyle: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w300)),
+                          border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                        ),
+                      ))
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _phoneKinWidget() {
+    return Container(
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Phone Number',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                      height: 50,
+                      child: TextFormField(
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.white)),
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          hintText: '07xxxxxxxx',
+                          hintStyle: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w300)),
+                          border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                        ),
+                      ))
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _natIdWidget() {
+    return Container(
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'National ID',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                      height: 50,
+                      child: TextFormField(
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.white)),
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          hintText: 'Passport number is valid',
+                          hintStyle: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w300)),
+                          border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white)),
+                        ),
+                      ))
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _natIdKinWidget() {
+    return Container(
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'National ID',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                      height: 50,
+                      child: TextFormField(
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.white)),
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          hintText: 'Passport number is valid',
                           hintStyle: GoogleFonts.muli(
                               textStyle: TextStyle(
                                   color: Colors.white,
@@ -259,7 +478,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           ToggleButtons(
               selectedColor: Colors.white,
-              color: Colors.amber,
+              color: Colors.greenAccent[400],
               borderColor: Colors.transparent,
               selectedBorderColor: Colors.white,
               onPressed: (int value) {
@@ -323,6 +542,171 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Widget _userDp() {
+    return Center(
+      child: Container(
+        height: 140,
+        width: 140,
+        child: Stack(
+          children: <Widget>[
+            CircleAvatar(
+              radius: 70,
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Opacity(
+                opacity: 0.4,
+                child: Card(
+                  elevation: 20,
+                  shadowColor: Colors.blue[300],
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.blue,
+                    onTap: () {},
+                    child: Container(
+                      child: Icon(Icons.add_a_photo, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _documentsUpload() {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Documents',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+          Text(
+            'A quick snap or a picture in your gallery will do',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal)),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'ID/PASSPORT',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.blue[700],
+                          borderRadius: BorderRadius.circular(12)),
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: 150,
+                      child: Center(
+                        child: IconButton(
+                          icon: Icon(Icons.add_a_photo, color: Colors.white),
+                          onPressed: () {},
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'KRA PIN',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.blue[700],
+                          borderRadius: BorderRadius.circular(12)),
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: 150,
+                      child: Center(
+                        child: IconButton(
+                          icon: Icon(Icons.add_a_photo, color: Colors.white),
+                          onPressed: () {},
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              )
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _kinSectionWidget() {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Next of Kin',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+          Text(
+            'Some classes of investments require this information',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal)),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          _nameKinWidget(),
+          SizedBox(
+            height: 30,
+          ),
+          _phoneKinWidget(),
+          SizedBox(
+            height: 30,
+          ),
+          _natIdKinWidget()
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -343,12 +727,16 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               _backgroundWidget(),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: SingleChildScrollView(
                   physics: AlwaysScrollableScrollPhysics(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _userDp(),
+                      SizedBox(
+                        height: 30,
+                      ),
                       _nameWidget(),
                       SizedBox(
                         height: 30,
@@ -357,11 +745,23 @@ class _ProfilePageState extends State<ProfilePage> {
                       SizedBox(
                         height: 30,
                       ),
+                      _natIdWidget(),
+                      SizedBox(
+                        height: 30,
+                      ),
                       _dateOfBirthWidget(),
                       SizedBox(
                         height: 30,
                       ),
                       _genderWidget(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _documentsUpload(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _kinSectionWidget(),
                       _updateBtn()
                     ],
                   ),
