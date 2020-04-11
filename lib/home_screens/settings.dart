@@ -22,6 +22,9 @@ class _SettingsState extends State<Settings> {
   bool _isByCard = false;
   bool _isWithdrawToBank = false;
 
+  String _nameBank;
+  String _branchBank;
+
   TimeOfDay _defaultTime = TimeOfDay(hour: 8, minute: 00);
 
   Widget _backgroundWidget() {
@@ -159,7 +162,7 @@ class _SettingsState extends State<Settings> {
 
   Widget _isDaily() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
       child: Row(
         children: <Widget>[
           Expanded(
@@ -192,34 +195,203 @@ class _SettingsState extends State<Settings> {
 
   Widget _isWeekly() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Column(
         children: <Widget>[
-          Expanded(
-            flex: 5,
-            child: Text(
-              'Weekly',
+          Row(
+            children: <Widget>[
+              Expanded(
+                flex: 5,
+                child: Text(
+                  'Weekly',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              Expanded(
+                  child: Container(
+                child: Theme(
+                    data: ThemeData(unselectedWidgetColor: Colors.purple),
+                    child: Checkbox(
+                        value: _isReminderWeekly,
+                        checkColor: Colors.white,
+                        activeColor: Colors.purple,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isReminderWeekly = value;
+                          });
+                        })),
+              ))
+            ],
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          _weekdaySelection()
+        ],
+      ),
+    );
+  }
+
+  Widget _weekdaySelection() {
+    return Row(
+      children: <Widget>[
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'M',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
             ),
-          ),
-          Expanded(
-              child: Container(
-            child: Theme(
-                data: ThemeData(unselectedWidgetColor: Colors.purple),
-                child: Checkbox(
-                    value: _isReminderWeekly,
-                    checkColor: Colors.white,
-                    activeColor: Colors.purple,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _isReminderWeekly = value;
-                      });
-                    })),
-          ))
-        ],
-      ),
+            Container(
+              child: Theme(
+                  data: ThemeData(unselectedWidgetColor: Colors.purple),
+                  child: Checkbox(
+                      value: _isReminderWeekly,
+                      checkColor: Colors.white,
+                      activeColor: Colors.blue,
+                      onChanged: (bool value) {
+                        setState(() {});
+                      })),
+            )
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'T',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+            Container(
+              child: Theme(
+                  data: ThemeData(unselectedWidgetColor: Colors.purple),
+                  child: Checkbox(
+                      value: _isReminderWeekly,
+                      checkColor: Colors.white,
+                      activeColor: Colors.blue,
+                      onChanged: (bool value) {
+                        setState(() {});
+                      })),
+            )
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'W',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+            Container(
+              child: Theme(
+                  data: ThemeData(unselectedWidgetColor: Colors.purple),
+                  child: Checkbox(
+                      value: _isReminderWeekly,
+                      checkColor: Colors.white,
+                      activeColor: Colors.blue,
+                      onChanged: (bool value) {
+                        setState(() {});
+                      })),
+            )
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'T',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+            Container(
+              child: Theme(
+                  data: ThemeData(unselectedWidgetColor: Colors.purple),
+                  child: Checkbox(
+                      value: _isReminderWeekly,
+                      checkColor: Colors.white,
+                      activeColor: Colors.blue,
+                      onChanged: (bool value) {
+                        setState(() {});
+                      })),
+            )
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'F',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+            Container(
+              child: Theme(
+                  data: ThemeData(unselectedWidgetColor: Colors.purple),
+                  child: Checkbox(
+                      value: _isReminderWeekly,
+                      checkColor: Colors.white,
+                      activeColor: Colors.blue,
+                      onChanged: (bool value) {
+                        setState(() {});
+                      })),
+            )
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'S',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+            Container(
+              child: Theme(
+                  data: ThemeData(unselectedWidgetColor: Colors.purple),
+                  child: Checkbox(
+                      value: _isReminderWeekly,
+                      checkColor: Colors.white,
+                      activeColor: Colors.blue,
+                      onChanged: (bool value) {
+                        setState(() {});
+                      })),
+            )
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'S',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+            Container(
+              child: Theme(
+                  data: ThemeData(unselectedWidgetColor: Colors.purple),
+                  child: Checkbox(
+                      value: _isReminderWeekly,
+                      checkColor: Colors.white,
+                      activeColor: Colors.blue,
+                      onChanged: (bool value) {
+                        setState(() {});
+                      })),
+            )
+          ],
+        ),
+      ],
     );
   }
 
@@ -249,10 +421,370 @@ class _SettingsState extends State<Settings> {
                       setState(() {
                         _isByCard = value;
                       });
+                      if (value) {
+                        _cardDialog();
+                      }
                     })),
           ))
         ],
       ),
+    );
+  }
+
+  Future _mpesaNumberDialog() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text(
+            'M-Pesa Number',
+            style: GoogleFonts.muli(textStyle: TextStyle()),
+          ),
+          content: Form(
+              child: TextFormField(
+            style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+            keyboardType: TextInputType.phone,
+            decoration: InputDecoration(
+              hintText: '07XXXXXXXX',
+              hintStyle: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.w300)),
+              border: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black)),
+            ),
+          )),
+          actions: [
+            FlatButton(
+                onPressed: () {},
+                child: Text('Verify',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.bold))))
+          ],
+        );
+      },
+    );
+  }
+
+  Future _cardDialog() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text(
+            'Debit/Credit Card',
+            style: GoogleFonts.muli(textStyle: TextStyle()),
+          ),
+          content: Form(
+              child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextFormField(
+                style:
+                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Card Number',
+                  hintStyle: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.w300)),
+                  border: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(color: Colors.black)),
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'CVV',
+                        hintStyle: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w300)),
+                        border: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(color: Colors.black)),
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Expiry',
+                        hintStyle: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w300)),
+                        border: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                style:
+                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Billing Address',
+                  hintStyle: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.w300)),
+                  border: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                ),
+              )
+            ],
+          )),
+          actions: [
+            FlatButton(
+                onPressed: () {},
+                child: Text('Verify',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.bold))))
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _bankName() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButton(
+        items: itemsBanks,
+        underline: Divider(
+          color: Colors.transparent,
+        ),
+        value: _nameBank,
+        hint: Text(
+          'Bank Name',
+          style: GoogleFonts.muli(textStyle: TextStyle()),
+        ),
+        icon: Icon(
+          CupertinoIcons.down_arrow,
+          color: Colors.black,
+        ),
+        isExpanded: true,
+        onChanged: (value) {
+          setState(() {
+            _nameBank = value;
+          });
+          //print(goal);
+        },
+      ),
+    );
+  }
+
+  Widget _bankBranch() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButton(
+        items: itemsBranches,
+        underline: Divider(
+          color: Colors.transparent,
+        ),
+        value: _branchBank,
+        hint: Text(
+          'Bank Branch',
+          style: GoogleFonts.muli(textStyle: TextStyle()),
+        ),
+        icon: Icon(
+          CupertinoIcons.down_arrow,
+          color: Colors.black,
+        ),
+        isExpanded: true,
+        onChanged: (value) {
+          setState(() {
+            _branchBank = value;
+          });
+          //print(goal);
+        },
+      ),
+    );
+  }
+
+  List<DropdownMenuItem> itemsBanks = [
+    DropdownMenuItem(
+      value: '',
+      child: Text(
+        'CBA',
+        style: GoogleFonts.muli(
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    ),
+  ];
+
+  List<DropdownMenuItem> itemsBranches = [
+    DropdownMenuItem(
+      value: '',
+      child: Text(
+        'Upper Hill',
+        style: GoogleFonts.muli(
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    ),
+  ];
+
+  Future _bankDialog() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text(
+            'Bank Account',
+            style: GoogleFonts.muli(textStyle: TextStyle()),
+          ),
+          content: Form(
+              child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              _bankName(),
+              SizedBox(
+                height: 10,
+              ),
+              _bankBranch(),
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(color: Colors.black)),
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        hintText: 'Bank Code',
+                        hintStyle: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w300)),
+                        border: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                    child: TextFormField(
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(color: Colors.black)),
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        hintText: 'Swift Code',
+                        hintStyle: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w300)),
+                        border: UnderlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                style:
+                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  hintText: 'Account Name',
+                  hintStyle: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.w300)),
+                  border: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                style:
+                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  hintText: 'Account Number',
+                  hintStyle: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.w300)),
+                  border: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                ),
+              )
+            ],
+          )),
+          actions: [
+            FlatButton(
+                onPressed: () {},
+                child: Text('Verify',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.bold))))
+          ],
+        );
+      },
     );
   }
 
@@ -282,6 +814,10 @@ class _SettingsState extends State<Settings> {
                       setState(() {
                         _isByMpesa = value;
                       });
+                      //Check if the box is selected
+                      if (value) {
+                        _mpesaNumberDialog();
+                      }
                     })),
           ))
         ],
@@ -315,6 +851,10 @@ class _SettingsState extends State<Settings> {
                       setState(() {
                         _isWithdrawByMpesa = value;
                       });
+                      //Check if the box is selected
+                      if (value) {
+                        _mpesaNumberDialog();
+                      }
                     })),
           ))
         ],
@@ -348,6 +888,9 @@ class _SettingsState extends State<Settings> {
                       setState(() {
                         _isWithdrawToBank = value;
                       });
+                      if (value) {
+                        _bankDialog();
+                      }
                     })),
           ))
         ],

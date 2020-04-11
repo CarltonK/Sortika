@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 
 class BudgetItem {
   String title;
   int amount;
+  double interest;
   IconData icon;
-  bool isActive = false;
 
-  BudgetItem({this.title, this.amount, this.icon});
+  BudgetItem({this.title, this.amount, this.icon, this.interest});
 }
 
 /*
@@ -20,42 +21,46 @@ Cash transfers
 Leisure
 Family
 Shopping
-Loans
 
 */
 
-BudgetItem _dining =
-    new BudgetItem(icon: Icons.restaurant, amount: 0, title: 'Food');
-BudgetItem _transport =
-    new BudgetItem(icon: Icons.directions_bus, amount: 0, title: 'Transport');
-BudgetItem _health =
-    new BudgetItem(icon: Icons.healing, amount: 0, title: 'Health');
-BudgetItem _home = new BudgetItem(icon: Icons.home, amount: 0, title: 'Home');
-BudgetItem _government =
-    new BudgetItem(icon: Icons.business_center, amount: 0, title: 'Government');
-BudgetItem _bills =
-    new BudgetItem(icon: Icons.account_balance, amount: 0, title: 'Bills');
-BudgetItem _transfers =
-    new BudgetItem(icon: Icons.devices_other, amount: 0, title: 'Transfers');
+BudgetItem _dining = new BudgetItem(
+    icon: Icons.restaurant, amount: 0, title: 'Food', interest: 15);
+
+BudgetItem _transport = new BudgetItem(
+    icon: Icons.directions_bus, amount: 0, title: 'Transport', interest: 10);
+
+BudgetItem _health = new BudgetItem(
+    icon: Icons.healing, amount: 0, title: 'Wellness', interest: 6);
+
+BudgetItem _home = new BudgetItem(
+    icon: Icons.home, amount: 0, title: 'Housing', interest: 22.5);
+
+BudgetItem _bills = new BudgetItem(
+    icon: Icons.account_balance, amount: 0, title: 'Bills', interest: 5);
+
+BudgetItem _charity = new BudgetItem(
+    icon: Icons.people, amount: 0, title: 'Charity', interest: 12);
+
+BudgetItem _savings = new BudgetItem(
+    icon: FontAwesome5.money_bill_alt,
+    amount: 0,
+    title: 'Savings',
+    interest: 17);
+
 BudgetItem _leisure = new BudgetItem(
-    icon: Icons.sentiment_very_satisfied, amount: 0, title: 'Leisure');
-BudgetItem _family =
-    new BudgetItem(icon: Icons.people, amount: 0, title: 'Family');
-BudgetItem _shopping =
-    new BudgetItem(icon: Icons.shopping_cart, amount: 0, title: 'Shopping');
-BudgetItem _loans =
-    new BudgetItem(icon: Icons.receipt, amount: 0, title: 'Loans');
+    icon: Icons.sentiment_very_satisfied,
+    amount: 0,
+    title: 'Leisure',
+    interest: 12.5);
 
 List<BudgetItem> budgetItems = [
-  _dining,
-  _transport,
-  _health,
   _home,
-  _government,
+  _dining,
+  _savings,
+  _charity,
+  _transport,
   _bills,
-  _transfers,
   _leisure,
-  _family,
-  _shopping,
-  _loans
+  _health,
 ];

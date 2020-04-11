@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share/share.dart';
+import 'package:wealth/home_screens/budgetCalc.dart';
+import 'package:wealth/home_screens/financialRatios.dart';
+import 'package:wealth/home_screens/insights.dart';
 import 'package:wealth/models/budgetItem.dart';
 import 'package:wealth/utilities/styles.dart';
 import 'package:wealth/widgets/group_savings.dart';
@@ -33,7 +36,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Animation<double> _scaleAnimation;
   Animation<double> _menuScaleAnimation;
   Animation<Offset> _slideAnimation;
-  PageController _controllerBudget = PageController(viewportFraction: 0.7);
 
   //Saved amount
   double saved = 2000;
@@ -453,12 +455,21 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   final PageController _pageController = PageController(initialPage: 0);
   //Define number of screens
   final int _numPages = 2;
+  final int _numPlannerPages = 3;
   //Placeholder for current page
   int _currentPage = 0;
 
   List<Widget> _buildPageIndicator() {
     List<Widget> list = [];
     for (int i = 0; i < _numPages; i++) {
+      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
+    }
+    return list;
+  }
+
+  List<Widget> _buildPlannerPageIndicator() {
+    List<Widget> list = [];
+    for (int i = 0; i < _numPlannerPages; i++) {
       list.add(i == _currentPage ? _indicator(true) : _indicator(false));
     }
     return list;
@@ -2191,229 +2202,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  final _formKey = GlobalKey<FormState>();
-  int _budget = 0;
-  double _budgetSlector = 0;
-  void _handleSubmittedBudget(String value) {
-    _budget = int.parse(value);
-    print('Budget: $_budget');
-  }
-
-  //Confirm Password Widget
-  Widget _customGoalName() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: boxDecorationStyle,
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.number,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'You have not entered an amount';
-                }
-                return null;
-              },
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).unfocus();
-              },
-              onSaved: _handleSubmittedBudget,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.monetization_on, color: Colors.white),
-                  hintText: 'Enter your budget',
-                  hintStyle: hintStyle)),
-        )
-      ],
-    );
-  }
-
-  //Planner Intro
-  Widget _plannerIntro() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  'Set up a monthly budget',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                    fontSize: 18,
-                  )),
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.create),
-                onPressed: () {
-                  //Show a popup to enter budget
-                  showCupertinoModalPopup(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          content: Container(
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  _customGoalName(),
-                                ],
-                              ),
-                            ),
-                          ),
-                          actions: <Widget>[
-                            FlatButton(
-                                onPressed: () {
-                                  if (_formKey.currentState.validate()) {
-                                    _formKey.currentState.save();
-
-                                    //Dismiss the dialog
-                                    Navigator.of(context).pop();
-                                  }
-                                },
-                                child: Text(
-                                  'Submit',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold)),
-                                ))
-                          ],
-                        );
-                      });
-                },
-              )
-            ],
-          ),
-          SizedBox(
-            height: 5,
-          ),
-          Row(
-            children: <Widget>[
-              Text(
-                'Total budget is',
-                style: GoogleFonts.muli(textStyle: TextStyle()),
-              ),
-              SizedBox(
-                width: 5,
-              ),
-              Text('${_budget.toInt().toString()} KES',
-                  style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16),
-                  ))
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  //Budget Item currently active
-  bool isItemActive = false;
-
-  //Budget Item
-  Widget _budgetItem(IconData icon, String title, int amount) {
-    return AnimatedContainer(
-      duration: duration,
-      margin: EdgeInsets.symmetric(horizontal: 5),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16), color: Colors.blue),
-      padding: EdgeInsets.all(8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-              child: Icon(
-                icon,
-                color: Colors.white,
-              ),
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.lightBlue)),
-          SizedBox(
-            width: 10,
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$title',
-                style:
-                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.white)),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                '${amount.toString()} KES',
-                style: labelStyle,
-              ),
-            ],
-          ),
-          SizedBox(
-            width: 5,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _budgetScroll() {
-    return Container(
-      height: 80,
-      child: PageView(
-        scrollDirection: Axis.horizontal,
-        controller: _controllerBudget,
-        onPageChanged: (value) {},
-        children: budgetItems
-            .map((map) => _budgetItem(map.icon, map.title, map.amount))
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _planEditBox() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Expanded(
-              child: Container(
-            child: TextFormField(
-              decoration: InputDecoration(
-                  border: OutlineInputBorder(borderSide: BorderSide())),
-            ),
-          )),
-          IconButton(
-            icon: Icon(Icons.keyboard),
-            onPressed: () {},
-          )
-        ],
-      ),
-    );
-  }
-
   Color _colorBudget = Colors.blue[800];
+
   //Planning Page
   Widget _plannerPage(context) {
     return AnimatedPositioned(
@@ -2436,57 +2226,66 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             padding: EdgeInsets.only(
               top: 25,
             ),
-            child: SingleChildScrollView(
-              physics: ClampingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.subject),
-                        onPressed: () {
-                          setState(() {
-                            if (isCollapsed) {
-                              _controller.forward();
-                            } else {
-                              _controller.reverse();
-                            }
-                            isCollapsed = !isCollapsed;
-                          });
-                        },
-                      ),
-                      Text(
-                        'Planner',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 24)),
-                      ),
-                      IconButton(
-                          icon: Icon(Icons.settings),
-                          onPressed: () =>
-                              Navigator.of(context).pushNamed('/settings')),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  _plannerIntro(),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  _budgetScroll(),
-                  SizedBox(
-                    height: 50,
-                  ),
-                  _planEditBox(),
-                  SizedBox(
-                    height: 30,
-                  ),
-                ],
-              ),
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.subject),
+                      onPressed: () {
+                        setState(() {
+                          if (isCollapsed) {
+                            _controller.forward();
+                          } else {
+                            _controller.reverse();
+                          }
+                          isCollapsed = !isCollapsed;
+                        });
+                      },
+                    ),
+                    Text(
+                      'Planner',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 24)),
+                    ),
+                    IconButton(
+                        icon: Icon(Icons.settings),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/settings')),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Expanded(
+                    child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (value) {
+                    setState(() {
+                      _currentPage = value;
+                      _pageController.animateToPage(value,
+                          duration: Duration(milliseconds: 100),
+                          curve: Curves.ease);
+                    });
+                  },
+                  children: [BudgetCalc(), Insights(), FinancialRatios()],
+                )),
+                SizedBox(
+                  height: 5,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: _buildPlannerPageIndicator(),
+                ),
+                SizedBox(
+                  height: 5,
+                )
+              ],
             ),
           ),
         ),
