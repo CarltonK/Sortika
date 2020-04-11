@@ -28,8 +28,8 @@ class _BorrowAllState extends State<BorrowAll> {
           children: [
             backgroundWidget(),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-              child: BorrowPage())
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                child: BorrowPage())
           ],
         ),
       ),

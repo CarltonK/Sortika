@@ -6,6 +6,7 @@ import 'package:wealth/home_screens/borrowAll.dart';
 import 'package:wealth/home_screens/create_goal.dart';
 import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/home_screens/editGoal.dart';
+import 'package:wealth/home_screens/editGroup.dart';
 import 'package:wealth/home_screens/help.dart';
 import 'package:wealth/home_screens/home.dart';
 import 'package:wealth/home_screens/profile.dart';
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
         '/settings': (context) => Settings(),
         '/edit-goal': (context) => EditGoal(),
         '/borrow': (context) => BorrowAll(),
+        '/edit-group': (context) => EditGroup(),
       },
       theme: ThemeData(
         primarySwatch: Colors.blue,

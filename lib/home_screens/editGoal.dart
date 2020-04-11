@@ -94,7 +94,7 @@ class _EditGoalState extends State<EditGoal> {
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
-                        fontSize: 30,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold)),
               ),
             ],
@@ -123,7 +123,7 @@ class _EditGoalState extends State<EditGoal> {
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
-                        fontSize: 30,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold)),
               ),
             ],

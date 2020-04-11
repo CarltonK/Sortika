@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share/share.dart';
 import 'package:wealth/models/loanDuration.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -122,7 +124,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.only(top: 14),
                   prefixIcon: Icon(
-                    Icons.group_add,
+                    Icons.label,
                     color: Colors.white54,
                   ),
                   hintText: 'What is main objective',
@@ -144,7 +146,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
             'Target Amount',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
-                    color: Colors.purple, fontWeight: FontWeight.bold)),
+                    color: Colors.black, fontWeight: FontWeight.bold)),
           ),
           SizedBox(
             height: 10,
@@ -167,7 +169,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.only(top: 14),
                     prefixIcon: Icon(
-                      Icons.monetization_on,
+                      FontAwesome5.money_bill_alt,
                       color: Colors.white54,
                     ),
                     hintText: 'Enter amount',
@@ -190,7 +192,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
             'Minimum amount per person',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
-                    color: Colors.purple, fontWeight: FontWeight.bold)),
+                    color: Colors.black, fontWeight: FontWeight.bold)),
           ),
           SizedBox(
             height: 10,
@@ -213,7 +215,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.only(top: 14),
                     prefixIcon: Icon(
-                      Icons.monetization_on,
+                      FontAwesome5.money_bill_alt,
                       color: Colors.white54,
                     ),
                     hintText: 'Enter amount',
@@ -279,7 +281,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
               'Period',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
-                      color: Colors.purple, fontWeight: FontWeight.bold)),
+                      color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ),
           SizedBox(
@@ -348,14 +350,13 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
     return Row(
       children: <Widget>[
         Expanded(
-          flex: 5,
+          flex: 1,
           child: Text(
             'Is this group registered?',
             style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
           ),
         ),
-        Expanded(
-            child: Container(
+        Container(
           child: Row(
             children: <Widget>[
               Theme(
@@ -371,7 +372,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
                       })),
             ],
           ),
-        ))
+        )
       ],
     );
   }
@@ -388,17 +389,17 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
               'Should members see total savings?',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
-                      color: Colors.purple, fontWeight: FontWeight.bold)),
+                      color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ),
           Expanded(
               child: Container(
             child: Theme(
-                data: ThemeData(unselectedWidgetColor: Colors.purple),
+                data: ThemeData(unselectedWidgetColor: Colors.blue),
                 child: Checkbox(
                     value: _canSeeSavings,
                     checkColor: Colors.white,
-                    activeColor: Colors.purple,
+                    activeColor: Colors.blue,
                     onChanged: (bool value) {
                       setState(() {
                         _canSeeSavings = value;
@@ -454,13 +455,13 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
               child: ExpansionTile(
                 leading: Icon(
                   Icons.settings,
-                  color: Colors.purple,
+                  color: Colors.black,
                 ),
                 title: Text(
                   'Group Settings',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(
-                          color: Colors.purple,
+                          color: Colors.black,
                           fontSize: 16,
                           fontWeight: FontWeight.bold)),
                 ),
@@ -482,7 +483,14 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
               height: 20,
             ),
             MaterialButton(
-              onPressed: () {},
+              onPressed: () {
+                try {
+                  Share.share(
+                      'I have created a savings group. I am extending an invitation to you https://www.sortika.com');
+                } catch (error) {
+                  print('SHARE ERROR: $error');
+                }
+              },
               color: Color(0xFF6CA8F1),
               padding: EdgeInsets.all(12),
               child: Row(

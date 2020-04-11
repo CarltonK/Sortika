@@ -1859,6 +1859,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               padding: EdgeInsets.only(
                 top: 25,
               ),
+              height: MediaQuery.of(context).size.height,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1908,14 +1909,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     children: [MyGroups(), GroupSavingsColored()],
                   )),
                   SizedBox(
-                    height: 10,
+                    height: 5,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: _buildPageIndicator(),
                   ),
                   SizedBox(
-                    height: 10,
+                    height: 5,
                   )
                 ],
               ),

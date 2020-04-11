@@ -32,7 +32,7 @@ class _MyGroupsState extends State<MyGroups> {
           Align(
             alignment: Alignment.topLeft,
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
               decoration: BoxDecoration(
                   borderRadius:
                       BorderRadius.only(bottomRight: Radius.circular(20)),
@@ -47,79 +47,16 @@ class _MyGroupsState extends State<MyGroups> {
           Align(
             alignment: Alignment.topRight,
             child: GestureDetector(
-              onTap: () {
-                // showCupertinoModalPopup(
-                //     context: context,
-                //     builder: (BuildContext context) {
-                //       return CupertinoActionSheet(
-                //         title: Text(
-                //           'Goal Options',
-                //           style: GoogleFonts.muli(
-                //               textStyle: TextStyle(
-                //                   fontWeight:
-                //                       FontWeight.bold,
-                //                   color: Colors.black)),
-                //         ),
-                //         actions: [
-                //           CupertinoActionSheetAction(
-                //               onPressed: () {},
-                //               child: Text(
-                //                 'Edit',
-                //                 style: GoogleFonts.muli(
-                //                     textStyle: TextStyle(
-                //                         fontWeight:
-                //                             FontWeight
-                //                                 .bold)),
-                //               )),
-                //           CupertinoActionSheetAction(
-                //               onPressed: () {},
-                //               child: Text(
-                //                 'Redeem',
-                //                 style: GoogleFonts.muli(
-                //                     textStyle: TextStyle(
-                //                         fontWeight:
-                //                             FontWeight
-                //                                 .bold)),
-                //               )),
-                //         ],
-                //         cancelButton:
-                //             CupertinoActionSheetAction(
-                //                 onPressed: () {},
-                //                 child: Text(
-                //                   'Delete',
-                //                   style: GoogleFonts.muli(
-                //                       textStyle: TextStyle(
-                //                           fontWeight:
-                //                               FontWeight
-                //                                   .bold,
-                //                           color:
-                //                               Colors.red)),
-                //                 )),
-                //       );
-                //     });
-              },
+              onTap: () => Navigator.of(context).pushNamed('/edit-group'),
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 decoration: BoxDecoration(
                     borderRadius:
                         BorderRadius.only(bottomLeft: Radius.circular(20)),
                     color: Colors.transparent),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Icon(
-                      Icons.people,
-                      color: Colors.white,
-                    ),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text('$_groupMembership',
-                        style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              fontWeight: FontWeight.w600, color: Colors.white),
-                        ))
-                  ],
+                child: Icon(
+                  Icons.edit,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -272,20 +209,23 @@ class _MyGroupsState extends State<MyGroups> {
     return Container(
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Here are your groups',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(fontSize: 16, letterSpacing: 0.5)),
-            ),
+          Text(
+            'My Groups',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold)),
           ),
           Expanded(
             child: ListView(
-              children: [_singleGroup(), _singleGroup()],
+              children: [
+                _singleGroup(),
+              ],
             ),
           ),
         ],
