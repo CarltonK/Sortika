@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/models/days.dart';
 
 class Settings extends StatefulWidget {
   @override
@@ -193,6 +194,49 @@ class _SettingsState extends State<Settings> {
     );
   }
 
+  Future _showWeekdays() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text('Select a day',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.normal))),
+          content: ListView(
+            children: allDays.map((map) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('${map.day}',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold))),
+                  Container(
+                    child: Theme(
+                        data: ThemeData(unselectedWidgetColor: Colors.purple),
+                        child: Checkbox(
+                            value: map.selected,
+                            checkColor: Colors.white,
+                            activeColor: Colors.purple,
+                            onChanged: (bool value) {
+                              setState(() {
+                                map.selected = value;
+                              });
+                            })),
+                  )
+                ],
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _isWeekly() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -220,178 +264,16 @@ class _SettingsState extends State<Settings> {
                         onChanged: (bool value) {
                           setState(() {
                             _isReminderWeekly = value;
+                            if (value) {
+                              _showWeekdays();
+                            }
                           });
                         })),
               ))
             ],
           ),
-          SizedBox(
-            height: 10,
-          ),
-          _weekdaySelection()
         ],
       ),
-    );
-  }
-
-  Widget _weekdaySelection() {
-    return Row(
-      children: <Widget>[
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'M',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            Container(
-              child: Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.purple),
-                  child: Checkbox(
-                      value: _isReminderWeekly,
-                      checkColor: Colors.white,
-                      activeColor: Colors.blue,
-                      onChanged: (bool value) {
-                        setState(() {});
-                      })),
-            )
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'T',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            Container(
-              child: Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.purple),
-                  child: Checkbox(
-                      value: _isReminderWeekly,
-                      checkColor: Colors.white,
-                      activeColor: Colors.blue,
-                      onChanged: (bool value) {
-                        setState(() {});
-                      })),
-            )
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'W',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            Container(
-              child: Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.purple),
-                  child: Checkbox(
-                      value: _isReminderWeekly,
-                      checkColor: Colors.white,
-                      activeColor: Colors.blue,
-                      onChanged: (bool value) {
-                        setState(() {});
-                      })),
-            )
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'T',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            Container(
-              child: Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.purple),
-                  child: Checkbox(
-                      value: _isReminderWeekly,
-                      checkColor: Colors.white,
-                      activeColor: Colors.blue,
-                      onChanged: (bool value) {
-                        setState(() {});
-                      })),
-            )
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'F',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            Container(
-              child: Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.purple),
-                  child: Checkbox(
-                      value: _isReminderWeekly,
-                      checkColor: Colors.white,
-                      activeColor: Colors.blue,
-                      onChanged: (bool value) {
-                        setState(() {});
-                      })),
-            )
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'S',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            Container(
-              child: Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.purple),
-                  child: Checkbox(
-                      value: _isReminderWeekly,
-                      checkColor: Colors.white,
-                      activeColor: Colors.blue,
-                      onChanged: (bool value) {
-                        setState(() {});
-                      })),
-            )
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'S',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            Container(
-              child: Theme(
-                  data: ThemeData(unselectedWidgetColor: Colors.purple),
-                  child: Checkbox(
-                      value: _isReminderWeekly,
-                      checkColor: Colors.white,
-                      activeColor: Colors.blue,
-                      onChanged: (bool value) {
-                        setState(() {});
-                      })),
-            )
-          ],
-        ),
-      ],
     );
   }
 

@@ -2,14 +2,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share/share.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
-import 'package:wealth/models/budgetItem.dart';
-import 'package:wealth/utilities/styles.dart';
-import 'package:wealth/widgets/group_savings.dart';
+import 'package:wealth/home_screens/sortikaLottery.dart';
+import 'package:wealth/home_screens/sortikaSavings.dart';
 import 'package:wealth/widgets/group_savings_colored.dart';
 import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
@@ -42,6 +42,43 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   //String page Selection
   String _pageSelection = 'main';
 
+  //PageView Controller
+  final PageController _pageController = PageController(initialPage: 0);
+  //Define number of screens
+  final int _numPages = 2;
+  final int _numPlannerPages = 3;
+  //Placeholder for current page
+  int _currentPage = 0;
+
+  List<Widget> _buildPageIndicator() {
+    List<Widget> list = [];
+    for (int i = 0; i < _numPages; i++) {
+      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
+    }
+    return list;
+  }
+
+  List<Widget> _buildPlannerPageIndicator() {
+    List<Widget> list = [];
+    for (int i = 0; i < _numPlannerPages; i++) {
+      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
+    }
+    return list;
+  }
+
+  //Page Indicator i.e Slider
+  Widget _indicator(bool isActive) {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      height: 8,
+      width: isActive ? 24 : 16,
+      decoration: BoxDecoration(
+          color: isActive ? Colors.blue : Colors.lightBlue[100],
+          borderRadius: BorderRadius.circular(12)),
+    );
+  }
+
   //Custom AppBar
   // Widget _appBar() {
   //   return Row(
@@ -72,6 +109,179 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   //     ],
   //   );
   // }
+
+  //Goals Page
+  Widget _goalsPage(context) {
+    return AnimatedPositioned(
+      duration: duration,
+      curve: Curves.ease,
+      top: 0,
+      bottom: 0,
+      left: isCollapsed ? 0 : 0.6 * screenWidth,
+      right: isCollapsed ? 0 : -0.4 * screenWidth,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Material(
+          elevation: 10,
+          animationDuration: duration,
+          borderRadius: isCollapsed
+              ? BorderRadius.circular(0)
+              : BorderRadius.circular(30),
+          color: Colors.white,
+          child: Container(
+            padding: EdgeInsets.only(
+              top: 25,
+            ),
+            child: SingleChildScrollView(
+              physics: ClampingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.subject),
+                        onPressed: () {
+                          setState(() {
+                            if (isCollapsed) {
+                              _controller.forward();
+                            } else {
+                              _controller.reverse();
+                            }
+                            isCollapsed = !isCollapsed;
+                          });
+                        },
+                      ),
+                      Text(
+                        'Home',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 24)),
+                      ),
+                      IconButton(
+                          icon: Icon(Icons.settings),
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed('/settings')),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  _introText(),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'Here are your goals',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  _goalDisplay(),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          'Activity',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.filter_list),
+                          onPressed: () {
+                            _filterActivity();
+                          },
+                        )
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future _filterActivity() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return CupertinoActionSheet(
+          title: Text(
+            'Filter',
+            style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+          ),
+          actions: [
+            CupertinoActionSheetAction(
+              child: Text(
+                '24 Hrs',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.normal)),
+              ),
+              onPressed: () {},
+            ),
+            CupertinoActionSheetAction(
+              child: Text(
+                '7 Days',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.normal)),
+              ),
+              onPressed: () {},
+            ),
+            CupertinoActionSheetAction(
+              child: Text(
+                '30 Days',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.normal)),
+              ),
+              onPressed: () {},
+            ),
+            CupertinoActionSheetAction(
+              child: Text(
+                'Lifetime',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black, fontWeight: FontWeight.normal)),
+              ),
+              onPressed: () {},
+            )
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            child: Text(
+              'CANCEL',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.red, fontWeight: FontWeight.normal)),
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        );
+      },
+    );
+  }
 
   //Savings Target Breakdown
   Widget _targetSavings() {
@@ -110,7 +320,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       textStyle: TextStyle(color: Colors.white)),
                 ),
                 SizedBox(
-                  height: 10,
+                  height: 5,
                 ),
                 Text('15',
                     style: GoogleFonts.muli(
@@ -154,7 +364,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       textStyle: TextStyle(color: Colors.white)),
                 ),
                 SizedBox(
-                  height: 10,
+                  height: 5,
                 ),
                 Text('100',
                     style: GoogleFonts.muli(
@@ -198,7 +408,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       textStyle: TextStyle(color: Colors.white)),
                 ),
                 SizedBox(
-                  height: 10,
+                  height: 5,
                 ),
                 Text('434',
                     style: GoogleFonts.muli(
@@ -215,6 +425,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+  //This represents a single Goal on home page
   Widget _singleGoalWidget() {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8),
@@ -386,7 +597,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  //Display Goals
+  //Display Goals in horizontal scroll view
   Widget _goalDisplay() {
     return Container(
       height: 200,
@@ -412,9 +623,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             'Welcome Jon',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 24,
-            )),
+                    color: Colors.black,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold)),
           ),
           SizedBox(
             height: 5,
@@ -440,7 +651,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           Text(
             'Savings targets',
             style: GoogleFonts.muli(
-                textStyle: TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                textStyle: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold)),
           ),
           SizedBox(
             height: 5,
@@ -451,43 +665,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  //PageView Controller
-  final PageController _pageController = PageController(initialPage: 0);
-  //Define number of screens
-  final int _numPages = 2;
-  final int _numPlannerPages = 3;
-  //Placeholder for current page
-  int _currentPage = 0;
-
-  List<Widget> _buildPageIndicator() {
-    List<Widget> list = [];
-    for (int i = 0; i < _numPages; i++) {
-      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
-    }
-    return list;
-  }
-
-  List<Widget> _buildPlannerPageIndicator() {
-    List<Widget> list = [];
-    for (int i = 0; i < _numPlannerPages; i++) {
-      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
-    }
-    return list;
-  }
-
-  //Page Indicator i.e Slider
-  Widget _indicator(bool isActive) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 200),
-      margin: EdgeInsets.symmetric(horizontal: 8),
-      height: 8,
-      width: isActive ? 24 : 16,
-      decoration: BoxDecoration(
-          color: isActive ? Colors.blue : Colors.lightBlue[100],
-          borderRadius: BorderRadius.circular(12)),
-    );
-  }
-
+  //Savings Page
   Widget _savingsPage(context) {
     return AnimatedPositioned(
       duration: duration,
@@ -558,14 +736,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   children: [Portfolio(), SavingsColored()],
                 )),
                 SizedBox(
-                  height: 10,
+                  height: 5,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: _buildPageIndicator(),
                 ),
                 SizedBox(
-                  height: 10,
+                  height: 5,
                 )
               ],
             ),
@@ -575,11 +753,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  /*
-    NAVIGATION PAGES
-  */
-
-  Widget _LoansPage(context) {
+  //Loans Page
+  Widget _loansPage(context) {
     return AnimatedPositioned(
         child: ScaleTransition(
           scale: _scaleAnimation,
@@ -635,72 +810,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     child: Text(
                       'Limits',
                       style: GoogleFonts.muli(
-                          textStyle:
-                              TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ),
                   SizedBox(
                     height: 10,
                   ),
-                  Card(
-                    elevation: 10,
-                    margin: EdgeInsets.symmetric(horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                        side: BorderSide(
-                            color: Colors.greenAccent[700], width: 1.5)),
-                    child: Container(
-                      padding: EdgeInsets.all(8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Borrow',
-                                style: GoogleFonts.muli(
-                                    textStyle: TextStyle(
-                                        fontSize: 16, letterSpacing: 0.5)),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              Text(
-                                '5,000 KES',
-                                style: GoogleFonts.muli(
-                                    textStyle: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700)),
-                              )
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Lend',
-                                style: GoogleFonts.muli(
-                                    textStyle: TextStyle(
-                                        fontSize: 16, letterSpacing: 0.5)),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              Text(
-                                '8,000 KES',
-                                style: GoogleFonts.muli(
-                                    textStyle: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700)),
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
+                  _loanLimits(),
                   SizedBox(
                     height: 20,
                   ),
@@ -709,407 +828,21 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     child: Text(
                       'Borrowing History',
                       style: GoogleFonts.muli(
-                          textStyle:
-                              TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
                     ),
+                  ),
+                  SizedBox(
+                    height: 10,
                   ),
                   Expanded(
                       child: PageView(
                     scrollDirection: Axis.horizontal,
                     controller: PageController(viewportFraction: 0.8),
                     children: [
-                      Container(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                              tileMode: TileMode.clamp,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.lightBlue[400],
-                                Colors.greenAccent[400]
-                              ],
-                              stops: [
-                                0,
-                                1.0
-                              ]),
-                        ),
-                        child: Stack(
-                          children: [
-                            Align(
-                              alignment: Alignment.topLeft,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 8),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        bottomRight: Radius.circular(20)),
-                                    color: Colors.white),
-                                child: Text(
-                                  'Loan Fund',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: GestureDetector(
-                                onTap: () {
-                                  showCupertinoModalPopup(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return CupertinoActionSheet(
-                                          title: Text(
-                                            'Payment Options',
-                                            style: GoogleFonts.muli(
-                                                textStyle: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black)),
-                                          ),
-                                          actions: [
-                                            CupertinoActionSheetAction(
-                                                onPressed: () {},
-                                                child: Text(
-                                                  'M-PESA',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                )),
-                                            CupertinoActionSheetAction(
-                                                onPressed: () {},
-                                                child: Text(
-                                                  'BANK',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                )),
-                                          ],
-                                          cancelButton:
-                                              CupertinoActionSheetAction(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: Text(
-                                                    'Cancel',
-                                                    style: GoogleFonts.muli(
-                                                        textStyle: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: Colors.red)),
-                                                  )),
-                                        );
-                                      });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 4),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(20)),
-                                      color: Colors.transparent),
-                                  child: Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.center,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  RichText(
-                                      text: TextSpan(children: [
-                                    TextSpan(
-                                        text: 'You have repaid ',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.white))),
-                                    TextSpan(
-                                        text: '2000',
-                                        style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        )),
-                                  ])),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Text(
-                                          '0',
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        Expanded(
-                                          child: Slider(
-                                              value: 2000,
-                                              min: 0,
-                                              max: 5000,
-                                              onChanged: (value) {}),
-                                        ),
-                                        Text(
-                                          '5000',
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold)),
-                                        )
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 5, horizontal: 10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(20)),
-                                    color: Colors.transparent),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text(
-                                      'Ends on',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600)),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      'Dec 25, 2020',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold)),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Container(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                              tileMode: TileMode.clamp,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.lightBlue[400],
-                                Colors.greenAccent[400]
-                              ],
-                              stops: [
-                                0,
-                                1.0
-                              ]),
-                        ),
-                        child: Stack(
-                          children: [
-                            Align(
-                              alignment: Alignment.topLeft,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 8),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        bottomRight: Radius.circular(20)),
-                                    color: Colors.white),
-                                child: Text(
-                                  'Peter Kariuki',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: GestureDetector(
-                                onTap: () {
-                                  showCupertinoModalPopup(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return CupertinoActionSheet(
-                                          title: Text(
-                                            'Payment Options',
-                                            style: GoogleFonts.muli(
-                                                textStyle: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black)),
-                                          ),
-                                          actions: [
-                                            CupertinoActionSheetAction(
-                                                onPressed: () {},
-                                                child: Text(
-                                                  'M-PESA',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                )),
-                                            CupertinoActionSheetAction(
-                                                onPressed: () {},
-                                                child: Text(
-                                                  'BANK',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                )),
-                                          ],
-                                          cancelButton:
-                                              CupertinoActionSheetAction(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: Text(
-                                                    'Cancel',
-                                                    style: GoogleFonts.muli(
-                                                        textStyle: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: Colors.red)),
-                                                  )),
-                                        );
-                                      });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 4),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(20)),
-                                      color: Colors.transparent),
-                                  child: Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.center,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  RichText(
-                                      text: TextSpan(children: [
-                                    TextSpan(
-                                        text: 'You have repaid ',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.white))),
-                                    TextSpan(
-                                        text: '1500',
-                                        style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        )),
-                                  ])),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Text(
-                                          '0',
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        Expanded(
-                                          child: Slider(
-                                              value: 1500,
-                                              min: 0,
-                                              max: 5200,
-                                              onChanged: (value) {}),
-                                        ),
-                                        Text(
-                                          '5200',
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold)),
-                                        )
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 5, horizontal: 10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(20)),
-                                    color: Colors.transparent),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text(
-                                      'Ends on',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600)),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      'Feb 25, 2021',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold)),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      )
+                      _singleLoanTaken(),
                     ],
                   )),
                   SizedBox(
@@ -1120,407 +853,21 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     child: Text(
                       'Lending History',
                       style: GoogleFonts.muli(
-                          textStyle:
-                              TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
                     ),
+                  ),
+                  SizedBox(
+                    height: 10,
                   ),
                   Expanded(
                       child: PageView(
                     scrollDirection: Axis.horizontal,
                     controller: PageController(viewportFraction: 0.8),
                     children: [
-                      Container(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                              tileMode: TileMode.clamp,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.lightBlue[400],
-                                Colors.greenAccent[400]
-                              ],
-                              stops: [
-                                0,
-                                1.0
-                              ]),
-                        ),
-                        child: Stack(
-                          children: [
-                            Align(
-                              alignment: Alignment.topLeft,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 8),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        bottomRight: Radius.circular(20)),
-                                    color: Colors.white),
-                                child: Text(
-                                  'James Njuguna',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: GestureDetector(
-                                onTap: () {
-                                  showCupertinoModalPopup(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return CupertinoActionSheet(
-                                          title: Text(
-                                            'Loan Options',
-                                            style: GoogleFonts.muli(
-                                                textStyle: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black)),
-                                          ),
-                                          actions: [
-                                            CupertinoActionSheetAction(
-                                                onPressed: () {},
-                                                child: Text(
-                                                  'ACCEPT',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                )),
-                                            CupertinoActionSheetAction(
-                                                onPressed: () {},
-                                                child: Text(
-                                                  'UPDATE',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                )),
-                                          ],
-                                          cancelButton:
-                                              CupertinoActionSheetAction(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: Text(
-                                                    'REJECT',
-                                                    style: GoogleFonts.muli(
-                                                        textStyle: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: Colors.red)),
-                                                  )),
-                                        );
-                                      });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 4),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(20)),
-                                      color: Colors.transparent),
-                                  child: Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.center,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  RichText(
-                                      text: TextSpan(children: [
-                                    TextSpan(
-                                        text: 'They have repaid ',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.white))),
-                                    TextSpan(
-                                        text: '2000',
-                                        style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        )),
-                                  ])),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Text(
-                                          '0',
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        Expanded(
-                                          child: Slider(
-                                              value: 2000,
-                                              min: 0,
-                                              max: 5000,
-                                              onChanged: (value) {}),
-                                        ),
-                                        Text(
-                                          '5000',
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold)),
-                                        )
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 5, horizontal: 10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(20)),
-                                    color: Colors.transparent),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text(
-                                      'Ends on',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600)),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      'Dec 25, 2020',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold)),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Container(
-                        margin:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
-                              tileMode: TileMode.clamp,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.lightBlue[400],
-                                Colors.greenAccent[400]
-                              ],
-                              stops: [
-                                0,
-                                1.0
-                              ]),
-                        ),
-                        child: Stack(
-                          children: [
-                            Align(
-                              alignment: Alignment.topLeft,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 8),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        bottomRight: Radius.circular(20)),
-                                    color: Colors.white),
-                                child: Text(
-                                  'Jane Kariuki',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: GestureDetector(
-                                onTap: () {
-                                  showCupertinoModalPopup(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return CupertinoActionSheet(
-                                          title: Text(
-                                            'Payment Options',
-                                            style: GoogleFonts.muli(
-                                                textStyle: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black)),
-                                          ),
-                                          actions: [
-                                            CupertinoActionSheetAction(
-                                                onPressed: () {},
-                                                child: Text(
-                                                  'ACCEPT',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                )),
-                                            CupertinoActionSheetAction(
-                                                onPressed: () {},
-                                                child: Text(
-                                                  'UPDATE',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold)),
-                                                )),
-                                          ],
-                                          cancelButton:
-                                              CupertinoActionSheetAction(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: Text(
-                                                    'REJECT',
-                                                    style: GoogleFonts.muli(
-                                                        textStyle: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: Colors.red)),
-                                                  )),
-                                        );
-                                      });
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 4),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(20)),
-                                      color: Colors.transparent),
-                                  child: Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.center,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  RichText(
-                                      text: TextSpan(children: [
-                                    TextSpan(
-                                        text: 'They have repaid ',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.white))),
-                                    TextSpan(
-                                        text: '1500',
-                                        style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        )),
-                                  ])),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Text(
-                                          '0',
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        Expanded(
-                                          child: Slider(
-                                              value: 1500,
-                                              min: 0,
-                                              max: 5200,
-                                              onChanged: (value) {}),
-                                        ),
-                                        Text(
-                                          '5200',
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold)),
-                                        )
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 5, horizontal: 10),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(20)),
-                                    color: Colors.transparent),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: <Widget>[
-                                    Text(
-                                      'Ends on',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600)),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      'Feb 25, 2021',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold)),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      )
+                      _singleLoanGiven(),
                     ],
                   ))
                 ],
@@ -1536,6 +883,491 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         duration: duration);
   }
 
+  Widget _loanLimits() {
+    return Card(
+      elevation: 10,
+      margin: EdgeInsets.symmetric(horizontal: 10),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.greenAccent[700], width: 1.5)),
+      child: Container(
+        padding: EdgeInsets.all(8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Borrow',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  '5,000 KES',
+                  style: GoogleFonts.muli(
+                      textStyle:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                )
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Lend',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  '8,000 KES',
+                  style: GoogleFonts.muli(
+                      textStyle:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                )
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _singleLoanTaken() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+            tileMode: TileMode.clamp,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.lightBlue[400], Colors.greenAccent[400]],
+            stops: [0, 1.0]),
+      ),
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.topLeft,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.only(bottomRight: Radius.circular(20)),
+                  color: Colors.white),
+              child: Text(
+                'Loan Fund',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pushNamed('/pay-loan'),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.only(bottomLeft: Radius.circular(20)),
+                    color: Colors.transparent),
+                child: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RichText(
+                    text: TextSpan(children: [
+                  TextSpan(
+                      text: 'You have repaid ',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(color: Colors.white))),
+                  TextSpan(
+                      text: '2000',
+                      style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18),
+                      )),
+                ])),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: <Widget>[
+                      Text(
+                        '0',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      Expanded(
+                        child: Slider(
+                            value: 2000,
+                            min: 0,
+                            max: 5000,
+                            onChanged: (value) {}),
+                      ),
+                      Text(
+                        '5000',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20)),
+                  color: Colors.transparent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Ends on',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text(
+                    'Dec 25, 2020',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20)),
+                  color: Colors.transparent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Interest',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text(
+                    '20',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Future _loanAcceptance() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                EvilIcons.check,
+                color: Colors.greenAccent[700],
+                size: 50,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                'Loan + Interest Cover = XXX',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        fontWeight: FontWeight.normal, color: Colors.black)),
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future _lendingOptions() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoActionSheet(
+            title: Text(
+              'Loan Options',
+              style:
+                  GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+            ),
+            actions: [
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    //Pop the Action Sheet First
+                    Navigator.of(context).pop();
+
+                    //Show an alert dialog with L+IC
+                    _loanAcceptance();
+                  },
+                  child: Text(
+                    'ACCEPT',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(fontWeight: FontWeight.bold)),
+                  )),
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    //Pop the Action Sheet First
+                    Navigator.of(context).pop();
+
+                    Navigator.of(context).pushNamed('/update-loan');
+                  },
+                  child: Text(
+                    'UPDATE',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(fontWeight: FontWeight.bold)),
+                  )),
+            ],
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  'REJECT',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.red)),
+                )),
+          );
+        });
+  }
+
+  Widget _singleLoanGiven() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+            tileMode: TileMode.clamp,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.lightBlue[400], Colors.greenAccent[400]],
+            stops: [0, 1.0]),
+      ),
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.topLeft,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.only(bottomRight: Radius.circular(20)),
+                  color: Colors.white),
+              child: Text(
+                'James Njuguna',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: GestureDetector(
+              onTap: () {
+                _lendingOptions();
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.only(bottomLeft: Radius.circular(20)),
+                    color: Colors.transparent),
+                child: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RichText(
+                    text: TextSpan(children: [
+                  TextSpan(
+                      text: 'They have repaid ',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(color: Colors.white))),
+                  TextSpan(
+                      text: '2000',
+                      style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18),
+                      )),
+                ])),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: <Widget>[
+                      Text(
+                        '0',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      Expanded(
+                        child: Slider(
+                            value: 2000,
+                            min: 0,
+                            max: 5000,
+                            onChanged: (value) {}),
+                      ),
+                      Text(
+                        '5000',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20)),
+                  color: Colors.transparent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Ends on',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text(
+                    'Dec 25, 2020',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20)),
+                  color: Colors.transparent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Interest',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text(
+                    '20',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  //Wallet Page
   Widget _walletPage(context) {
     return AnimatedPositioned(
         child: ScaleTransition(
@@ -2012,14 +1844,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   children: [Portfolio(), InvestmentColored()],
                 )),
                 SizedBox(
-                  height: 10,
+                  height: 5,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: _buildPageIndicator(),
                 ),
                 SizedBox(
-                  height: 10,
+                  height: 5,
                 )
               ],
             ),
@@ -2028,181 +1860,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       ),
     );
   }
-
-  //Goals Page
-  Widget _goalsPage(context) {
-    return AnimatedPositioned(
-      duration: duration,
-      curve: Curves.ease,
-      top: 0,
-      bottom: 0,
-      left: isCollapsed ? 0 : 0.6 * screenWidth,
-      right: isCollapsed ? 0 : -0.4 * screenWidth,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Material(
-          elevation: 10,
-          animationDuration: duration,
-          borderRadius: isCollapsed
-              ? BorderRadius.circular(0)
-              : BorderRadius.circular(30),
-          color: Colors.white,
-          child: Container(
-            padding: EdgeInsets.only(
-              top: 25,
-            ),
-            child: SingleChildScrollView(
-              physics: ClampingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.subject),
-                        onPressed: () {
-                          setState(() {
-                            if (isCollapsed) {
-                              _controller.forward();
-                            } else {
-                              _controller.reverse();
-                            }
-                            isCollapsed = !isCollapsed;
-                          });
-                        },
-                      ),
-                      Text(
-                        'Home',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 24)),
-                      ),
-                      IconButton(
-                          icon: Icon(Icons.settings),
-                          onPressed: () =>
-                              Navigator.of(context).pushNamed('/settings')),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  _introText(),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Here are your goals',
-                      style: GoogleFonts.muli(
-                          textStyle:
-                              TextStyle(fontSize: 16, letterSpacing: 0.5)),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  _goalDisplay(),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          'Activity',
-                          style: GoogleFonts.muli(
-                              textStyle:
-                                  TextStyle(fontSize: 16, letterSpacing: 0.5)),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.filter_list),
-                          onPressed: () {
-                            showCupertinoModalPopup(
-                              context: context,
-                              builder: (context) {
-                                return CupertinoActionSheet(
-                                  title: Text(
-                                    'Filter',
-                                    style: GoogleFonts.muli(
-                                        textStyle:
-                                            TextStyle(color: Colors.black)),
-                                  ),
-                                  actions: [
-                                    CupertinoActionSheetAction(
-                                      child: Text(
-                                        '24 Hrs',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.normal)),
-                                      ),
-                                      onPressed: () {},
-                                    ),
-                                    CupertinoActionSheetAction(
-                                      child: Text(
-                                        '7 Days',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.normal)),
-                                      ),
-                                      onPressed: () {},
-                                    ),
-                                    CupertinoActionSheetAction(
-                                      child: Text(
-                                        '30 Days',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.normal)),
-                                      ),
-                                      onPressed: () {},
-                                    ),
-                                    CupertinoActionSheetAction(
-                                      child: Text(
-                                        'Lifetime',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.normal)),
-                                      ),
-                                      onPressed: () {},
-                                    )
-                                  ],
-                                  cancelButton: CupertinoActionSheetAction(
-                                    child: Text(
-                                      'CANCEL',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.red,
-                                              fontWeight: FontWeight.normal)),
-                                    ),
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Color _colorBudget = Colors.blue[800];
 
   //Planning Page
   Widget _plannerPage(context) {
@@ -2293,6 +1950,93 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+  Widget _promoPage(context) {
+    return AnimatedPositioned(
+      duration: duration,
+      curve: Curves.ease,
+      top: 0,
+      bottom: 0,
+      left: isCollapsed ? 0 : 0.6 * screenWidth,
+      right: isCollapsed ? 0 : -0.4 * screenWidth,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: Material(
+          elevation: 10,
+          animationDuration: duration,
+          borderRadius: isCollapsed
+              ? BorderRadius.circular(0)
+              : BorderRadius.circular(30),
+          color: Colors.white,
+          child: Container(
+            padding: EdgeInsets.only(
+              top: 25,
+            ),
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.subject),
+                      onPressed: () {
+                        setState(() {
+                          if (isCollapsed) {
+                            _controller.forward();
+                          } else {
+                            _controller.reverse();
+                          }
+                          isCollapsed = !isCollapsed;
+                        });
+                      },
+                    ),
+                    Text(
+                      'Promotions',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 24)),
+                    ),
+                    IconButton(
+                        icon: Icon(Icons.settings),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/settings')),
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Expanded(
+                    child: PageView(
+                        controller: _pageController,
+                        onPageChanged: (value) {
+                          setState(() {
+                            _currentPage = value;
+                            _pageController.animateToPage(value,
+                                duration: Duration(milliseconds: 100),
+                                curve: Curves.ease);
+                          });
+                        },
+                        children: [SortikaSavings(), SortikaLottery()])),
+                SizedBox(
+                  height: 5,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: _buildPageIndicator(),
+                ),
+                SizedBox(
+                  height: 5,
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -2313,30 +2057,42 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget _menuHeader() {
     return Container(
       padding: const EdgeInsets.only(left: 16, top: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pushNamed('/profile'),
-            child: CircleAvatar(
-              radius: 50,
-              child: Icon(
-                Icons.person,
-                size: 50,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.of(context).pushNamed('/profile'),
+                child: CircleAvatar(
+                  radius: 45,
+                  child: Icon(
+                    Icons.person,
+                    size: 45,
+                  ),
+                ),
               ),
-            ),
+              SizedBox(height: 5),
+              Text(
+                'Jon Snow',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
+              )
+            ],
           ),
-          SizedBox(height: 5),
-          Text(
-            'Jon Snow',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold)),
-          )
+          IconButton(
+              icon: Icon(
+                Icons.message,
+                color: Colors.white,
+              ),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed('/notifications'))
         ],
       ),
     );
@@ -2496,7 +2252,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -2728,15 +2484,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 child: InkWell(
                   splashColor: Colors.blueGrey,
                   onTap: () {
-                    //    setState(() {
-                    //   _pageSelection = 'main';
-                    //   if (isCollapsed) {
-                    //     _controller.forward();
-                    //   } else {
-                    //     _controller.reverse();
-                    //   }
-                    //   isCollapsed = !isCollapsed;
-                    // });
+                    setState(() {
+                      _pageSelection = 'promo';
+                      if (isCollapsed) {
+                        _controller.forward();
+                      } else {
+                        _controller.reverse();
+                      }
+                      isCollapsed = !isCollapsed;
+                    });
                   },
                   child: Container(
                     padding:
@@ -2812,10 +2568,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           : _pageSelection == 'group'
                               ? _groupsPage(context)
                               : _pageSelection == 'loan'
-                                  ? _LoansPage(context)
+                                  ? _loansPage(context)
                                   : _pageSelection == 'wallet'
                                       ? _walletPage(context)
-                                      : _plannerPage(context)
+                                      : _pageSelection == 'plan'
+                                          ? _plannerPage(context)
+                                          : _promoPage(context)
             ],
           ),
           value: SystemUiOverlayStyle.light),

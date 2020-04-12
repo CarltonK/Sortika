@@ -19,7 +19,7 @@ class _BudgetCalcState extends State<BudgetCalc> {
   bool _isStarted = false;
   Color _startedColor = Color(0xFF73AEF5);
 
-   String _budgetCategory;
+  String _budgetCategory;
 
   //Animation Duration
   final Duration duration = const Duration(milliseconds: 200);
@@ -295,7 +295,7 @@ class _BudgetCalcState extends State<BudgetCalc> {
     _controllerDebt.dispose();
   }
 
-   List<DropdownMenuItem> itemsCategories = [
+  List<DropdownMenuItem> itemsCategories = [
     DropdownMenuItem(
       value: '',
       child: Text(
@@ -307,7 +307,7 @@ class _BudgetCalcState extends State<BudgetCalc> {
     ),
   ];
 
-   Widget _budgetCategoryWidget() {
+  Widget _budgetCategoryWidget() {
     return Container(
       alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
@@ -341,54 +341,60 @@ class _BudgetCalcState extends State<BudgetCalc> {
   }
 
   Future _addCustomGoal() {
-    showCupertinoModalPopup(context: context, builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: Text(
-          'Add a custom goal',
-          textAlign: TextAlign.left,
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-            fontSize: 18,
-          )),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _budgetCategoryWidget(),
-            SizedBox(height: 10,),
-            TextFormField(
-                    style:
-                        GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: 'Enter amount',
-                      hintStyle: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.black, fontWeight: FontWeight.w300)),
-                      border: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black)),
-                    ),
-                  ),
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text(
+            'Add a custom goal',
+            textAlign: TextAlign.left,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              fontSize: 18,
+            )),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _budgetCategoryWidget(),
+              SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                style:
+                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Enter amount',
+                  hintStyle: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.w300)),
+                  border: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            FlatButton(
+                onPressed: () {},
+                child: Text(
+                  'Add',
+                  textAlign: TextAlign.left,
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                    fontSize: 18,
+                  )),
+                ))
           ],
-        ),
-        actions: [
-          FlatButton(onPressed: () {
-            
-          }, child: Text(
-          'Add',
-          textAlign: TextAlign.left,
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-            fontSize: 18,
-          )),
-        ))
-        ],
-      );
-    },);
+        );
+      },
+    );
   }
 
   Widget _introBudget() {

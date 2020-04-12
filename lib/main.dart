@@ -9,9 +9,12 @@ import 'package:wealth/home_screens/editGoal.dart';
 import 'package:wealth/home_screens/editGroup.dart';
 import 'package:wealth/home_screens/help.dart';
 import 'package:wealth/home_screens/home.dart';
+import 'package:wealth/home_screens/notifications.dart';
+import 'package:wealth/home_screens/payLoan.dart';
 import 'package:wealth/home_screens/profile.dart';
 import 'package:wealth/home_screens/rate.dart';
 import 'package:wealth/home_screens/settings.dart';
+import 'package:wealth/home_screens/updateLoan.dart';
 import 'package:wealth/onboarding.dart';
 import 'package:wealth/pre_login/achieve_preference.dart';
 
@@ -47,6 +50,9 @@ class MyApp extends StatelessWidget {
         '/edit-goal': (context) => EditGoal(),
         '/borrow': (context) => BorrowAll(),
         '/edit-group': (context) => EditGroup(),
+        '/pay-loan': (context) => PayLoan(),
+        '/update-loan': (context) => UpdateLoan(),
+        '/notifications': (context) => NotificationsPage(),
       },
       theme: ThemeData(
         primarySwatch: Colors.blue,
