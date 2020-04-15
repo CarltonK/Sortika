@@ -83,17 +83,9 @@ class MyApp extends StatelessWidget {
           builder:
               (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              print(snapshot.data.toString());
-              if (snapshot.hasError) {
-                print('This is the error: ${snapshot.error.toString()}');
-                return Text(
-                  '${snapshot.error.toString()}',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black, letterSpacing: 1, fontSize: 20)),
-                );
-              }
-              return snapshot.hasData ? Home() : OnBoarding();
+              print(snapshot.data);
+              final bool loggedIn = snapshot.hasData;
+              return !loggedIn ? OnBoarding() : Home();
             } else {
               return LoadingCircle();
             }

@@ -383,7 +383,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _loginProcess() {
+  void _loginProcess() async {
     //Validate Fields
     final form = _formKey.currentState;
     if (form.validate()) {
@@ -395,14 +395,15 @@ class _LoginScreenState extends State<LoginScreen> {
         isLoading = true;
       });
 
-      Provider.of<AuthService>(context, listen: false)
+      await Provider.of<AuthService>(context, listen: false)
           .signInEmailPass(user)
           .then((value) {
         //Pass the value for analysis
+        result = value;
         serverCall(value);
       });
 
-      serverCall(user).whenComplete(() {
+      serverCall(result).whenComplete(() {
         if (callResponse) {
           //Disable the circular progress dialog
           setState(() {
@@ -435,8 +436,12 @@ class _LoginScreenState extends State<LoginScreen> {
             },
           );
 
-          Timer(Duration(seconds: 2), () {
-            Navigator.of(context).pushNamed('/home');
+          Timer(Duration(seconds: 2),() {
+            Navigator.of(context).pop();
+          });
+
+          Timer(Duration(milliseconds: 2200), () {
+            Navigator.of(context).popAndPushNamed('/home');
           });
 
           // //This is where we redirect the user based on their designation

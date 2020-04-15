@@ -39,7 +39,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool isLoading = false;
   dynamic result;
   bool callResponse = false;
-  AuthService _authService = AuthService();
+  AuthService authService = AuthService();
 
   //Handle Name Input
   void _handleSubmittedName(String value) {
@@ -362,7 +362,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  Future<bool> serverCall(dynamic result) async {
+  Future<bool> serverCall(User user) async {
+    result = await authService.createUserEmailPass(user);
     print('This is the result: $result');
 
     if (result == 'Your password is weak. Please choose another') {
@@ -420,13 +421,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       //Show Progress Dialog
       setState(() {
         isLoading = true;
-      });
-
-      Provider.of<AuthService>(context, listen: false)
-          .createUserEmailPass(user)
-          .then((value) {
-        //Pass the value for analysis
-        serverCall(value);
       });
 
       serverCall(user).whenComplete(() {

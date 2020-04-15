@@ -2212,9 +2212,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ),
                         actions: [
                           FlatButton(
-                              onPressed: () async {
+                              onPressed: () {
                                 Navigator.of(context).pop();
-                                await Provider.of<AuthService>(context,
+                                Provider.of<AuthService>(context,
                                         listen: false)
                                     .logout();
                               },

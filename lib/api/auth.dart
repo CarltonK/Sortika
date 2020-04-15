@@ -22,19 +22,13 @@ class AuthService with ChangeNotifier {
     return _auth.currentUser();
   }
 
-  Future<FirebaseUser> getCurrentUser() async {
-    FirebaseUser user = await _auth.currentUser();
-    return user;
-  }
-
   //Logout call
   Future logout() async {
     // SharedPreferences prefs = await SharedPreferences.getInstance();
     // prefs.remove('uid');
-    this.currentUser = null;
-    _auth.signOut();
+    var result = await _auth.signOut();
     notifyListeners();
-    return Future.value(currentUser);
+    return result;
   }
 
   /*
