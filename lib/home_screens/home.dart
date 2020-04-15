@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:share/share.dart';
+import 'package:wealth/api/auth.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
@@ -26,6 +28,9 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+  //Authentication
+  AuthService authService = AuthService();
+
   bool isCollapsed = true;
   double screenWidth, screenHeight;
   //Animation Duration
@@ -2207,9 +2212,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ),
                         actions: [
                           FlatButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 Navigator.of(context).pop();
-                                Navigator.of(context).pop();
+                                await Provider.of<AuthService>(context,
+                                        listen: false)
+                                    .logout();
                               },
                               child: Text(
                                 'YES',
@@ -2219,9 +2226,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                         fontWeight: FontWeight.bold)),
                               )),
                           FlatButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
+                              onPressed: () => Navigator.of(context).pop(),
                               child: Text(
                                 'NO',
                                 style: GoogleFonts.muli(

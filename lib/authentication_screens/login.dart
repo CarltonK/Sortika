@@ -1,5 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:wealth/models/usermodel.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:wealth/api/auth.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,6 +25,12 @@ class _LoginScreenState extends State<LoginScreen> {
   //Identifiers
   String _email, _password;
 
+  //Authentication
+  bool isLoading = false;
+  dynamic result;
+  bool callResponse = false;
+  AuthService authService = AuthService();
+
   //Handle Phone Input
   void _handleSubmittedEmail(String value) {
     _email = value.trim();
@@ -31,60 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
     print('Password: ' + _password);
   }
 
-//     Widget _loginEmail() {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: <Widget>[
-//         Text(
-//           'Email',
-//           style: GoogleFonts.quicksand(
-//               textStyle: TextStyle(
-//                   color: Colors.white,
-//                   fontSize: 20,
-//                   letterSpacing: .2,
-//                   fontWeight: FontWeight.bold)),
-//         ),
-//         SizedBox(
-//           height: 10,
-//         ),
-//         TextFormField(
-//           autofocus: false,
-//           style: GoogleFonts.quicksand(
-//               textStyle: TextStyle(color: Colors.white, fontSize: 18)),
-//           decoration: InputDecoration(
-//               errorStyle: GoogleFonts.quicksand(
-//                 textStyle: TextStyle(color: Colors.white),
-//               ),
-//               enabledBorder: UnderlineInputBorder(
-//                   borderSide: BorderSide(color: Colors.white)),
-//               focusedBorder: UnderlineInputBorder(
-//                   borderSide: BorderSide(color: Colors.white, width: 1.5)),
-//               errorBorder: UnderlineInputBorder(
-//                   borderSide: BorderSide(color: Colors.red)),
-// //              labelText: 'Please enter your email',
-// //              labelStyle: GoogleFonts.quicksand(
-// //                  textStyle: TextStyle(color: Colors.white)),
-//               icon: Icon(
-//                 Icons.email,
-//                 color: Colors.white,
-//               )),
-//           keyboardType: TextInputType.emailAddress,
-//           validator: (value) {
-//             if (value.isEmpty) {
-//               return 'Email is required';
-//             }
-//             return null;
-//           },
-//           onFieldSubmitted: (value) {
-//             FocusScope.of(context).requestFocus(_focusPass);
-//           },
-//           textInputAction: TextInputAction.next,
-//           onSaved: _emailHandler,
-//         )
-//       ],
-//     );
-//   }
-
   //Phone Widget
   Widget _emailTF() {
     return Column(
@@ -95,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: labelStyle,
         ),
         SizedBox(
-          height: 20,
+          height: 10,
         ),
         TextFormField(
             autofocus: false,
@@ -118,21 +76,27 @@ class _LoginScreenState extends State<LoginScreen> {
                 return 'Email format is invalid. @ is missing';
               }
 
+              //Check if domain is available
+              if (!value.contains('.')) {
+                return 'Domain is required e.g gmail.com';
+              }
+
               return null;
             },
             textInputAction: TextInputAction.next,
             onSaved: _handleSubmittedEmail,
             decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
                 focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
                 errorBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.red)),
-                enabledBorder: UnderlineInputBorder(
+                border: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
-                contentPadding: EdgeInsets.only(top: 14),
                 prefixIcon: Icon(Icons.mail, color: Colors.white),
-                hintText: 'Enter your email address',
-                hintStyle: hintStyle))
+                labelText: 'Enter your email address',
+                labelStyle: hintStyle))
       ],
     );
   }
@@ -147,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: labelStyle,
         ),
         SizedBox(
-          height: 20,
+          height: 10,
         ),
         TextFormField(
             autofocus: false,
@@ -177,16 +141,17 @@ class _LoginScreenState extends State<LoginScreen> {
             focusNode: focusPassword,
             obscureText: true,
             decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
                 focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
                 errorBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.red)),
-                enabledBorder: UnderlineInputBorder(
+                border: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
-                contentPadding: EdgeInsets.only(top: 14),
                 prefixIcon: Icon(Icons.lock, color: Colors.white),
-                hintText: 'Enter your Password',
-                hintStyle: hintStyle))
+                labelText: 'Enter your Password',
+                labelStyle: hintStyle))
       ],
     );
   }
@@ -230,36 +195,37 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _loginProcess() {
-    //Validate Fields
-    final form = _formKey.currentState;
-    if (form.validate()) {
-      form.save();
-    }
-  }
-
   //LOGIN Button
   Widget _loginBtn() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 15),
+      padding: EdgeInsets.symmetric(vertical: 20),
       width: double.infinity,
-      child: RaisedButton(
-        elevation: 5,
-        onPressed: _loginProcess,
-        padding: EdgeInsets.all(15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        color: Colors.white,
-        child: Text(
-          'LOGIN',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-                  letterSpacing: 1.5,
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)),
-        ),
-      ),
+      child: isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                backgroundColor: Colors.red,
+                strokeWidth: 3,
+              ),
+            )
+          : RaisedButton(
+              elevation: 5,
+              onPressed: _loginProcess,
+              padding: EdgeInsets.all(15),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30)),
+              color: Colors.white,
+              child: Text(
+                'LOGIN',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        letterSpacing: 1.5,
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ),
     );
+    ;
   }
 
   //Sign In With
@@ -389,6 +355,180 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<bool> serverCall(dynamic result) async {
+    print('This is the result: $result');
+
+    if (result == 'Invalid credentials. Please try again') {
+      callResponse = false;
+      return false;
+    } else if (result == "The email format entered is invalid") {
+      callResponse = false;
+      return false;
+    } else if (result == "Please register first") {
+      callResponse = false;
+      return false;
+    } else if (result == "Your account has been disabled") {
+      callResponse = false;
+      return false;
+    } else if (result == "Too many requests. Try again in 2 minutes") {
+      callResponse = false;
+      return false;
+    } else if (result ==
+        "Please verify your email before signing in. We sent you an email earlier") {
+      callResponse = false;
+      return false;
+    } else {
+      callResponse = true;
+      return true;
+    }
+  }
+
+  void _loginProcess() {
+    //Validate Fields
+    final form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+
+      User user = new User(email: _email, password: _password);
+
+      setState(() {
+        isLoading = true;
+      });
+
+      Provider.of<AuthService>(context, listen: false)
+          .signInEmailPass(user)
+          .then((value) {
+        //Pass the value for analysis
+        serverCall(value);
+      });
+
+      serverCall(user).whenComplete(() {
+        if (callResponse) {
+          //Disable the circular progress dialog
+          setState(() {
+            isLoading = false;
+          });
+
+          //Disable the keyboard from showing again
+          FocusScope.of(context).unfocus();
+
+          //print('Successful response ${result}');
+          showCupertinoModalPopup(
+            context: context,
+            builder: (BuildContext context) {
+              return CupertinoActionSheet(
+                title: Text(
+                  'Welcome',
+                  style: GoogleFonts.quicksand(
+                      textStyle: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                    color: Colors.black,
+                  )),
+                ),
+                message: Center(
+                  child: LinearProgressIndicator(
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+              );
+            },
+          );
+
+          Timer(Duration(seconds: 2), () {
+            Navigator.of(context).pushNamed('/home');
+          });
+
+          // //This is where we redirect the user based on their designation
+          // //Pass the user id as the parameter
+          // String userid = '${result.uid}';
+          // //print('This is the user id: $userid');
+          // //Query user designation based on results of the query containing uid
+          // getUserBase(userid);
+        } else {
+          //print('Failed response: ${result}');
+
+          //Disable the circular progress dialog
+          setState(() {
+            isLoading = false;
+          });
+
+          //Disable the keyboard from showing again
+          FocusScope.of(context).unfocus();
+
+          //Show an action sheet with result
+          showCupertinoModalPopup(
+            context: context,
+            builder: (BuildContext context) {
+              return CupertinoActionSheet(
+                  title: Text(
+                    '$result',
+                    style: GoogleFonts.quicksand(
+                        textStyle: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 20,
+                      color: Colors.black,
+                    )),
+                  ),
+                  cancelButton: CupertinoActionSheetAction(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        FocusScope.of(context).unfocus();
+                      },
+                      child: Text(
+                        'CANCEL',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.red,
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold)),
+                      )));
+            },
+          );
+        }
+      }).catchError((error) {
+        print('This is the error $error');
+        //Disable the circular progress dialog
+        setState(() {
+          isLoading = false;
+        });
+
+        //Disable the keyboard from showing again
+        FocusScope.of(context).unfocus();
+
+        //Show an action sheet with error
+        showCupertinoModalPopup(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoActionSheet(
+                title: Text(
+                  '$error',
+                  style: GoogleFonts.quicksand(
+                      textStyle: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                    color: Colors.black,
+                  )),
+                ),
+                cancelButton: CupertinoActionSheetAction(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      FocusScope.of(context).unfocus();
+                    },
+                    child: Text(
+                      'CANCEL',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.red,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold)),
+                    )));
+          },
+        );
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -433,7 +573,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
