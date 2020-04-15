@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnBoarding extends StatefulWidget {
   @override
@@ -15,6 +16,16 @@ class _OnBoardingState extends State<OnBoarding> {
   final int _numPages = 4;
   //Placeholder for current page
   int _currentPage = 0;
+
+  Future checkFirstSeen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool _seen = (prefs.getBool('seen') ?? false);
+    if (_seen) {
+      Navigator.of(context).pushReplacementNamed('/login');
+    } else {
+      await prefs.setBool('seen', true);
+    }
+  }
 
   TextStyle _titleStyle() {
     return GoogleFonts.muli(
@@ -30,14 +41,14 @@ class _OnBoardingState extends State<OnBoarding> {
   //Image Urls
   //https://www.pinclipart.com/picdir/big/126-1268588_more-money-cliparts-25-buy-clip-art-save.png
   //https://i.dlpng.com/static/png/6859105_preview.png
-  String _pageOneImage =
-      'https://gopeer.ca/wp-content/uploads/2019/10/Peer-to-peer-lending.png';
-  String _pageTwoImage =
-      'https://openltv.com/wp-content/uploads/2019/04/invest-tree-800x400.png';
-  String _pageThreeImage =
-      'https://www.pinclipart.com/picdir/big/126-1268588_more-money-cliparts-25-buy-clip-art-save.png';
-  String _pageFourImage =
-      'https://cdn.shortpixel.ai/client/q_glossy,ret_img,w_649/https://chamasoft.com/wp-content/uploads/2020/02/group-concept-1.png';
+  // String _pageOneImage =
+  //     'https://gopeer.ca/wp-content/uploads/2019/10/Peer-to-peer-lending.png';
+  // String _pageTwoImage =
+  //     'https://openltv.com/wp-content/uploads/2019/04/invest-tree-800x400.png';
+  // String _pageThreeImage =
+  //     'https://www.pinclipart.com/picdir/big/126-1268588_more-money-cliparts-25-buy-clip-art-save.png';
+  // String _pageFourImage =
+  //     'https://cdn.shortpixel.ai/client/q_glossy,ret_img,w_649/https://chamasoft.com/wp-content/uploads/2020/02/group-concept-1.png';
 
   List<Widget> _buildPageIndicator() {
     List<Widget> list = [];
@@ -58,6 +69,12 @@ class _OnBoardingState extends State<OnBoarding> {
           color: isActive ? Colors.white : Color(0xFF73AEF5),
           borderRadius: BorderRadius.circular(12)),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkFirstSeen();
   }
 
   @override

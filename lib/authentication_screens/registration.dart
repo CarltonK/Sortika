@@ -8,6 +8,8 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  //Form Key
+  final _formKey = GlobalKey<FormState>();
   //FocusNodes
   final focusPhone = FocusNode();
   final focusEmail = FocusNode();
@@ -59,28 +61,28 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         SizedBox(
           height: 20,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: boxDecorationStyle,
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.text,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).requestFocus(focusPhone);
-              },
-              textInputAction: TextInputAction.next,
-              onSaved: _handleSubmittedName,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.person, color: Colors.white),
-                  hintText: 'Enter your Full Name',
-                  hintStyle: hintStyle)),
-        )
+        TextFormField(
+            keyboardType: TextInputType.text,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(focusPhone);
+            },
+            textInputAction: TextInputAction.next,
+            onSaved: _handleSubmittedName,
+            decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                contentPadding: EdgeInsets.only(top: 14),
+                prefixIcon: Icon(Icons.person, color: Colors.white),
+                hintText: 'Enter your Full Name',
+                hintStyle: hintStyle))
       ],
     );
   }
@@ -97,29 +99,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         SizedBox(
           height: 20,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: boxDecorationStyle,
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.phone,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).requestFocus(focusEmail);
-              },
-              focusNode: focusPhone,
-              textInputAction: TextInputAction.next,
-              onSaved: _handleSubmittedPhone,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.phone, color: Colors.white),
-                  hintText: 'Enter your Phone Number',
-                  hintStyle: hintStyle)),
-        )
+        TextFormField(
+            keyboardType: TextInputType.phone,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(focusEmail);
+            },
+            focusNode: focusPhone,
+            textInputAction: TextInputAction.next,
+            onSaved: _handleSubmittedPhone,
+            decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                contentPadding: EdgeInsets.only(top: 14),
+                prefixIcon: Icon(Icons.phone, color: Colors.white),
+                hintText: 'Enter your Phone Number',
+                hintStyle: hintStyle))
       ],
     );
   }
@@ -136,29 +138,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         SizedBox(
           height: 20,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: boxDecorationStyle,
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.emailAddress,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).requestFocus(focusPassword);
-              },
-              focusNode: focusEmail,
-              textInputAction: TextInputAction.next,
-              onSaved: _handleSubmittedEmail,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.email, color: Colors.white),
-                  hintText: 'Enter your Email',
-                  hintStyle: hintStyle)),
-        )
+        TextFormField(
+            keyboardType: TextInputType.emailAddress,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(focusPassword);
+            },
+            focusNode: focusEmail,
+            textInputAction: TextInputAction.next,
+            onSaved: _handleSubmittedEmail,
+            decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                contentPadding: EdgeInsets.only(top: 14),
+                prefixIcon: Icon(Icons.email, color: Colors.white),
+                hintText: 'Enter your Email',
+                hintStyle: hintStyle))
       ],
     );
   }
@@ -175,30 +177,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         SizedBox(
           height: 20,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: boxDecorationStyle,
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.emailAddress,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).requestFocus(focusConfirmPassword);
-              },
-              onSaved: _handleSubmittedPassword,
-              focusNode: focusPassword,
-              textInputAction: TextInputAction.next,
-              obscureText: true,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.lock, color: Colors.white),
-                  hintText: 'Enter your Password',
-                  hintStyle: hintStyle)),
-        )
+        TextFormField(
+            keyboardType: TextInputType.emailAddress,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(focusConfirmPassword);
+            },
+            onSaved: _handleSubmittedPassword,
+            focusNode: focusPassword,
+            textInputAction: TextInputAction.next,
+            obscureText: true,
+            decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                contentPadding: EdgeInsets.only(top: 14),
+                prefixIcon: Icon(Icons.lock, color: Colors.white),
+                hintText: 'Enter your Password',
+                hintStyle: hintStyle))
       ],
     );
   }
@@ -215,31 +217,35 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         SizedBox(
           height: 20,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: boxDecorationStyle,
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.emailAddress,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).unfocus();
-              },
-              onSaved: _handleSubmittedConfirmPassword,
-              focusNode: focusConfirmPassword,
-              obscureText: true,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.lock, color: Colors.white),
-                  hintText: 'Enter your Password again',
-                  hintStyle: hintStyle)),
-        )
+        TextFormField(
+            keyboardType: TextInputType.emailAddress,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            onSaved: _handleSubmittedConfirmPassword,
+            focusNode: focusConfirmPassword,
+            obscureText: true,
+            decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                contentPadding: EdgeInsets.only(top: 14),
+                prefixIcon: Icon(Icons.lock, color: Colors.white),
+                hintText: 'Enter your Password again',
+                hintStyle: hintStyle))
       ],
     );
+  }
+
+  void _registerProcess() {
+    // Navigator.of(context).pushNamed('/achieve-pref')
   }
 
   //Register Button
@@ -249,7 +255,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       width: double.infinity,
       child: RaisedButton(
         elevation: 5,
-        onPressed: () => Navigator.of(context).pushNamed('/achieve-pref'),
+        onPressed: _registerProcess,
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         color: Colors.white,
@@ -306,6 +312,29 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     focusConfirmPassword.dispose();
   }
 
+  Widget _background() {
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+            Color(0xFF73AEF5),
+            Color(0xFF61A4F1),
+            Color(0xFF478DE0),
+            Color(0xFF398AE5),
+          ],
+              stops: [
+            0.1,
+            0.4,
+            0.7,
+            0.9
+          ])),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -313,65 +342,49 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: Stack(
           children: <Widget>[
-            Container(
-              height: double.infinity,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                    Color(0xFF73AEF5),
-                    Color(0xFF61A4F1),
-                    Color(0xFF478DE0),
-                    Color(0xFF398AE5),
-                  ],
-                      stops: [
-                    0.1,
-                    0.4,
-                    0.7,
-                    0.9
-                  ])),
-            ),
+            _background(),
             Container(
               height: double.infinity,
               child: SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.symmetric(horizontal: 40, vertical: 100),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'Create Account',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _namesTF(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _phoneTF(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _emailTF(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _passwordTF(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _confirmPasswordTF(),
-                    _registerBtn(),
-                    _buildSignInBtn()
-                  ],
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'Create Account',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _namesTF(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _phoneTF(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _emailTF(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _passwordTF(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _confirmPasswordTF(),
+                      _registerBtn(),
+                      _buildSignInBtn()
+                    ],
+                  ),
                 ),
               ),
             )

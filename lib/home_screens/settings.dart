@@ -205,32 +205,39 @@ class _SettingsState extends State<Settings> {
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                       color: Colors.black, fontWeight: FontWeight.normal))),
-          content: ListView(
-            children: allDays.map((map) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('${map.day}',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold))),
-                  Container(
-                    child: Theme(
-                        data: ThemeData(unselectedWidgetColor: Colors.purple),
-                        child: Checkbox(
-                            value: map.selected,
-                            checkColor: Colors.white,
-                            activeColor: Colors.purple,
-                            onChanged: (bool value) {
-                              setState(() {
-                                map.selected = value;
-                              });
-                            })),
-                  )
-                ],
-              );
-            }).toList(),
+          content: Container(
+            height: MediaQuery.of(context).size.height * 0.5,
+            width: MediaQuery.of(context).size.width,
+            child: LimitedBox(
+              child: ListView(
+                children: allDays.map((map) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('${map.day}',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold))),
+                      Container(
+                        child: Theme(
+                            data:
+                                ThemeData(unselectedWidgetColor: Colors.purple),
+                            child: Checkbox(
+                                value: map.selected,
+                                checkColor: Colors.white,
+                                activeColor: Colors.purple,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    map.selected = value;
+                                  });
+                                })),
+                      )
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         );
       },

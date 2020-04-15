@@ -8,6 +8,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  //Form Key
+  final _formKey = GlobalKey<FormState>();
   //Checkbox Value
   bool _rememberMe = false;
 
@@ -15,54 +17,122 @@ class _LoginScreenState extends State<LoginScreen> {
   final focusPassword = FocusNode();
 
   //Identifiers
-  String _phone, _password;
+  String _email, _password;
 
   //Handle Phone Input
-  void _handleSubmittedPhone(String value) {
-    _phone = value;
-    print('Phone: ' + _phone);
+  void _handleSubmittedEmail(String value) {
+    _email = value.trim();
+    print('Email: ' + _email);
   }
 
   //Handle Password Input
-  void _handleSubmittedPassword(String password) {
-    _password = password;
+  void _handleSubmittedPassword(String value) {
+    _password = value.trim();
     print('Password: ' + _password);
   }
 
+//     Widget _loginEmail() {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: <Widget>[
+//         Text(
+//           'Email',
+//           style: GoogleFonts.quicksand(
+//               textStyle: TextStyle(
+//                   color: Colors.white,
+//                   fontSize: 20,
+//                   letterSpacing: .2,
+//                   fontWeight: FontWeight.bold)),
+//         ),
+//         SizedBox(
+//           height: 10,
+//         ),
+//         TextFormField(
+//           autofocus: false,
+//           style: GoogleFonts.quicksand(
+//               textStyle: TextStyle(color: Colors.white, fontSize: 18)),
+//           decoration: InputDecoration(
+//               errorStyle: GoogleFonts.quicksand(
+//                 textStyle: TextStyle(color: Colors.white),
+//               ),
+//               enabledBorder: UnderlineInputBorder(
+//                   borderSide: BorderSide(color: Colors.white)),
+//               focusedBorder: UnderlineInputBorder(
+//                   borderSide: BorderSide(color: Colors.white, width: 1.5)),
+//               errorBorder: UnderlineInputBorder(
+//                   borderSide: BorderSide(color: Colors.red)),
+// //              labelText: 'Please enter your email',
+// //              labelStyle: GoogleFonts.quicksand(
+// //                  textStyle: TextStyle(color: Colors.white)),
+//               icon: Icon(
+//                 Icons.email,
+//                 color: Colors.white,
+//               )),
+//           keyboardType: TextInputType.emailAddress,
+//           validator: (value) {
+//             if (value.isEmpty) {
+//               return 'Email is required';
+//             }
+//             return null;
+//           },
+//           onFieldSubmitted: (value) {
+//             FocusScope.of(context).requestFocus(_focusPass);
+//           },
+//           textInputAction: TextInputAction.next,
+//           onSaved: _emailHandler,
+//         )
+//       ],
+//     );
+//   }
+
   //Phone Widget
-  Widget _phoneTF() {
+  Widget _emailTF() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Phone',
+          'Email',
           style: labelStyle,
         ),
         SizedBox(
           height: 20,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: boxDecorationStyle,
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.phone,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).requestFocus(focusPassword);
-              },
-              textInputAction: TextInputAction.next,
-              onSaved: _handleSubmittedPhone,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.phone, color: Colors.white),
-                  hintText: 'Enter your Phone Number',
-                  hintStyle: hintStyle)),
-        )
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.emailAddress,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(focusPassword);
+            },
+            validator: (value) {
+              //Check if email is empty
+              if (value.isEmpty) {
+                return 'Email is required';
+              }
+
+              //Check if @ is in email
+              if (!value.contains('@')) {
+                return 'Email format is invalid. @ is missing';
+              }
+
+              return null;
+            },
+            textInputAction: TextInputAction.next,
+            onSaved: _handleSubmittedEmail,
+            decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                contentPadding: EdgeInsets.only(top: 14),
+                prefixIcon: Icon(Icons.mail, color: Colors.white),
+                hintText: 'Enter your email address',
+                hintStyle: hintStyle))
       ],
     );
   }
@@ -79,29 +149,44 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(
           height: 20,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: boxDecorationStyle,
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.emailAddress,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).unfocus();
-              },
-              onSaved: _handleSubmittedPassword,
-              focusNode: focusPassword,
-              obscureText: true,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.lock, color: Colors.white),
-                  hintText: 'Enter your Password',
-                  hintStyle: hintStyle)),
-        )
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.emailAddress,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            validator: (value) {
+              //Check if password is empty
+              if (value.isEmpty) {
+                return 'Password is required';
+              }
+
+              //Check if password has 7 or more characters
+              if (value.length < 7) {
+                return 'A strong password should be more than 7 characters';
+              }
+
+              return null;
+            },
+            textInputAction: TextInputAction.done,
+            onSaved: _handleSubmittedPassword,
+            focusNode: focusPassword,
+            obscureText: true,
+            decoration: InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                contentPadding: EdgeInsets.only(top: 14),
+                prefixIcon: Icon(Icons.lock, color: Colors.white),
+                hintText: 'Enter your Password',
+                hintStyle: hintStyle))
       ],
     );
   }
@@ -129,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
               data: ThemeData(unselectedWidgetColor: Colors.white),
               child: Checkbox(
                   value: _rememberMe,
-                  checkColor: Colors.greenAccent[700],
+                  checkColor: Colors.blue,
                   activeColor: Colors.white,
                   onChanged: (bool value) {
                     setState(() {
@@ -145,16 +230,22 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _loginProcess() {
+    //Validate Fields
+    final form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+    }
+  }
+
   //LOGIN Button
   Widget _loginBtn() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 25),
+      padding: EdgeInsets.symmetric(vertical: 15),
       width: double.infinity,
       child: RaisedButton(
         elevation: 5,
-        onPressed: () {
-          Navigator.of(context).pushNamed('/home');
-        },
+        onPressed: _loginProcess,
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         color: Colors.white,
@@ -163,8 +254,8 @@ class _LoginScreenState extends State<LoginScreen> {
           style: GoogleFonts.muli(
               textStyle: TextStyle(
                   letterSpacing: 1.5,
-                  color: Color(0xFF527DAA),
-                  fontSize: 18,
+                  color: Colors.black,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold)),
         ),
       ),
@@ -272,8 +363,30 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     // Dispose FocusNodes
     super.dispose();
-
     focusPassword.dispose();
+  }
+
+  Widget _backgroundColor() {
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+            Color(0xFF73AEF5),
+            Color(0xFF61A4F1),
+            Color(0xFF478DE0),
+            Color(0xFF398AE5),
+          ],
+              stops: [
+            0.1,
+            0.4,
+            0.7,
+            0.9
+          ])),
+    );
   }
 
   @override
@@ -283,57 +396,41 @@ class _LoginScreenState extends State<LoginScreen> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: Stack(
           children: <Widget>[
-            Container(
-              height: double.infinity,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                    Color(0xFF73AEF5),
-                    Color(0xFF61A4F1),
-                    Color(0xFF478DE0),
-                    Color(0xFF398AE5),
-                  ],
-                      stops: [
-                    0.1,
-                    0.4,
-                    0.7,
-                    0.9
-                  ])),
-            ),
+            _backgroundColor(),
             Container(
               height: double.infinity,
               child: SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.symmetric(horizontal: 40, vertical: 100),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'Welcome',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _phoneTF(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _passwordTF(),
-                    _forgotPasswordBtn(),
-                    _checkBoxRemember(),
-                    _loginBtn(),
-                    _signInWith(),
-                    _buildSocialBtnRow(),
-                    _buildSignupBtn(),
-                  ],
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'Welcome',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _emailTF(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _passwordTF(),
+                      _forgotPasswordBtn(),
+                      _checkBoxRemember(),
+                      _loginBtn(),
+                      _signInWith(),
+                      _buildSocialBtnRow(),
+                      _buildSignupBtn(),
+                    ],
+                  ),
                 ),
               ),
             )

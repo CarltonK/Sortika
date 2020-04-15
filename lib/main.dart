@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/authentication_screens/passwordreset.dart';
@@ -19,17 +23,31 @@ import 'package:wealth/onboarding.dart';
 import 'package:wealth/pre_login/achieve_preference.dart';
 
 void main() {
+  //Set `enableInDevMode` to true to see reports while in debug mode
+  // This is only to be used for confirming that reports are being
+  // submitted as expected. It is not intended to be used for everyday
+  // development.
+  Crashlytics.instance.enableInDevMode = true;
+
+  // Pass all uncaught errors from the framework to Crashlytics.
+  FlutterError.onError = Crashlytics.instance.recordFlutterError;
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+  //Initialize Firebase Analytics
+  final FirebaseAnalytics analytics = FirebaseAnalytics();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sortika',
       initialRoute: '/',
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: analytics),
+      ],
       routes: {
         //On Boarding Page
         '/': (context) => OnBoarding(),

@@ -26,9 +26,20 @@ class _NotificationsState extends State<NotificationsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ExpansionTile(
-                      leading: Icon(Icons.trending_up,),
-                      title: Text('Income',style: GoogleFonts.muli(textStyle: TextStyle(fontWeight: FontWeight.w600)),),
-                      subtitle: Text('Apr 12, 2020',style: GoogleFonts.muli(textStyle: TextStyle(fontSize: 12)),),)
+                      leading: Icon(
+                        Icons.trending_up,
+                      ),
+                      title: Text(
+                        'Income',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                      subtitle: Text(
+                        'Apr 12, 2020',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(fontSize: 12)),
+                      ),
+                    )
                   ],
                 ),
               ),
