@@ -21,29 +21,11 @@ class _AchievePreferenceState extends State<AchievePreference> {
   //Placeholder for current page
   int _currentPage = 0;
 
-  List<Widget> _buildPageIndicator() {
-    List<Widget> list = [];
-    for (int i = 0; i < _numPages; i++) {
-      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
-    }
-    return list;
-  }
-
   //Color Changer
   Color color = Colors.blue;
 
-  //Page Indicator i.e Slider
-  Widget _indicator(bool isActive) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 200),
-      margin: EdgeInsets.symmetric(horizontal: 8),
-      height: 8,
-      width: isActive ? 24 : 16,
-      decoration: BoxDecoration(
-          color: isActive ? Colors.white : Color(0xFF73AEF5),
-          borderRadius: BorderRadius.circular(12)),
-    );
-  }
+  //UID Placeholder
+  static String uid;
 
   TextStyle _subtitleStyle() {
     return GoogleFonts.muli(
@@ -167,7 +149,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
                   color = Colors.brown;
                 }
                 if (value == 'Lend Money') {
-                  color = Colors.amber;
+                  color = Color(0xFF73AEF5);
                 }
                 if (value == 'Save Money') {
                   color = Colors.green;
@@ -192,16 +174,51 @@ class _AchievePreferenceState extends State<AchievePreference> {
 
   Widget _pageTwo() {
     return goal == 'Borrow Money'
-        ? BorrowPage()
+        ? BorrowPage(uid: uid)
         : goal == 'Lend Money'
-            ? LendPage()
+            ? LendPage(uid: uid)
             : goal == 'Save Money'
-                ? SavingsGoal()
-                : goal == 'Invest Money' ? InvestmentGoal() : GroupSavings();
+                ? SavingsGoal(uid: uid)
+                : goal == 'Invest Money'
+                    ? InvestmentGoal(uid: uid)
+                    : GroupSavings(uid: uid);
+  }
+
+  Future _promptUserToSelectGoal() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoActionSheet(
+            title: Text(
+              'Please select  a goal',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black)),
+            ),
+            message: Icon(
+              Icons.warning,
+              size: 35,
+              color: Colors.red,
+            ),
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'CANCEL',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.red)),
+                )),
+          );
+        });
   }
 
   @override
   Widget build(BuildContext context) {
+    //Retrieve UID
+    uid = ModalRoute.of(context).settings.arguments;
+
     return Scaffold(
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -220,9 +237,10 @@ class _AchievePreferenceState extends State<AchievePreference> {
                     padding: EdgeInsets.only(top: 30),
                     child: FlatButton(
                         onPressed: () {
-                          print('I want to skip and go home page');
+                          // print('I want to skip and go home page');
                           //Takes you directly to home page
-                          Navigator.of(context).popAndPushNamed('/home');
+                          Navigator.of(context)
+                              .popAndPushNamed('/home', arguments: uid);
                         },
                         child: Text(
                           'Skip',
@@ -297,44 +315,9 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                     //Page One. Goal must not be null
                                     if (_currentPage == 0) {
                                       if (goal == null) {
-                                        print('Please enter a goal');
+                                        // print('Please enter a goal');
                                         //Show a prompt
-                                        showCupertinoModalPopup(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return CupertinoActionSheet(
-                                                title: Text(
-                                                  'Please select  a goal',
-                                                  style: GoogleFonts.muli(
-                                                      textStyle: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 16,
-                                                          color: Colors.black)),
-                                                ),
-                                                message: Icon(
-                                                  Icons.warning,
-                                                  size: 35,
-                                                  color: Colors.red,
-                                                ),
-                                                cancelButton:
-                                                    CupertinoActionSheetAction(
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop(),
-                                                        child: Text(
-                                                          'CANCEL',
-                                                          style: GoogleFonts.muli(
-                                                              textStyle: TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .red)),
-                                                        )),
-                                              );
-                                            });
+                                        _promptUserToSelectGoal();
                                       } else {
                                         _pageController.nextPage(
                                             duration:
@@ -345,9 +328,9 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                     //Page Two
                                     //Peer to Peer request, then create a loan fund goal
                                     if (_currentPage == 1) {
-                                      _pageController.dispose();
-                                      Navigator.of(context)
-                                          .popAndPushNamed('/home');
+                                      // _pageController.dispose();
+                                      // Navigator.of(context)
+                                      //     .popAndPushNamed('/home');
                                     }
                                   },
                                   child: Padding(

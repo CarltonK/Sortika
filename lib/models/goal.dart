@@ -1,3 +1,8 @@
+/*
+THIS CLASS IS NOT THE GOAL MODEL
+It is a placeholder for the viewpager in create goal page
+*/
+
 class Goal {
   String title;
   String subtitle;

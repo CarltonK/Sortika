@@ -22,6 +22,10 @@ class User {
   String kraURL;
   String platform;
   String token;
+  //Savings Targets
+  double dailyTarget;
+  double weeklyTarget;
+  double monthlyTarget;
 
   User(
       {this.fullName,
@@ -37,7 +41,10 @@ class User {
       this.natIDURL,
       this.kraURL,
       this.platform,
-      this.token});
+      this.token,
+      this.dailyTarget,
+      this.weeklyTarget,
+      this.monthlyTarget});
 
   factory User.fromJson(Map<String, dynamic> json) => User(
       fullName: json["fullName"],
@@ -53,7 +60,10 @@ class User {
       natIDURL: json["natIDURL"],
       kraURL: json["kraURL"],
       platform: json["platform"],
-      token: json["token"]);
+      token: json["token"],
+      dailyTarget: json["dailyTarget"],
+      weeklyTarget: json["weeklyTarget"],
+      monthlyTarget: json["monthlyTarget"]);
 
   //Convert Dart object to JSON
   Map<String, dynamic> toJson() => {
@@ -70,6 +80,9 @@ class User {
         "natIDURL": natIDURL,
         "kraURL": kraURL,
         "platform": platform,
-        "token": token
+        "token": token,
+        "dailyTarget": dailyTarget,
+        "weeklyTarget": weeklyTarget,
+        "monthlyTarget": monthlyTarget
       };
 }

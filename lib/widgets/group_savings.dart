@@ -4,6 +4,8 @@ import 'package:wealth/models/loanDuration.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class GroupSavings extends StatefulWidget {
+  final String uid;
+  GroupSavings({Key key, @required this.uid}) : super(key: key);
   @override
   _GroupSavingsState createState() => _GroupSavingsState();
 }

@@ -5,8 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -362,6 +362,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
+  //Authentication Service
   Future<bool> serverCall(User user) async {
     result = await authService.createUserEmailPass(user);
     print('This is the result: $result');
@@ -387,15 +388,37 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   //Return user data
   Future goToNextPage(String uid) async {
-    //This is the name of the collection we will be reading
-    final String _collection = 'users';
-    var document = _fireStore.collection(_collection).document(uid);
-    var returnDoc = document.get();
+    /*
+    Before we go to the next page we need to auto create a loan fund goal
+    */
 
-    returnDoc.then((value) {
-      Map<String, dynamic> data = value.data;
-      // Navigator.of(context)
-      //     .pushReplacementNamed('/achieve-pref', arguments: data);
+    //This is the name of the collection we will be reading
+    final String _collectionUpper = 'users';
+    final String _collectionLower = 'goals';
+    var document = _fireStore.collection(_collectionUpper).document(uid);
+
+    //Loan Fund Goal ends in one year
+    DateTime rightNow = DateTime.now();
+    DateTime oneYearFromNow = rightNow.add(Duration(days: 365));
+
+    //Create a goals collection and add the loan fund goal
+    GoalModel goalModel = new GoalModel(
+        goalCategory: 'Loan Fund',
+        goalAllocation: 100,
+        goalAmount: 5200,
+        goalAmountSaved: 0,
+        goalCreateDate: Timestamp.fromDate(rightNow),
+        goalEndDate: Timestamp.fromDate(oneYearFromNow),
+        isGoalDeletable: false);
+
+    //Save goal to goals subcollection
+    document
+        .collection(_collectionLower)
+        .document()
+        .setData(goalModel.toJson())
+        .whenComplete(() {
+      Navigator.of(context)
+          .pushReplacementNamed('/achieve-pref', arguments: uid);
     });
   }
 
@@ -416,7 +439,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           password: _password,
           registerDate: DateTime.now(),
           token: token,
-          platform: Platform.operatingSystem);
+          platform: Platform.operatingSystem,
+          dailyTarget: 15,
+          weeklyTarget: 100,
+          monthlyTarget: 434);
 
       //Show Progress Dialog
       setState(() {
@@ -425,7 +451,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       serverCall(user).whenComplete(() {
         if (callResponse) {
-          print('Successful response $result');
+          // print('Successful response $result');
+
           //Show a welcome message
           showCupertinoModalPopup(
             context: context,
@@ -443,6 +470,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               );
             },
           );
+
           //Disable the circular progress dialog
           setState(() {
             isLoading = false;
@@ -457,11 +485,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           });
 
           //Take user to next page to complete profile
-          Timer(Duration(seconds: 3), () {
-            goToNextPage(result.uid);
+          Timer(Duration(milliseconds: 2200), () {
+            goToNextPage(authService.currentUser.uid);
           });
         } else {
-          print('Failed response: $result');
+          // print('Failed response: $result');
+
           //Disable the circular progress dialog
           setState(() {
             isLoading = false;
@@ -500,7 +529,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           );
         }
       }).catchError((error) {
-        print('This is the error $error');
+        // print('This is the error $error');
+
         //Disable the circular progress dialog
         setState(() {
           isLoading = false;

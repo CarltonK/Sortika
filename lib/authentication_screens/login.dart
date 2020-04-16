@@ -16,8 +16,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   //Form Key
   final _formKey = GlobalKey<FormState>();
-  //Checkbox Value
-  bool _rememberMe = false;
 
   //FocusNodes
   final focusPassword = FocusNode();
@@ -166,32 +164,6 @@ class _LoginScreenState extends State<LoginScreen> {
             'Forgot Password?',
             style: labelStyle,
           )),
-    );
-  }
-
-  //Remember Me Checkbox
-  Widget _checkBoxRemember() {
-    return Container(
-      height: 20,
-      child: Row(
-        children: <Widget>[
-          Theme(
-              data: ThemeData(unselectedWidgetColor: Colors.white),
-              child: Checkbox(
-                  value: _rememberMe,
-                  checkColor: Colors.blue,
-                  activeColor: Colors.white,
-                  onChanged: (bool value) {
-                    setState(() {
-                      _rememberMe = value;
-                    });
-                  })),
-          Text(
-            'Remember me',
-            style: labelStyle,
-          )
-        ],
-      ),
     );
   }
 
@@ -436,12 +408,14 @@ class _LoginScreenState extends State<LoginScreen> {
             },
           );
 
-          Timer(Duration(seconds: 2),() {
+          Timer(Duration(seconds: 2), () {
             Navigator.of(context).pop();
           });
 
+          //Retrieve
+          final String uid = result.uid;
           Timer(Duration(milliseconds: 2200), () {
-            Navigator.of(context).popAndPushNamed('/home');
+            Navigator.of(context).pushReplacementNamed('/home', arguments: uid);
           });
 
           // //This is where we redirect the user based on their designation
@@ -569,7 +543,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       _passwordTF(),
                       _forgotPasswordBtn(),
-                      _checkBoxRemember(),
                       _loginBtn(),
                       _signInWith(),
                       _buildSocialBtnRow(),

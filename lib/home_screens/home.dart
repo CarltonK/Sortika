@@ -1,17 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share/share.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
 import 'package:wealth/home_screens/sortikaLottery.dart';
 import 'package:wealth/home_screens/sortikaSavings.dart';
+import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/widgets/group_savings_colored.dart';
 import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
@@ -31,6 +36,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   //Authentication
   AuthService authService = AuthService();
 
+  static String uid;
+
   bool isCollapsed = true;
   double screenWidth, screenHeight;
   //Animation Duration
@@ -41,6 +48,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Animation<double> _scaleAnimation;
   Animation<double> _menuScaleAnimation;
   Animation<Offset> _slideAnimation;
+
+  final Firestore _firestore = Firestore.instance;
 
   //Saved amount
   double saved = 2000;
@@ -116,7 +125,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   // }
 
   //Goals Page
-  Widget _goalsPage(context) {
+  Widget _goalsPage(context, String uid) {
     return AnimatedPositioned(
       duration: duration,
       curve: Curves.ease,
@@ -192,7 +201,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   SizedBox(
                     height: 10,
                   ),
-                  _goalDisplay(),
+                  _goalDisplay(uid),
                   SizedBox(
                     height: 20,
                   ),
@@ -431,7 +440,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   //This represents a single Goal on home page
-  Widget _singleGoalWidget() {
+  Widget _singleGoalWidget(DocumentSnapshot doc) {
+    GoalModel model = GoalModel.fromJson(doc.data);
+
+    //Date Parsing and Formatting
+    Timestamp dateRetrieved = model.goalEndDate;
+    var formatter = new DateFormat('d MMM y');
+    String date = formatter.format(dateRetrieved.toDate());
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
@@ -454,7 +470,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       BorderRadius.only(bottomRight: Radius.circular(20)),
                   color: Colors.white),
               child: Text(
-                'Savings goal',
+                '${model.goalCategory}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -491,7 +507,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       style: GoogleFonts.muli(
                           textStyle: TextStyle(color: Colors.white))),
                   TextSpan(
-                      text: '2000',
+                      text: '${model.goalAmountSaved.toInt().toString()}',
                       style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.white,
@@ -512,13 +528,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       Expanded(
                         child: Slider(
-                            value: 2000,
+                            value: model.goalAmountSaved,
                             min: 0,
-                            max: 5000,
+                            max: model.goalAmount,
                             onChanged: (value) {}),
                       ),
                       Text(
-                        '5000',
+                        '${model.goalAmount.toInt().toString()}',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.white,
@@ -553,7 +569,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    '70%',
+                    '${model.goalAllocation.toInt().toString()} %',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -586,7 +602,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    'Dec 25, 2020',
+                    '$date',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -603,16 +619,32 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   //Display Goals in horizontal scroll view
-  Widget _goalDisplay() {
+  Widget _goalDisplay(String uid) {
     return Container(
       height: 200,
-      child: PageView(
-        controller: PageController(viewportFraction: 0.8),
-        scrollDirection: Axis.horizontal,
-        pageSnapping: true,
-        children: [
-          _singleGoalWidget(),
-        ],
+      child: StreamBuilder<QuerySnapshot>(
+        stream: Firestore.instance
+            .collection("users")
+            .document(uid)
+            .collection("goals")
+            .orderBy("goalCreateDate")
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasData) {
+            return PageView(
+              controller: PageController(viewportFraction: 0.8),
+              scrollDirection: Axis.horizontal,
+              pageSnapping: true,
+              children: snapshot.data.documents
+                  .map((map) => _singleGoalWidget(map))
+                  .toList(),
+            );
+          }
+          return SpinKitDoubleBounce(
+            color: Colors.greenAccent[700],
+            size: 100,
+          );
+        },
       ),
     );
   }
@@ -2095,6 +2127,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               icon: Icon(
                 Icons.message,
                 color: Colors.white,
+                size: 35,
               ),
               onPressed: () =>
                   Navigator.of(context).pushNamed('/notifications'))
@@ -2214,8 +2247,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           FlatButton(
                               onPressed: () {
                                 Navigator.of(context).pop();
-                                Provider.of<AuthService>(context,
-                                        listen: false)
+                                Provider.of<AuthService>(context, listen: false)
                                     .logout();
                               },
                               child: Text(
@@ -2525,8 +2557,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     Size size = MediaQuery.of(context).size;
     screenHeight = size.height;
     screenWidth = size.width;
-    final Duration duration = const Duration(milliseconds: 500);
 
+    //Retrieve the uid
+    uid = ModalRoute.of(context).settings.arguments;
+    print('Retrieved UID: $uid');
     return Scaffold(
       body: AnnotatedRegion<SystemUiOverlayStyle>(
           child: Stack(
@@ -2565,7 +2599,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
               _menu(context),
               _pageSelection == 'main'
-                  ? _goalsPage(context)
+                  ? _goalsPage(context, uid)
                   : _pageSelection == 'invest'
                       ? _investmentPage(context)
                       : _pageSelection == 'save'
