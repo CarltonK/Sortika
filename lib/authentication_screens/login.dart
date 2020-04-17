@@ -1,8 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:wealth/api/auth.dart';
@@ -327,7 +326,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<bool> serverCall(dynamic result) async {
+  Future<bool> serverCall(User user) async {
+    result = await authService.signInEmailPass(user);
     print('This is the result: $result');
 
     if (result == 'Invalid credentials. Please try again') {
@@ -367,15 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
         isLoading = true;
       });
 
-      await Provider.of<AuthService>(context, listen: false)
-          .signInEmailPass(user)
-          .then((value) {
-        //Pass the value for analysis
-        result = value;
-        serverCall(value);
-      });
-
-      serverCall(result).whenComplete(() {
+      serverCall(user).whenComplete(() async {
         if (callResponse) {
           //Disable the circular progress dialog
           setState(() {
@@ -408,22 +400,20 @@ class _LoginScreenState extends State<LoginScreen> {
             },
           );
 
+          //Retrieve
+          final String uid = result.uid;
+
+          //Try save credentials using shared preferences
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setString('uid', uid);
+
           Timer(Duration(seconds: 2), () {
             Navigator.of(context).pop();
           });
 
-          //Retrieve
-          final String uid = result.uid;
           Timer(Duration(milliseconds: 2200), () {
             Navigator.of(context).pushReplacementNamed('/home', arguments: uid);
           });
-
-          // //This is where we redirect the user based on their designation
-          // //Pass the user id as the parameter
-          // String userid = '${result.uid}';
-          // //print('This is the user id: $userid');
-          // //Query user designation based on results of the query containing uid
-          // getUserBase(userid);
         } else {
           //print('Failed response: ${result}');
 

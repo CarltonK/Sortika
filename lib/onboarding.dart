@@ -21,10 +21,26 @@ class _OnBoardingState extends State<OnBoarding> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool _seen = (prefs.getBool('seen') ?? false);
     if (_seen) {
-      Navigator.of(context).pushReplacementNamed('/login');
+      // Navigator.of(context).pushReplacementNamed('/login');
+      if (_seen) {
+        checkLoginStatus().then((value) {
+          if (value == null) {
+            Navigator.of(context).pushReplacementNamed('/login');
+          } else {
+            Navigator.of(context)
+                .pushReplacementNamed('/home', arguments: value);
+          }
+        });
+      }
     } else {
       await prefs.setBool('seen', true);
     }
+  }
+
+  Future checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String uid = prefs.getString('uid');
+    return uid;
   }
 
   TextStyle _titleStyle() {

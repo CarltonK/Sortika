@@ -2245,10 +2245,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ),
                         actions: [
                           FlatButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 Navigator.of(context).pop();
-                                Provider.of<AuthService>(context, listen: false)
-                                    .logout();
+                                await authService.logout();
+                                Navigator.of(context).popAndPushNamed('/login');
                               },
                               child: Text(
                                 'YES',
@@ -2561,6 +2561,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     //Retrieve the uid
     uid = ModalRoute.of(context).settings.arguments;
     print('Retrieved UID: $uid');
+
     return Scaffold(
       body: AnnotatedRegion<SystemUiOverlayStyle>(
           child: Stack(

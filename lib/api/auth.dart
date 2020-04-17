@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/models/usermodel.dart';
 
-class AuthService with ChangeNotifier {
+class AuthService {
   //Identify current user
   FirebaseUser currentUser;
 
@@ -24,10 +24,10 @@ class AuthService with ChangeNotifier {
 
   //Logout call
   Future logout() async {
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // prefs.remove('uid');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('uid');
     var result = await _auth.signOut();
-    notifyListeners();
+    //notifyListeners();
     return result;
   }
 
@@ -52,7 +52,7 @@ class AuthService with ChangeNotifier {
       //print('Positive Registration Response: ${currentUser.uid}');
       //Try adding the user to the Firestore
       await saveUser(user, uid);
-      notifyListeners();
+      //notifyListeners();
       return Future.value(currentUser);
     } catch (e) {
       var response;
@@ -105,7 +105,7 @@ class AuthService with ChangeNotifier {
       bool emailVerificationStatus = currentUser.isEmailVerified;
 
       if (emailVerificationStatus) {
-        notifyListeners();
+        //notifyListeners();
         return Future.value(currentUser);
       } else {
         return 'Please verify your email before signing in. We sent you an email earlier';

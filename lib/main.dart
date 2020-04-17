@@ -24,7 +24,6 @@ import 'package:wealth/home_screens/settings.dart';
 import 'package:wealth/home_screens/updateLoan.dart';
 import 'package:wealth/onboarding.dart';
 import 'package:wealth/pre_login/achieve_preference.dart';
-import 'package:wealth/widgets/loadingPage.dart';
 
 void main() {
   //Set `enableInDevMode` to true to see reports while in debug mode
@@ -35,11 +34,7 @@ void main() {
 
   // Pass all uncaught errors from the framework to Crashlytics.
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
-  runApp(ChangeNotifierProvider<AuthService>(
-      child: MyApp(),
-      create: (BuildContext context) {
-        return AuthService();
-      }));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -57,6 +52,7 @@ class MyApp extends StatelessWidget {
         FirebaseAnalyticsObserver(analytics: analytics),
       ],
       routes: {
+        '/': (context) => OnBoarding(),
         //Authentication Screens
         '/login': (context) => LoginScreen(),
         '/registration': (context) => RegistrationScreen(),
@@ -78,18 +74,6 @@ class MyApp extends StatelessWidget {
         '/update-loan': (context) => UpdateLoan(),
         '/notifications': (context) => NotificationsPage(),
       },
-      home: FutureBuilder<FirebaseUser>(
-          future: Provider.of<AuthService>(context).getUser(),
-          builder:
-              (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              print(snapshot.data);
-              final bool loggedIn = snapshot.hasData;
-              return !loggedIn ? OnBoarding() : Home();
-            } else {
-              return LoadingCircle();
-            }
-          }),
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
