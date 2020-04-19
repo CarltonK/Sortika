@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -579,19 +578,24 @@ class _GroupSavingsState extends State<GroupSavings> {
       if (form.validate()) {
         form.save();
 
+        List<String> membersList = [widget.uid];
+
         GroupModel model = new GroupModel(
-            amountSaved: 0,
+            groupAdmin: widget.uid,
+            goalAmountSaved: 0,
             goalCategory: 'Group',
             goalCreateDate: Timestamp.now(),
             goalEndDate: Timestamp.fromDate(_date),
             goalName: _name,
+            members: membersList,
+            goalAllocation: 0,
             groupMembersTargeted: members.toInt(),
             groupMembers: 1,
             groupObjective: _objective,
-            isDeletable: true,
+            isGoalDeletable: true,
             isGroupRegistered: _isRegistered,
             shouldMemberSeeSavings: _canSeeSavings,
-            targetAmount: _amount,
+            goalAmount: _amount,
             targetAmountPerp: _amountpp);
 
         //Show a dialog
@@ -610,7 +614,8 @@ class _GroupSavingsState extends State<GroupSavings> {
 
           //Pop the dialog then redirect to home page
           Timer(Duration(milliseconds: 4500), () {
-            Navigator.of(context).popAndPushNamed('/home', arguments: widget.uid);
+            Navigator.of(context)
+                .popAndPushNamed('/home', arguments: widget.uid);
           });
         }).catchError((error) {
           _promptUser(error);

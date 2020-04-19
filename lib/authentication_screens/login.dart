@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
     print('Password: ' + _password);
   }
 
-  //Phone Widget
+  //Email Widget
   Widget _emailTF() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

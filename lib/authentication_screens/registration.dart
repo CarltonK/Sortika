@@ -437,7 +437,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           phone: _phone,
           email: _email,
           password: _password,
-          registerDate: DateTime.now(),
+          registerDate: Timestamp.fromDate(DateTime.now()),
           token: token,
           platform: Platform.operatingSystem,
           dailyTarget: 15,

@@ -47,16 +47,14 @@ dependencies:
   firebase_analytics: ^5.0.2
   # Progress indicator
   flutter_spinkit: "^4.1.2"
-  # Image Picker
-  image_picker: any
-  # Permission Handler
-  permission_handler: ^3.1.0
   # Shared Preferences
   shared_preferences: ^0.5.6+1
-  # State Management
-  flutter_bloc: ^3.1.0
-  equatable: ^1.0.0
-  provider: ^4.0.1
+  # Access Contacts
+  contacts_service: ^0.3.10
+  # Permission Handler
+  permission_handler: ^3.1.0
+  # Image Picker
+  image_picker: any
 
 
   # The following adds the Cupertino Icons font to your application.

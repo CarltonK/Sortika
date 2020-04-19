@@ -7,7 +7,6 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:share/share.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/authentication_screens/login.dart';
@@ -20,6 +19,7 @@ import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/widgets/group_savings_colored.dart';
 import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/widgets/portfolio.dart';
 import 'package:wealth/widgets/savings_colored.dart';
 
@@ -42,6 +42,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   double screenWidth, screenHeight;
   //Animation Duration
   final Duration duration = const Duration(milliseconds: 200);
+  static String dp;
 
   //Controllers
   AnimationController _controller;
@@ -443,6 +444,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget _singleGoalWidget(DocumentSnapshot doc) {
     GoalModel model = GoalModel.fromJson(doc.data);
 
+    //Create a map from which you can add as argument to pass into edit goal page
+    Map<String, dynamic> editData = doc.data;
+    //Add uid to this map
+    editData["uid"] = uid;
+    editData["docId"] = doc.documentID;
+
     //Date Parsing and Formatting
     Timestamp dateRetrieved = model.goalEndDate;
     var formatter = new DateFormat('d MMM y');
@@ -470,7 +477,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       BorderRadius.only(bottomRight: Radius.circular(20)),
                   color: Colors.white),
               child: Text(
-                '${model.goalCategory}',
+                model.goalName == null
+                    ? '${model.goalCategory}'
+                    : '${model.goalName}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -479,7 +488,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           Align(
             alignment: Alignment.topRight,
             child: GestureDetector(
-              onTap: () => Navigator.of(context).pushNamed('/edit-goal'),
+              onTap: () => Navigator.of(context)
+                  .pushNamed('/edit-goal', arguments: editData),
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 decoration: BoxDecoration(
@@ -616,6 +626,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  Future<String> _retrieveDpfromShared() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    dp = prefs.getString('dp');
+    return dp;
   }
 
   //Display Goals in horizontal scroll view
@@ -2083,6 +2099,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         Tween<double>(begin: 0.5, end: 1).animate(_controller);
     _slideAnimation = Tween<Offset>(begin: Offset(-1, 0), end: Offset(0, 0))
         .animate(_controller);
+    _retrieveDpfromShared();
   }
 
   @override
@@ -2103,13 +2120,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               GestureDetector(
-                onTap: () => Navigator.of(context).pushNamed('/profile'),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/profile', arguments: uid),
                 child: CircleAvatar(
                   radius: 45,
-                  child: Icon(
-                    Icons.person,
-                    size: 45,
-                  ),
+                  backgroundImage: _retrieveDpfromShared() == null
+                      ? null
+                      : NetworkImage('$dp'),
                 ),
               ),
               SizedBox(height: 5),

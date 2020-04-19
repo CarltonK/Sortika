@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,10 +16,15 @@ class _EditGoalState extends State<EditGoal> {
   //Investment Goal
   String goalInvestment;
 
+  //Retrieved data identifier
+  Map<String, dynamic> data;
+
   DateTime _date;
   String _dateDay = '04';
   int _dateMonth = 7;
   String _dateYear = '2020';
+
+  Firestore _firestore = Firestore.instance;
 
   //Month Names
   List<String> monthNames = [
@@ -49,7 +55,28 @@ class _EditGoalState extends State<EditGoal> {
             ),
             actions: [
               FlatButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    //Pop the dialog first
+                    Navigator.of(context).pop();
+
+                    //Delete goal in goals subcollection of user
+                    final String _collectionUpper = "users";
+                    final String _collectionLower = "goals";
+                    //Get the user id
+                    String uid = data["uid"];
+                    //Get the doc id
+                    String dId = data["docId"];
+
+                    await _firestore
+                        .collection(_collectionUpper)
+                        .document(uid)
+                        .collection(_collectionLower)
+                        .document(dId)
+                        .delete();
+
+                    //Pop the page
+                    Navigator.of(context).pop();
+                  },
                   child: Text(
                     'YES',
                     style: GoogleFonts.muli(
@@ -68,6 +95,30 @@ class _EditGoalState extends State<EditGoal> {
   }
 
   Widget _goalSummary() {
+    /*
+    Days Remaining Field
+    */
+    //Get the date today
+    DateTime today = DateTime.now();
+    //Get the timestamp from 'data'
+    Timestamp retrievedTimestamp = data["goalEndDate"];
+    //Convert timestamp to date
+    DateTime endDate = retrievedTimestamp.toDate();
+    //Get the difference in dates
+    Duration difference = endDate.difference(today);
+    int remainingDays = difference.inDays;
+
+    /*
+    Daily Savings Field
+    */
+    double totalSavings;
+    //Check if the goal is Group or otherwise
+    data["goalCategory"] == 'Group'
+        ? totalSavings = data["targetAmountPerp"]
+        : totalSavings = data["goalAmount"];
+    //Divide the totalSavings by difference in days above
+    double dailySavings = totalSavings / remainingDays;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -90,7 +141,7 @@ class _EditGoalState extends State<EditGoal> {
                 height: 10,
               ),
               Text(
-                '67',
+                '$remainingDays',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
@@ -119,7 +170,7 @@ class _EditGoalState extends State<EditGoal> {
                 height: 10,
               ),
               Text(
-                '30',
+                '${dailySavings.toInt()}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
@@ -164,6 +215,14 @@ class _EditGoalState extends State<EditGoal> {
   }
 
   Widget _goalType() {
+    String type;
+    //Check if the category is goal Fund
+    data["goalCategory"] == 'Loan Fund'
+        ? type = 'Loan Fund'
+        : data["goalCategory"] == 'Group'
+            ? type = 'Group'
+            : type = data["goalClass"];
+
     return IgnorePointer(
       child: Container(
         alignment: Alignment.centerLeft,
@@ -173,14 +232,14 @@ class _EditGoalState extends State<EditGoal> {
         ),
         padding: EdgeInsets.symmetric(horizontal: 12),
         child: DropdownButton(
-          items: itemsGoals,
+          items: null,
           onTap: null,
           underline: Divider(
             color: Colors.transparent,
           ),
           value: goalInvestment,
           hint: Text(
-            'Investment Goal',
+            '$type',
             style: GoogleFonts.muli(textStyle: TextStyle()),
           ),
           icon: Icon(
@@ -204,6 +263,13 @@ class _EditGoalState extends State<EditGoal> {
   }
 
   Widget _goalClass() {
+    String goal;
+    data["goalCategory"] == 'Loan Fund'
+        ? goal = 'Loan Fund'
+        : data["goalCategory"] == 'Group'
+            ? goal = 'Group'
+            : goal = data["goalType"];
+
     return IgnorePointer(
       child: Container(
         alignment: Alignment.centerLeft,
@@ -213,13 +279,13 @@ class _EditGoalState extends State<EditGoal> {
         ),
         padding: EdgeInsets.symmetric(horizontal: 12),
         child: DropdownButton(
-          items: itemsAsset,
+          items: null,
           underline: Divider(
             color: Colors.transparent,
           ),
           value: classInvestment,
           hint: Text(
-            'Money Market Fund',
+            '$goal',
             style: GoogleFonts.muli(textStyle: TextStyle()),
           ),
           icon: Icon(
@@ -238,32 +304,38 @@ class _EditGoalState extends State<EditGoal> {
     );
   }
 
-  //Define Dropdown Menu Items
-  List<DropdownMenuItem> itemsAsset = [
-    DropdownMenuItem(
-      value: 'investment',
-      child: Text(
-        'Investment Goal',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
+  // //Define Dropdown Menu Items
+  // List<DropdownMenuItem> itemsAsset = [
+  //   DropdownMenuItem(
+  //     value: 'investment',
+  //     child: Text(
+  //       'Investment Goal',
+  //       style: GoogleFonts.muli(
+  //           textStyle:
+  //               TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+  //     ),
+  //   ),
+  // ];
 
-  List<DropdownMenuItem> itemsGoals = [
-    DropdownMenuItem(
-      value: 'mmf',
-      child: Text(
-        'Money Market Fund',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
+  // List<DropdownMenuItem> itemsGoals = [
+  //   DropdownMenuItem(
+  //     value: 'mmf',
+  //     child: Text(
+  //       'Money Market Fund',
+  //       style: GoogleFonts.muli(
+  //           textStyle:
+  //               TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+  //     ),
+  //   ),
+  // ];
 
   Widget _amountWidget() {
+    //Check if the goal is a group
+    double amount;
+    data["goalCategory"] == 'Group'
+        ? amount = data["targetAmountPerp"]
+        : amount = data["goalAmount"];
+
     return Container(
       child: Row(
         children: [
@@ -285,11 +357,15 @@ class _EditGoalState extends State<EditGoal> {
                   Container(
                       height: 50,
                       child: TextFormField(
+                        enabled: data["goalCategory"] == 'Loan Fund' ||
+                                data["goalCategory"] == 'Group'
+                            ? false
+                            : true,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(color: Colors.black)),
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          hintText: '20000',
+                          hintText: '$amount',
                           suffixText: ' KES',
                           suffixStyle: GoogleFonts.muli(
                               textStyle: TextStyle(color: Colors.black)),
@@ -318,6 +394,7 @@ class _EditGoalState extends State<EditGoal> {
       width: double.infinity,
       child: RaisedButton(
         elevation: 3,
+        disabledColor: Colors.grey,
         onPressed: () {},
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -336,6 +413,14 @@ class _EditGoalState extends State<EditGoal> {
   }
 
   Widget _maturityDateWidget() {
+    //Get the timestamp from 'data'
+    Timestamp retrievedTimestamp = data["goalEndDate"];
+    //Convert timestamp to date
+    DateTime endDate = retrievedTimestamp.toDate();
+    _dateDay = endDate.day.toString();
+    _dateMonth = endDate.month;
+    _dateYear = endDate.year.toString();
+
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,17 +547,23 @@ class _EditGoalState extends State<EditGoal> {
 
   @override
   Widget build(BuildContext context) {
+    //Retrieve the data
+    data = ModalRoute.of(context).settings.arguments;
+    //print('EDIT GOAL PAGE DATA: $data');
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: commonColor,
-        title:
-            Text('Edit Goal', style: GoogleFonts.muli(textStyle: TextStyle())),
+        title: Text('Edit ${data["goalCategory"]} Goal',
+            style: GoogleFonts.muli(textStyle: TextStyle())),
         actions: [
-          IconButton(
-            icon: Icon(Icons.delete),
-            color: Colors.red,
-            onPressed: _deleteGoal,
-          )
+          data["isGoalDeletable"]
+              ? IconButton(
+                  icon: Icon(Icons.delete),
+                  color: Colors.red,
+                  onPressed: _deleteGoal,
+                )
+              : Text('')
         ],
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -487,10 +578,10 @@ class _EditGoalState extends State<EditGoal> {
                   SizedBox(
                     height: 30,
                   ),
-                  _tipsWidget(),
-                  SizedBox(
-                    height: 30,
-                  ),
+                  // _tipsWidget(),
+                  // SizedBox(
+                  //   height: 30,
+                  // ),
                   _typeWidget(),
                   SizedBox(
                     height: 30,

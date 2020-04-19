@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 User userFromJson(String str) => User.fromJson(json.decode(str));
 
 String userToJson(User data) => json.encode(data.toJson());
@@ -10,13 +12,13 @@ class User {
   String phone;
   String email;
   String password;
-  DateTime registerDate;
+  Timestamp registerDate;
   //Firebase user metadata
   String uid;
   //Account Page
   String photoURL;
   String natId;
-  DateTime dob;
+  Timestamp dob;
   String gender;
   String natIDURL;
   String kraURL;
@@ -26,6 +28,10 @@ class User {
   double dailyTarget;
   double weeklyTarget;
   double monthlyTarget;
+  //Kin
+  String kinName;
+  String kinPhone;
+  String kinID;
 
   User(
       {this.fullName,
@@ -44,7 +50,10 @@ class User {
       this.token,
       this.dailyTarget,
       this.weeklyTarget,
-      this.monthlyTarget});
+      this.monthlyTarget,
+      this.kinName,
+      this.kinPhone,
+      this.kinID});
 
   factory User.fromJson(Map<String, dynamic> json) => User(
       fullName: json["fullName"],
@@ -63,7 +72,10 @@ class User {
       token: json["token"],
       dailyTarget: json["dailyTarget"],
       weeklyTarget: json["weeklyTarget"],
-      monthlyTarget: json["monthlyTarget"]);
+      monthlyTarget: json["monthlyTarget"],
+      kinName: json["kinName"],
+      kinPhone: json["kinPhone"],
+      kinID: json["kinID"]);
 
   //Convert Dart object to JSON
   Map<String, dynamic> toJson() => {
@@ -83,6 +95,9 @@ class User {
         "token": token,
         "dailyTarget": dailyTarget,
         "weeklyTarget": weeklyTarget,
-        "monthlyTarget": monthlyTarget
+        "monthlyTarget": monthlyTarget,
+        "kinName": kinName,
+        "kinPhone": kinPhone,
+        "kinID": kinID
       };
 }
