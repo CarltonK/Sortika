@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/models/loanModel.dart';
+import 'package:wealth/services/permissions.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class BorrowPage extends StatefulWidget {
@@ -17,6 +19,8 @@ class BorrowPage extends StatefulWidget {
 }
 
 class _BorrowPageState extends State<BorrowPage> {
+  final PermissionService _service = PermissionService();
+
   final styleLabel =
       GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 15));
 
@@ -294,6 +298,51 @@ class _BorrowPageState extends State<BorrowPage> {
     );
   }
 
+  Future _showContactList(Iterable<Contact> contacts) {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              width: MediaQuery.of(context).size.width,
+              child: ListView(
+                children: contacts.map((map) {
+                  return Container(
+                    child: ListTile(
+                      leading: Icon(Icons.person),
+                      title: Text(
+                        '${map.displayName}',
+                        style: GoogleFonts.muli(),
+                      ),
+                      subtitle: Text(
+                        map.phones.length == 0
+                            ? ''
+                            : '${map.phones.first.value}',
+                        style: GoogleFonts.muli(),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          );
+        });
+  }
+
+  void _specificBtnPressed() async {
+    bool permissionStatus = await _service.requestPermission();
+    print(permissionStatus);
+    //If permissionStatus is true, loop through to get Contacts
+    if (permissionStatus) {
+      // Get all contacts without thumbnail (faster)
+      ContactsService.getContacts(withThumbnails: false)
+          .then((value) => _showContactList(value));
+    } else {
+      await _service.requestPermission();
+    }
+  }
+
   Widget _p2pButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -308,7 +357,7 @@ class _BorrowPageState extends State<BorrowPage> {
           ),
         ),
         FlatButton(
-          onPressed: () {},
+          onPressed: _specificBtnPressed,
           color: Colors.blue,
           child: Text(
             'Specific',

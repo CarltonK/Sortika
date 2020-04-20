@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/models/goal.dart';
-import 'package:wealth/utilities/styles.dart';
 import 'package:wealth/widgets/group_savings.dart';
 import 'package:wealth/widgets/investment_goal.dart';
 import 'package:wealth/widgets/savings_goal.dart';
@@ -14,51 +13,22 @@ class CreateGoal extends StatefulWidget {
 }
 
 class _CreateGoalState extends State<CreateGoal> {
-  // //FocusNodes
-  // final focusAmount = FocusNode();
-
-  // //Identifiers
-  // String _name, _amount;
-  // int _currentPage = 0;
-
-  // //Handle Phone Input
-  // void _handleSubmittedName(String value) {
-  //   _name = value;
-  //   print('Name: ' + _name);
-  // }
-
-  // //Handle Password Input
-  // void _handleSubmittedAmount(String value) {
-  //   _amount = value;
-  //   print('Amount: ' + _amount);
-  // }
-
-  DateTime _date;
-  String _dateDay = '04';
-  int _dateMonth = 7;
-  String _dateYear = '2020';
-
-  //Month Names
-  List<String> monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
-  ];
-
   // Identifier
   int _currentPage = 0;
+  static String uid;
 
   //Goal Pages
-  List<Widget> goalPages = [SavingsGoal(), InvestmentGoal(), GroupSavings()];
+  List<Widget> goalPages = [
+    SavingsGoal(
+      uid: uid,
+    ),
+    InvestmentGoal(
+      uid: uid,
+    ),
+    GroupSavings(
+      uid: uid,
+    )
+  ];
 
   PageController _controller = PageController(viewportFraction: 0.85);
   PageController _controllerMainPage = PageController(viewportFraction: 1);
@@ -88,7 +58,8 @@ class _CreateGoalState extends State<CreateGoal> {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16), color: Colors.purple),
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.greenAccent[400]),
       padding: EdgeInsets.all(8),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -101,7 +72,7 @@ class _CreateGoalState extends State<CreateGoal> {
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  color: Colors.purple[200])),
+                  color: Colors.greenAccent[700])),
           SizedBox(
             width: 10,
           ),
@@ -138,226 +109,12 @@ class _CreateGoalState extends State<CreateGoal> {
     );
   }
 
-  // Widget _goalName() {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: <Widget>[
-  //       Container(
-  //         alignment: Alignment.centerLeft,
-  //         decoration: BoxDecoration(
-  //           color: Colors.purple,
-  //           borderRadius: BorderRadius.circular(10.0),
-  //           boxShadow: [
-  //             BoxShadow(
-  //               color: Colors.black12,
-  //               blurRadius: 6.0,
-  //               offset: Offset(0, 2),
-  //             ),
-  //           ],
-  //         ),
-  //         height: 60,
-  //         child: TextFormField(
-  //             keyboardType: TextInputType.text,
-  //             style: GoogleFonts.muli(
-  //                 textStyle: TextStyle(
-  //               color: Colors.white,
-  //             )),
-  //             onFieldSubmitted: (value) {
-  //               FocusScope.of(context).requestFocus(focusAmount);
-  //             },
-  //             textInputAction: TextInputAction.next,
-  //             onSaved: _handleSubmittedName,
-  //             decoration: InputDecoration(
-  //                 border: InputBorder.none,
-  //                 contentPadding: EdgeInsets.only(top: 14),
-  //                 prefixIcon: Icon(Icons.label, color: Colors.white),
-  //                 hintText: 'Make it creative',
-  //                 hintStyle: hintStyle)),
-  //       )
-  //     ],
-  //   );
-  // }
-
-  // Widget _goalAmount() {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: <Widget>[
-  //       Container(
-  //         alignment: Alignment.centerLeft,
-  //         decoration: BoxDecoration(
-  //           color: Colors.purple,
-  //           borderRadius: BorderRadius.circular(10.0),
-  //           boxShadow: [
-  //             BoxShadow(
-  //               color: Colors.black12,
-  //               blurRadius: 6.0,
-  //               offset: Offset(0, 2),
-  //             ),
-  //           ],
-  //         ),
-  //         height: 60,
-  //         child: TextFormField(
-  //             keyboardType: TextInputType.number,
-  //             style: GoogleFonts.muli(
-  //                 textStyle: TextStyle(
-  //               color: Colors.white,
-  //             )),
-  //             onFieldSubmitted: (value) {
-  //               FocusScope.of(context).unfocus();
-  //             },
-  //             onSaved: _handleSubmittedAmount,
-  //             focusNode: focusAmount,
-  //             decoration: InputDecoration(
-  //                 border: InputBorder.none,
-  //                 contentPadding: EdgeInsets.only(top: 14),
-  //                 prefixIcon: Icon(Icons.label, color: Colors.white),
-  //                 hintText: 'Make it realistic',
-  //                 hintStyle: hintStyle)),
-  //       )
-  //     ],
-  //   );
-  // }
-
-  // Widget _goalDateWidget() {
-  //   return Container(
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Text(
-  //           'Finally, set a target date',
-  //           style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.white)),
-  //         ),
-  //         SizedBox(
-  //           height: 10,
-  //         ),
-  //         Container(
-  //           child: Row(
-  //             children: [
-  //               Expanded(
-  //                   child: Container(
-  //                 padding: EdgeInsets.all(10),
-  //                 decoration: BoxDecoration(
-  //                     borderRadius: BorderRadius.circular(12),
-  //                     color: Color(0xFF73AEF5)),
-  //                 child: Row(
-  //                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-  //                   children: [
-  //                     Text(
-  //                       '$_dateDay',
-  //                       style: GoogleFonts.muli(
-  //                           textStyle: TextStyle(color: Colors.white)),
-  //                     ),
-  //                     Text(
-  //                       '--',
-  //                       style: GoogleFonts.muli(
-  //                           textStyle: TextStyle(color: Colors.white)),
-  //                     ),
-  //                     Text(
-  //                       '${monthNames[_dateMonth - 1]}',
-  //                       style: GoogleFonts.muli(
-  //                           textStyle: TextStyle(color: Colors.white)),
-  //                     ),
-  //                     Text(
-  //                       '--',
-  //                       style: GoogleFonts.muli(
-  //                           textStyle: TextStyle(color: Colors.white)),
-  //                     ),
-  //                     Text(
-  //                       '$_dateYear',
-  //                       style: GoogleFonts.muli(
-  //                           textStyle: TextStyle(color: Colors.white)),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               )),
-  //               IconButton(
-  //                 icon: Icon(
-  //                   Icons.calendar_today,
-  //                   color: Colors.white,
-  //                 ),
-  //                 onPressed: () {
-  //                   showDatePicker(
-  //                     context: context,
-  //                     initialDate: DateTime.now(),
-  //                     firstDate: DateTime.now(),
-  //                     lastDate: DateTime.now().add(Duration(days: 1000)),
-  //                   ).then((value) {
-  //                     setState(() {
-  //                       if (value != null) {
-  //                         _date = value;
-  //                         _dateDay = _date.day.toString();
-  //                         _dateMonth = _date.month;
-  //                         _dateYear = _date.year.toString();
-  //                       }
-  //                     });
-  //                   });
-  //                 },
-  //               )
-  //             ],
-  //           ),
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  Widget _proceedBtn() {
-    return Container(
-      width: double.infinity,
-      child: RaisedButton(
-        elevation: 3,
-        onPressed: () {
-          showCupertinoModalPopup(
-              context: context,
-              builder: (BuildContext context) {
-                return CupertinoActionSheet(
-                  message: Text(
-                    'You have set a target of XXXX KES by ${monthNames[_dateMonth - 1]} $_dateYear',
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.black)),
-                  ),
-                  actions: [
-                    CupertinoActionSheetAction(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(
-                          'SET GOAL',
-                          style: GoogleFonts.muli(
-                              textStyle: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.purple)),
-                        ))
-                  ],
-                  cancelButton: CupertinoActionSheetAction(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(
-                        'CANCEL',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red)),
-                      )),
-                );
-              });
-        },
-        padding: EdgeInsets.all(15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        color: Colors.purple,
-        child: Text(
-          'PROCEED',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-            letterSpacing: 1.5,
-            color: Colors.white,
-            fontSize: 20,
-          )),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    //Retrieve the UID
+    uid = ModalRoute.of(context).settings.arguments;
+    //print('CREATE GOAL UID: $uid');
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF73AEF5),
@@ -419,7 +176,6 @@ class _CreateGoalState extends State<CreateGoal> {
                         onPageChanged: (value) {},
                         children: goalPages),
                   ),
-                  _proceedBtn()
                 ],
               ),
             )

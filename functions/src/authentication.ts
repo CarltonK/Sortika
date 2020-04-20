@@ -36,7 +36,6 @@ class User {
     }
 }
 
-
 /*
 CREATE A USER
 POST Endpoint: /users

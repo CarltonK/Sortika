@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -10,6 +12,12 @@ class EditGroup extends StatefulWidget {
 }
 
 class _EditGroupState extends State<EditGroup> {
+  //Data Holder
+  static Map<String, dynamic> data;
+  final Firestore _firestore = Firestore.instance;
+  Future<DocumentSnapshot> singleUserDoc;
+  List<Map> users = [];
+
   void _deleteGroup() {
     showCupertinoModalPopup(
         context: context,
@@ -42,6 +50,12 @@ class _EditGroupState extends State<EditGroup> {
   }
 
   Widget _groupSummary() {
+    double targetAmount = data["goalAmount"];
+    String targetAmountString = targetAmount.toInt().toString();
+
+    double savedAmount = data["goalAmountSaved"];
+    String savedAmountString = savedAmount.toInt().toString();
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -64,7 +78,7 @@ class _EditGroupState extends State<EditGroup> {
                 height: 10,
               ),
               Text(
-                '100,000',
+                '$targetAmountString',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
@@ -93,7 +107,7 @@ class _EditGroupState extends State<EditGroup> {
                 height: 10,
               ),
               Text(
-                '8,000',
+                '$savedAmountString',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
@@ -112,7 +126,7 @@ class _EditGroupState extends State<EditGroup> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Objectives',
+          Text('Objective',
               style: GoogleFonts.muli(
                   textStyle:
                       TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
@@ -126,7 +140,7 @@ class _EditGroupState extends State<EditGroup> {
             child: Container(
               padding: EdgeInsets.all(16),
               width: MediaQuery.of(context).size.width,
-              child: Text('We want to open a business',
+              child: Text('${data["groupObjective"]}',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(fontWeight: FontWeight.normal))),
             ),
@@ -136,13 +150,19 @@ class _EditGroupState extends State<EditGroup> {
     );
   }
 
+  void _updateBtnPressed() {}
+
   Widget _updateBtn() {
+    //Check if member is admin
+    String userId = data["uid"];
+    String groupAdmin = data["groupAdmin"];
+
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10),
       width: double.infinity,
       child: RaisedButton(
         elevation: 3,
-        onPressed: () {},
+        onPressed: userId == groupAdmin ? () => _updateBtnPressed : null,
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         color: commonColor,
@@ -159,26 +179,59 @@ class _EditGroupState extends State<EditGroup> {
     );
   }
 
+  Widget _getUserDetails(dynamic value) {
+    //access user details
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        '$value',
+        style: labelStyleBlack,
+      ),
+    );
+  }
+
   Widget _groupMembers() {
+    List<dynamic> membersArray = data["members"];
+    // int listLength = membersArray.length;
+    // //Loop through list to get uids
+    // for (int i = 0; i < listLength ; i++) {
+    //   print('Members: ${membersArray[i]}');
+    //   //Retrieve data for each
+    //   singleUserDoc = _firestore.collection("users").document(membersArray[i]).get().then((value) {
+    //     Map<String, dynamic> singleUserMap = {'name': value.data["fullName"],'email':value.data["email"]};
+    //     users.add(singleUserMap);
+    //   });
+    // }
+
     return Card(
       child: ExpansionTile(
-          leading: Icon(
-            Icons.people,
-            color: Colors.black,
-          ),
-          title: Text('Members',
-              style: GoogleFonts.muli(
-                  textStyle:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.w600)))),
+        leading: Icon(
+          Icons.people,
+        ),
+        title: Text('Members',
+            style: GoogleFonts.muli(
+                textStyle:
+                    TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+        children: membersArray.map((map) => _getUserDetails(map)).toList(),
+      ),
     );
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    //Retrieve data
+    data = ModalRoute.of(context).settings.arguments;
+    print('Single Group Data: $data');
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: commonColor,
-          title: Text('Manchester',
+          title: Text('${data["goalName"]}',
               style: GoogleFonts.muli(textStyle: TextStyle())),
           actions: [
             IconButton(
@@ -205,7 +258,7 @@ class _EditGroupState extends State<EditGroup> {
                       height: 30,
                     ),
                     _groupMembers(),
-                    _updateBtn()
+                    //_updateBtn()
                   ],
                 ),
               ),

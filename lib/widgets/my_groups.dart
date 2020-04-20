@@ -1,20 +1,33 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:wealth/models/groupModel.dart';
 
 class MyGroups extends StatefulWidget {
+  final String uid;
+  MyGroups({Key key, @required this.uid}) : super(key: key);
   @override
   _MyGroupsState createState() => _MyGroupsState();
 }
 
 class _MyGroupsState extends State<MyGroups> {
-  String _groupName = 'Manchester';
-  String _groupMembership = '8';
-  String _myContribution = '2000';
-  String _totalContribution = '8000';
-  String _endDate = 'Dec 25, 2020';
-  String _targetContribution = '100,000';
+  Widget _singleGroup(DocumentSnapshot doc) {
+    //Convert data to a group model
+    GroupModel model = GroupModel.fromJson(doc.data);
 
-  Widget _singleGroup() {
+    //Create a map from which you can add as argument to pass into edit goal page
+    Map<String, dynamic> editData = doc.data;
+    //Add uid to this map
+    editData["uid"] = widget.uid;
+    editData["docId"] = doc.documentID;
+
+    //Date Parsing and Formatting
+    Timestamp dateRetrieved = model.goalEndDate;
+    var formatter = new DateFormat('d MMM y');
+    String date = formatter.format(dateRetrieved.toDate());
+
     return Container(
       height: 200,
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -38,7 +51,7 @@ class _MyGroupsState extends State<MyGroups> {
                       BorderRadius.only(bottomRight: Radius.circular(20)),
                   color: Colors.white),
               child: Text(
-                '$_groupName',
+                '${model.goalName}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -47,7 +60,8 @@ class _MyGroupsState extends State<MyGroups> {
           Align(
             alignment: Alignment.topRight,
             child: GestureDetector(
-              onTap: () => Navigator.of(context).pushNamed('/edit-group'),
+              onTap: () => Navigator.of(context)
+                  .pushNamed('/edit-group', arguments: editData),
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 decoration: BoxDecoration(
@@ -77,7 +91,8 @@ class _MyGroupsState extends State<MyGroups> {
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(color: Colors.white))),
                     TextSpan(
-                        text: '$_myContribution KES ',
+                        text:
+                            '${model.goalAmountSaved.toInt().toString()} KES ',
                         style: GoogleFonts.muli(
                           textStyle: TextStyle(
                               color: Colors.white,
@@ -89,7 +104,8 @@ class _MyGroupsState extends State<MyGroups> {
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(color: Colors.white))),
                     TextSpan(
-                        text: '$_totalContribution KES ',
+                        text:
+                            '${model.targetAmountPerp.toInt().toString()} KES ',
                         style: GoogleFonts.muli(
                           textStyle: TextStyle(
                               color: Colors.white,
@@ -97,7 +113,7 @@ class _MyGroupsState extends State<MyGroups> {
                               fontSize: 18),
                         )),
                     TextSpan(
-                        text: 'total contributions ',
+                        text: 'individual target contributions ',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(color: Colors.white)))
                   ])),
@@ -159,7 +175,7 @@ class _MyGroupsState extends State<MyGroups> {
                     height: 2,
                   ),
                   Text(
-                    '$_targetContribution KES',
+                    '${model.goalAmount.toInt().toString()} KES',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold)),
@@ -190,7 +206,7 @@ class _MyGroupsState extends State<MyGroups> {
                     height: 2,
                   ),
                   Text(
-                    '$_endDate',
+                    '$date',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.white, fontWeight: FontWeight.bold)),
@@ -222,12 +238,27 @@ class _MyGroupsState extends State<MyGroups> {
                     fontWeight: FontWeight.bold)),
           ),
           Expanded(
-            child: ListView(
-              children: [
-                _singleGroup(),
-              ],
-            ),
-          ),
+              child: StreamBuilder<QuerySnapshot>(
+            stream: Firestore.instance
+                .collection("groups")
+                .where("members", arrayContains: widget.uid)
+                .orderBy("goalCreateDate")
+                .snapshots(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasData) {
+                return ListView(
+                  children: snapshot.data.documents
+                      .map((map) => _singleGroup(map))
+                      .toList(),
+                );
+              }
+              return SpinKitDoubleBounce(
+                color: Colors.greenAccent[700],
+                size: 100,
+              );
+            },
+          )),
         ],
       ),
     );

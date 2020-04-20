@@ -11,7 +11,7 @@ class GroupModel extends GoalModel {
   //Properties specific to this group
   String groupObjective;
   String groupAdmin;
-  List<String> members;
+  List<dynamic> members;
   int groupMembersTargeted;
   int groupMembers;
   bool isGroupRegistered;

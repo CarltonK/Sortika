@@ -7,9 +7,15 @@ import 'package:flutter/cupertino.dart';
 final labelStyle = GoogleFonts.muli(
     textStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold));
 
+final labelStyleBlack = GoogleFonts.muli(
+    textStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold));
+
 //HintStyle
 final hintStyle = GoogleFonts.muli(
     textStyle: TextStyle(color: Colors.white54, fontWeight: FontWeight.w600));
+
+final hintStyleBlack = GoogleFonts.muli(
+    textStyle: TextStyle(color: Colors.black54, fontWeight: FontWeight.w600));
 
 //BoxDecoration
 final boxDecorationStyle = BoxDecoration(

@@ -198,7 +198,6 @@ class _GroupSavingsState extends State<GroupSavings> {
   }
 
   //Target Amount
-  //Group Name
   Widget _groupTargetAmount() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -612,11 +611,11 @@ class _GroupSavingsState extends State<GroupSavings> {
           //Show a success message for two seconds
           Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
 
-          //Pop the dialog then redirect to home page
-          Timer(Duration(milliseconds: 4500), () {
-            Navigator.of(context)
-                .popAndPushNamed('/home', arguments: widget.uid);
-          });
+          // //Pop the dialog then redirect to home page
+          // Timer(Duration(milliseconds: 4500), () {
+          //   Navigator.of(context)
+          //       .popAndPushNamed('/home', arguments: widget.uid);
+          // });
         }).catchError((error) {
           _promptUser(error);
         });

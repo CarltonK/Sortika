@@ -860,7 +860,7 @@ class _ProfilePageState extends State<ProfilePage> {
     taskSnapshot = await storageUploadTask.onComplete;
 
     urlResult = await taskSnapshot.ref.getDownloadURL();
-    print('URL is $urlResult');
+    //print('URL is $urlResult');
     return urlResult;
   }
 
@@ -876,7 +876,7 @@ class _ProfilePageState extends State<ProfilePage> {
     taskSnapshot = await storageUploadTask.onComplete;
 
     urlResult = await taskSnapshot.ref.getDownloadURL();
-    print('URL is $urlResult');
+    //print('URL is $urlResult');
     return urlResult;
   }
 
@@ -892,7 +892,7 @@ class _ProfilePageState extends State<ProfilePage> {
     taskSnapshot = await storageUploadTask.onComplete;
 
     urlResult = await taskSnapshot.ref.getDownloadURL();
-    print('URL is $urlResult');
+    //print('URL is $urlResult');
     return urlResult;
   }
 
@@ -1221,17 +1221,17 @@ class _ProfilePageState extends State<ProfilePage> {
                         textStyle: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
                   )),
-              // CupertinoActionSheetAction(
-              //     onPressed: () {
-              //       Navigator.of(context).pop();
-              //       _pickImage(ImageSource.gallery);
-              //     },
-              //     child: Text(
-              //       'GALLERY',
-              //       style: GoogleFonts.muli(
-              //           textStyle: TextStyle(
-              //               fontSize: 20, fontWeight: FontWeight.bold)),
-              //     ))
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickImage(ImageSource.gallery);
+                  },
+                  child: Text(
+                    'GALLERY',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  ))
             ],
             cancelButton: CupertinoActionSheetAction(
                 onPressed: () {
@@ -1446,7 +1446,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     //Retrieve UID
     uid = ModalRoute.of(context).settings.arguments;
-    print('PROFILE UID: $uid');
+    //print('PROFILE UID: $uid');
 
     return Scaffold(
       appBar: AppBar(
@@ -1474,7 +1474,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   if (snapshot.hasData) {
                     //Convert to user
                     user = User.fromJson(snapshot.data.data);
-                    print(snapshot.data.data);
+                    //print(snapshot.data.data);
 
                     return Container(
                       padding:

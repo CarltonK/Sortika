@@ -10,8 +10,13 @@ class BorrowAll extends StatefulWidget {
 }
 
 class _BorrowAllState extends State<BorrowAll> {
+  static String uid;
   @override
   Widget build(BuildContext context) {
+    //Retrieve uid
+    uid = ModalRoute.of(context).settings.arguments;
+    print('Borrow Page Uid: $uid');
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF73AEF5),
@@ -29,7 +34,9 @@ class _BorrowAllState extends State<BorrowAll> {
             backgroundWidget(),
             Container(
                 padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                child: BorrowPage())
+                child: BorrowPage(
+                  uid: uid,
+                ))
           ],
         ),
       ),

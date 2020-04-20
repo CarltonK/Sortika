@@ -283,10 +283,10 @@ class _SavingsGoalState extends State<SavingsGoal> {
         //Show a success message for two seconds
         Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
 
-        //Pop the dialog then redirect to home page
-        Timer(Duration(milliseconds: 4500), () {
-          Navigator.of(context).popAndPushNamed('/home', arguments: widget.uid);
-        });
+        // //Pop the dialog then redirect to home page
+        // Timer(Duration(milliseconds: 4500), () {
+        //   Navigator.of(context).popAndPushNamed('/home', arguments: widget.uid);
+        // });
       }).catchError((error) {
         _promptUser(error);
       });

@@ -23,6 +23,11 @@ service cloud.firestore {
     //LOANS Collection
     match /loans/{loan} {
     	allow read, write: if isUserAuthorised();
-    } 
+    }
+    
+    //GROUPS Collection
+    match /groups/{group} {
+    	allow read, write: if isUserAuthorised();
+    }
   }
 }

@@ -16,6 +16,7 @@ import 'package:wealth/home_screens/insights.dart';
 import 'package:wealth/home_screens/sortikaLottery.dart';
 import 'package:wealth/home_screens/sortikaSavings.dart';
 import 'package:wealth/models/goalmodel.dart';
+import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/group_savings_colored.dart';
 import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
@@ -37,6 +38,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   AuthService authService = AuthService();
 
   static String uid;
+  User userData;
 
   bool isCollapsed = true;
   double screenWidth, screenHeight;
@@ -628,11 +630,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  Future<String> _retrieveDpfromShared() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    dp = prefs.getString('dp');
-    return dp;
-  }
+  // Future<User> _retrieveUser() async {
+  //   if (uid != null) {
+  //     var document = await _firestore.collection("users").document(uid).get();
+  //     userData = User.fromJson(document.data);
+  //     return userData;
+  //   }
+  //   return null;
+  // }
 
   //Display Goals in horizontal scroll view
   Widget _goalDisplay(String uid) {
@@ -1802,7 +1807,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             curve: Curves.ease);
                       });
                     },
-                    children: [MyGroups(), GroupSavingsColored()],
+                    children: [
+                      MyGroups(uid: uid),
+                      GroupSavingsColored(uid: uid)
+                    ],
                   )),
                   SizedBox(
                     height: 5,
@@ -2099,7 +2107,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         Tween<double>(begin: 0.5, end: 1).animate(_controller);
     _slideAnimation = Tween<Offset>(begin: Offset(-1, 0), end: Offset(0, 0))
         .animate(_controller);
-    _retrieveDpfromShared();
   }
 
   @override
@@ -2123,10 +2130,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 onTap: () =>
                     Navigator.of(context).pushNamed('/profile', arguments: uid),
                 child: CircleAvatar(
-                  radius: 45,
-                  backgroundImage: _retrieveDpfromShared() == null
-                      ? null
-                      : NetworkImage('$dp'),
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
+                  ),
+                  radius: 40,
                 ),
               ),
               SizedBox(height: 5),
@@ -2645,7 +2653,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         onPressed: () {
                           //Pop the dialog first then open page
                           Navigator.of(context).pop();
-                          Navigator.of(context).pushNamed('/borrow');
+                          Navigator.of(context)
+                              .pushNamed('/borrow', arguments: uid);
                         },
                         child: Text(
                           'Borrow',
@@ -2665,7 +2674,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         onPressed: () {
                           //Pop the dialog first then open page
                           Navigator.of(context).pop();
-                          Navigator.of(context).pushNamed('/create-goal');
+                          Navigator.of(context)
+                              .pushNamed('/create-goal', arguments: uid);
                         },
                         child: Text(
                           'Create a goal',
