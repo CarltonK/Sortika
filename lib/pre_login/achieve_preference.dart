@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wealth/utilities/styles.dart';
 import 'package:wealth/widgets/borrow_page.dart';
 import 'package:wealth/widgets/group_savings.dart';
 import 'package:wealth/widgets/investment_goal.dart';

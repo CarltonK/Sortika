@@ -5,8 +5,7 @@ class PermissionService {
   final PermissionHandler _permissionHandler = PermissionHandler();
 
   //Request for a specific permission
-  Future<bool> requestContactsPermission(
-      PermissionGroup permissionGroup) async {
+  Future<bool> requestPermission(PermissionGroup permissionGroup) async {
     var result = await _permissionHandler.requestPermissions([permissionGroup]);
     print('Permission Result: $result');
 
@@ -19,7 +18,11 @@ class PermissionService {
     return false;
   }
 
-  Future<bool> requestPermission() async {
-    return requestContactsPermission(PermissionGroup.contacts);
+  Future<bool> requestContactsPermission() async {
+    return requestPermission(PermissionGroup.contacts);
+  }
+
+  Future<bool> requestMessagesPermission() async {
+    return requestPermission(PermissionGroup.sms);
   }
 }

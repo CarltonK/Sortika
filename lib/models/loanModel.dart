@@ -1,18 +1,20 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 LoanModel loanmodelFromJson(String str) => LoanModel.fromJson(json.decode(str));
 
 String loanmodelToJson(LoanModel data) => json.encode(data.toJson());
 
 class LoanModel {
-  List<String> loanLenders;
+  List<dynamic> loanLenders;
   String loanBorrower;
   double loanAmountTaken;
   double loanAmountRepaid;
   double loanInterest;
-  DateTime loanEndDate;
-  DateTime loanTakenDate;
+  Timestamp loanEndDate;
+  Timestamp loanTakenDate;
   double loanIC;
+  double totalAmountToPay;
 
   LoanModel(
       {this.loanLenders,
@@ -22,7 +24,8 @@ class LoanModel {
       this.loanInterest,
       this.loanEndDate,
       this.loanTakenDate,
-      this.loanIC});
+      this.loanIC,
+      this.totalAmountToPay});
 
   factory LoanModel.fromJson(Map<String, dynamic> json) => LoanModel(
       loanLenders: json["loanLenders"],
@@ -32,7 +35,8 @@ class LoanModel {
       loanInterest: json["loanInterest"],
       loanEndDate: json["loanEndDate"],
       loanTakenDate: json["loanTakenDate"],
-      loanIC: json["loanIC"]);
+      loanIC: json["loanIC"],
+      totalAmountToPay: json["totalAmountToPay"]);
 
   Map<String, dynamic> toJson() => {
         "loanLenders": loanLenders,
@@ -42,6 +46,7 @@ class LoanModel {
         "loanInterest": loanInterest,
         "loanEndDate": loanEndDate,
         "loanTakenDate": loanTakenDate,
-        "loanIC": loanIC
+        "loanIC": loanIC,
+        "totalAmountToPay": totalAmountToPay
       };
 }

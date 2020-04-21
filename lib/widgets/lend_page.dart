@@ -1,11 +1,9 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wealth/models/loanDuration.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -211,7 +209,7 @@ class _LendPageState extends State<LendPage> {
     } else {
       LoanModel loanModel = new LoanModel(
         loanLenders: [widget.uid],
-        loanEndDate: _date,
+        loanEndDate: Timestamp.fromDate(_date),
         loanAmountTaken: targetAmount,
       );
 

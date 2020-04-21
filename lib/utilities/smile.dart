@@ -145,7 +145,6 @@ class SmilePainter extends CustomPainter {
           new TextPainter(text: spanGood, textDirection: TextDirection.ltr);
       tpGood.layout();
       double goodWidth = tpGood.width;
-      double halfGoodWidth = goodWidth / 2;
 
       //center points of BIG labels
       centerCenter = halfWidth;

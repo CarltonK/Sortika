@@ -353,7 +353,6 @@ class _SavingsGoalState extends State<SavingsGoal> {
             ],
           );
         });
-    ;
   }
 
   Widget _goalClass() {

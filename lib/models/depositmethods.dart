@@ -5,12 +5,12 @@ class Deposit {
   Deposit({this.title, this.subtitle});
 }
 
-Deposit depoMpesaAuto =
+final Deposit depoMpesaAuto =
     new Deposit(title: 'M-PESA', subtitle: 'Automatic request');
-Deposit depoMpesaManual =
+final Deposit depoMpesaManual =
     new Deposit(title: 'M-PESA', subtitle: 'Manual method');
-Deposit depoPesaLink = new Deposit(title: 'Pesalink', subtitle: '');
-Deposit depoCard = new Deposit(title: 'Card', subtitle: '');
+final Deposit depoPesaLink = new Deposit(title: 'Pesalink', subtitle: '');
+final Deposit depoCard = new Deposit(title: 'Card', subtitle: '');
 
 List<Deposit> methods = [
   depoMpesaAuto,

@@ -14,7 +14,13 @@ class PayLoan extends StatefulWidget {
 }
 
 class _PayLoanState extends State<PayLoan> {
+
+  Map<String, dynamic> loanData;
+
   Widget _balanceText() {
+
+    double totalAmount = loanData["totalAmount"];
+
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,7 +32,7 @@ class _PayLoanState extends State<PayLoan> {
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(color: Colors.white))),
             TextSpan(
-                text: '1000',
+                text: '${totalAmount.toInt().toString()}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
@@ -138,6 +144,11 @@ class _PayLoanState extends State<PayLoan> {
 
   @override
   Widget build(BuildContext context) {
+    //Retrieve Loan Data
+    loanData = ModalRoute.of(context).settings.arguments;
+    print('Retrieved Loan Data: $loanData');
+
+
     return Scaffold(
         appBar: AppBar(
           backgroundColor: commonColor,

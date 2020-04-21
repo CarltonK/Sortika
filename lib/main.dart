@@ -1,10 +1,7 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:wealth/api/auth.dart';
 import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/authentication_screens/passwordreset.dart';
 import 'package:wealth/authentication_screens/registration.dart';

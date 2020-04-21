@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter/cupertino.dart';
 
 //LabelStyle
@@ -53,80 +52,4 @@ Widget backgroundWidget() {
           0.9
         ])),
   );
-}
-
-Future _promptUser(BuildContext context, String message) {
-  return showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          content: Text(
-            '$message',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-          ),
-        );
-      });
-}
-
-Future _promptUserSuccess(BuildContext context, String message) {
-  return showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(
-                Icons.done,
-                size: 50,
-                color: Colors.green,
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                '$message',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        );
-      });
-}
-
-Future _showUserProgress(BuildContext context, String message) {
-  return showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(
-                '$message...',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              SpinKitDualRing(
-                color: Colors.greenAccent[700],
-                size: 100,
-              )
-            ],
-          ),
-        );
-      });
 }

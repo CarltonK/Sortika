@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
@@ -791,7 +792,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           curve: Curves.ease);
                     });
                   },
-                  children: [Portfolio(), SavingsColored()],
+                  children: [
+                    Portfolio(),
+                    SavingsColored(
+                      uid: uid,
+                    )
+                  ],
                 )),
                 SizedBox(
                   height: 5,
@@ -896,12 +902,27 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 10,
                   ),
                   Expanded(
-                      child: PageView(
-                    scrollDirection: Axis.horizontal,
-                    controller: PageController(viewportFraction: 0.8),
-                    children: [
-                      _singleLoanTaken(),
-                    ],
+                      child: StreamBuilder<QuerySnapshot>(
+                    stream: _firestore
+                        .collection("loans")
+                        .where("loanBorrower", isEqualTo: uid)
+                        .snapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasData) {
+                        return PageView(
+                          scrollDirection: Axis.horizontal,
+                          controller: PageController(viewportFraction: 0.85),
+                          children: snapshot.data.documents
+                              .map((map) => _singleLoanTaken(map))
+                              .toList(),
+                        );
+                      }
+                      return SpinKitDoubleBounce(
+                        color: Colors.greenAccent[700],
+                        size: 100,
+                      );
+                    },
                   )),
                   SizedBox(
                     height: 20,
@@ -921,12 +942,41 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 10,
                   ),
                   Expanded(
-                      child: PageView(
-                    scrollDirection: Axis.horizontal,
-                    controller: PageController(viewportFraction: 0.8),
-                    children: [
-                      _singleLoanGiven(),
-                    ],
+                      child: StreamBuilder<QuerySnapshot>(
+                    stream: _firestore
+                        .collection("loans")
+                        .where("loanLenders", arrayContains: uid)
+                        .snapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasData) {
+                        return PageView(
+                          scrollDirection: Axis.horizontal,
+                          controller: PageController(viewportFraction: 0.85),
+                          children: snapshot.data.documents.map((map) {
+                            if (map.data["loanBorrower"] == uid) {
+                              String docId = map.documentID;
+                              snapshot.data.documents.removeWhere(
+                                  (element) => element.documentID == docId);
+                              return Center(
+                                child: Text(
+                                  'You have not received any loan requests',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.muli(
+                                      textStyle: TextStyle(fontSize: 16)),
+                                ),
+                              );
+                            } else {
+                              return _singleLoanGiven(map);
+                            }
+                          }).toList(),
+                        );
+                      }
+                      return SpinKitDoubleBounce(
+                        color: Colors.greenAccent[700],
+                        size: 100,
+                      );
+                    },
                   ))
                 ],
               ),
@@ -951,7 +1001,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       child: Container(
         padding: EdgeInsets.all(8),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -999,7 +1049,26 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _singleLoanTaken() {
+  Widget _singleLoanTaken(DocumentSnapshot doc) {
+    //Retrieve LoanModel from doc
+    LoanModel model = LoanModel.fromJson(doc.data);
+
+    //Placeholder Map to be passed to pay loan page
+    Map<String, dynamic> loanData = doc.data;
+    loanData["uid"] = uid;
+    loanData["docId"] = doc.documentID;
+
+    //Date Parsing and Formatting
+    Timestamp dateRetrieved = model.loanEndDate;
+    var formatter = new DateFormat('d MMM y');
+    String date = formatter.format(dateRetrieved.toDate());
+
+    double amount = model.loanAmountTaken;
+    double interest = model.loanInterest;
+    double totalAmount = (amount * (100 + interest)) / 100;
+
+    loanData["totalAmount"] = totalAmount;
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
@@ -1022,7 +1091,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       BorderRadius.only(bottomRight: Radius.circular(20)),
                   color: Colors.white),
               child: Text(
-                'Loan Fund',
+                model.loanLenders.contains(uid) ? 'Self Loan' : 'Loan Fund',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -1031,7 +1100,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           Align(
             alignment: Alignment.topRight,
             child: GestureDetector(
-              onTap: () => Navigator.of(context).pushNamed('/pay-loan'),
+              onTap: () => Navigator.of(context)
+                  .pushNamed('/pay-loan', arguments: loanData),
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 decoration: BoxDecoration(
@@ -1059,7 +1129,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       style: GoogleFonts.muli(
                           textStyle: TextStyle(color: Colors.white))),
                   TextSpan(
-                      text: '2000',
+                      text: '${model.loanAmountRepaid.toInt().toString()}',
                       style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.white,
@@ -1080,13 +1150,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       Expanded(
                         child: Slider(
-                            value: 2000,
+                            value: model.loanAmountRepaid,
                             min: 0,
-                            max: 5000,
+                            max: double.parse(totalAmount.round().toString()),
                             onChanged: (value) {}),
                       ),
                       Text(
-                        '5000',
+                        '${totalAmount.round().toString()}',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.white,
@@ -1094,7 +1164,22 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       )
                     ],
                   ),
-                )
+                ),
+                RichText(
+                    text: TextSpan(children: [
+                  TextSpan(
+                      text: 'You borrowed ',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(color: Colors.white))),
+                  TextSpan(
+                      text: '${model.loanAmountTaken.toInt().toString()}',
+                      style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18),
+                      )),
+                ]))
               ],
             ),
           ),
@@ -1120,7 +1205,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    'Dec 25, 2020',
+                    '$date',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -1153,7 +1238,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    '20',
+                    '${model.loanInterest.toString()} %',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -1253,7 +1338,20 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         });
   }
 
-  Widget _singleLoanGiven() {
+  Widget _singleLoanGiven(DocumentSnapshot doc) {
+    //Retrieve LoanModel from doc
+    LoanModel model = LoanModel.fromJson(doc.data);
+
+    //Placeholder Map to be passed to pay loan page
+    Map<String, dynamic> loanData = doc.data;
+    loanData["uid"] = uid;
+    loanData["docId"] = doc.documentID;
+
+    //Date Parsing and Formatting
+    Timestamp dateRetrieved = model.loanEndDate;
+    var formatter = new DateFormat('d MMM y');
+    String date = formatter.format(dateRetrieved.toDate());
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
@@ -1276,7 +1374,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       BorderRadius.only(bottomRight: Radius.circular(20)),
                   color: Colors.white),
               child: Text(
-                'James Njuguna',
+                '${model.loanBorrower}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -1315,7 +1413,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       style: GoogleFonts.muli(
                           textStyle: TextStyle(color: Colors.white))),
                   TextSpan(
-                      text: '2000',
+                      text: '${model.loanAmountRepaid.toInt().toString()}',
                       style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.white,
@@ -1336,13 +1434,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       Expanded(
                         child: Slider(
-                            value: 2000,
+                            value: model.loanAmountRepaid,
                             min: 0,
-                            max: 5000,
+                            max: model.loanAmountTaken,
                             onChanged: (value) {}),
                       ),
                       Text(
-                        '5000',
+                        '${model.loanAmountTaken.toInt().toString()}',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.white,
@@ -1376,7 +1474,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    'Dec 25, 2020',
+                    '$date',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -1409,7 +1507,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    '20',
+                    '${model.loanInterest.toString()}',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -1902,7 +2000,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           curve: Curves.ease);
                     });
                   },
-                  children: [Portfolio(), InvestmentColored()],
+                  children: [
+                    Portfolio(),
+                    InvestmentColored(
+                      uid: uid,
+                    )
+                  ],
                 )),
                 SizedBox(
                   height: 5,

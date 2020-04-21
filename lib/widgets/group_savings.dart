@@ -6,8 +6,6 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/models/groupModel.dart';
-import 'package:wealth/models/groupModel.dart';
-import 'package:wealth/models/loanDuration.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class GroupSavings extends StatefulWidget {

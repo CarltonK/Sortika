@@ -30,41 +30,50 @@ class MpesaAuto extends StatelessWidget {
           style: labelStyle,
         ),
         SizedBox(
-          height: 5,
+          height: 10,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 6.0,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.phone,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.black,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).requestFocus(focusAmount);
-              },
-              textInputAction: TextInputAction.next,
-              onSaved: _handleSubmittedPhone,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(Icons.phone, color: Colors.black),
-                  hintText: '07XXXXXXXX',
-                  hintStyle: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black)))),
-        )
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.phone,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).requestFocus(focusAmount);
+            },
+            validator: (value) {
+              //Check if phone is available
+              if (value.isEmpty) {
+                return 'Phone number is required';
+              }
+
+              //Check if phone number has 10 digits
+              if (value.length != 10) {
+                return 'Phone number should be 10 digits';
+              }
+
+              //Check if phone number starts with 07
+              if (!value.startsWith('07')) {
+                return 'Phone number should start with 07';
+              }
+
+              return null;
+            },
+            textInputAction: TextInputAction.next,
+            onSaved: _handleSubmittedPhone,
+            decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                prefixIcon: Icon(Icons.phone, color: Colors.white),
+                labelText: 'Enter your Phone Number',
+                labelStyle: hintStyle))
       ],
     );
   }
@@ -80,40 +89,38 @@ class MpesaAuto extends StatelessWidget {
         SizedBox(
           height: 5,
         ),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 6.0,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          height: 60,
-          child: TextFormField(
-              keyboardType: TextInputType.number,
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.black,
-              )),
-              onFieldSubmitted: (value) {
-                FocusScope.of(context).unfocus();
-              },
-              focusNode: focusAmount,
-              onSaved: _handleSubmittedAmount,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.only(top: 14),
-                  prefixIcon: Icon(MaterialCommunityIcons.cash_multiple,
-                      color: Colors.black),
-                  hintText: 'Enter amount',
-                  hintStyle: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black)))),
-        )
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            validator: (value) {
+              //Check if phone is available
+              if (value.isEmpty) {
+                return 'Amount is required';
+              }
+              return null;
+            },
+            focusNode: focusAmount,
+            textInputAction: TextInputAction.done,
+            onSaved: _handleSubmittedAmount,
+            decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                prefixIcon: Icon(FontAwesome5.money_bill_alt, color: Colors.white),
+                labelText: 'Enter the amount',
+                labelStyle: hintStyle))
       ],
     );
   }

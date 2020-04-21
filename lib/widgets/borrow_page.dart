@@ -331,7 +331,7 @@ class _BorrowPageState extends State<BorrowPage> {
   }
 
   void _specificBtnPressed() async {
-    bool permissionStatus = await _service.requestPermission();
+    bool permissionStatus = await _service.requestContactsPermission();
     print(permissionStatus);
     //If permissionStatus is true, loop through to get Contacts
     if (permissionStatus) {
@@ -339,7 +339,7 @@ class _BorrowPageState extends State<BorrowPage> {
       ContactsService.getContacts(withThumbnails: false)
           .then((value) => _showContactList(value));
     } else {
-      await _service.requestPermission();
+      await _service.requestContactsPermission();
     }
   }
 
@@ -467,8 +467,8 @@ class _BorrowPageState extends State<BorrowPage> {
           loanAmountTaken: amountLoan,
           loanInterest: interestLoan,
           loanIC: interestCoverLoan,
-          loanTakenDate: rightNow,
-          loanEndDate: _date,
+          loanTakenDate: Timestamp.fromDate(rightNow),
+          loanEndDate: Timestamp.fromDate(_date),
           loanLenders: takeLoanFrom,
           loanBorrower: widget.uid);
 

@@ -120,6 +120,5 @@ class BankCard extends StatelessWidget {
         ],
       ),
     );
-    ;
   }
 }
