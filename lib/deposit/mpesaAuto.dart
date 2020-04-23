@@ -118,7 +118,8 @@ class MpesaAuto extends StatelessWidget {
                     borderSide: BorderSide(color: Colors.red)),
                 border: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
-                prefixIcon: Icon(FontAwesome5.money_bill_alt, color: Colors.white),
+                prefixIcon:
+                    Icon(FontAwesome5.money_bill_alt, color: Colors.white),
                 labelText: 'Enter the amount',
                 labelStyle: hintStyle))
       ],

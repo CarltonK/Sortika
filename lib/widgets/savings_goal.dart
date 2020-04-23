@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/models/goalmodel.dart';
+import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class SavingsGoal extends StatefulWidget {
@@ -244,7 +245,7 @@ class _SavingsGoalState extends State<SavingsGoal> {
         .setData(model.toJson());
   }
 
-  void _setBtnPressed() {
+  void _setBtnPressed() async {
     //Check if goal class exists
     if (classSavings == null) {
       _promptUser("You haven't told us what you're saving towards");
@@ -271,6 +272,10 @@ class _SavingsGoalState extends State<SavingsGoal> {
 
       //Show a dialog
       _showUserProgress();
+
+      //  //Retrieve USER DOC
+      //   DocumentSnapshot userDoc = await _firestore.collection("users").document(widget.uid).get();
+      //   User user = User.fromJson(userDoc.data);
 
       _createSavingsGoal(goalModel).whenComplete(() {
         //Pop that dialog

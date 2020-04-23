@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/models/days.dart';
+import 'package:wealth/utilities/styles.dart';
 
 class Settings extends StatefulWidget {
   @override
@@ -10,6 +11,9 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  //Form Key
+  final _formPhone = GlobalKey<FormState>();
+  final _formCard = GlobalKey<FormState>();
   //Identifiers
   double _passiveRate = 5;
   double _loanLimitRate = 75;
@@ -17,11 +21,52 @@ class _SettingsState extends State<Settings> {
   bool _isReminderDaily = false;
   bool _isReminderWeekly = false;
 
-  bool _isByMpesa = false;
+  String _prefferedPaymentMethod;
+  String _prefferedWithdrawalMethod;
+
+  bool _isPayByMpesa = false;
   bool _isWithdrawByMpesa = false;
 
-  bool _isByCard = false;
+  bool _isPayByCard = false;
   bool _isWithdrawToBank = false;
+
+  String _phone;
+  String _cardNumber;
+  String _cvv;
+  String _cardExpiry;
+  String _billing;
+
+  final focusCVV = FocusNode();
+  final focusExpiry = FocusNode();
+  final focusBilling = FocusNode();
+
+  //Handle Phone Input
+  void _handleSubmittedPhone(String value) {
+    _phone = value.trim();
+    print('Phone: ' + _phone);
+  }
+
+  void _handleSubmittedCardNumber(String value) {
+    _cardNumber = value.trim();
+    print('Card Number: ' + _cardNumber);
+  }
+
+  void _handleSubmittedCardCvv(String value) {
+    _cvv = value.trim();
+    print('Card CVV: ' + _cvv);
+  }
+
+  void _handleSubmittedCardExpiry(String value) {
+    _cardExpiry = value.trim();
+    print('Card Expiry: ' + _cardExpiry);
+  }
+
+  void _handleSubmittedCardBilling(String value) {
+    _billing = value.trim();
+    print('Card Billing: ' + _billing);
+  }
+
+  static String uid;
 
   String _nameBank;
   String _branchBank;
@@ -66,7 +111,7 @@ class _SettingsState extends State<Settings> {
             height: 20,
           ),
           Text(
-            'The current rate is ${_passiveRate.toInt()} %',
+            'The current rate is ${_passiveRate.toInt().toString()} %',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
                     color: Colors.white, fontWeight: FontWeight.w300)),
@@ -178,14 +223,15 @@ class _SettingsState extends State<Settings> {
           Expanded(
               child: Container(
             child: Theme(
-                data: ThemeData(unselectedWidgetColor: Colors.purple),
+                data: ThemeData(unselectedWidgetColor: Colors.white),
                 child: Checkbox(
                     value: _isReminderDaily,
-                    checkColor: Colors.white,
-                    activeColor: Colors.purple,
+                    checkColor: Colors.blue,
+                    activeColor: Colors.white,
                     onChanged: (bool value) {
                       setState(() {
                         _isReminderDaily = value;
+                        print('Daily: $_isReminderDaily');
                       });
                     })),
           ))
@@ -201,42 +247,42 @@ class _SettingsState extends State<Settings> {
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Text('Select a day',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.normal))),
           content: Container(
-            height: MediaQuery.of(context).size.height * 0.5,
             width: MediaQuery.of(context).size.width,
-            child: LimitedBox(
-              child: ListView(
-                children: allDays.map((map) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${map.day}',
-                          style: GoogleFonts.muli(
-                              textStyle: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold))),
-                      Container(
-                        child: Theme(
-                            data:
-                                ThemeData(unselectedWidgetColor: Colors.purple),
-                            child: Checkbox(
-                                value: map.selected,
-                                checkColor: Colors.white,
-                                activeColor: Colors.purple,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    map.selected = value;
-                                  });
-                                })),
-                      )
-                    ],
-                  );
-                }).toList(),
-              ),
+            child: ListView.builder(
+              itemCount: allDays.length,
+              shrinkWrap: true,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text('${allDays[index].day}',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold))),
+                  trailing: Container(
+                    child: Theme(
+                        data: ThemeData(unselectedWidgetColor: Colors.blue),
+                        child: Checkbox(
+                            value: allDays[index].selected,
+                            checkColor: Colors.white,
+                            activeColor: Colors.blue,
+                            onChanged: (bool value) {
+                              setState(() {
+                                allDays[index].selected =
+                                    !allDays[index].selected;
+                              });
+                            })),
+                  ),
+                  leading: Icon(Icons.view_day),
+                  visualDensity: VisualDensity.compact,
+                  selected: allDays[index].selected,
+                  onTap: () {
+                    setState(() {
+                      allDays[index].selected = !allDays[index].selected;
+                    });
+                  },
+                );
+              },
             ),
           ),
         );
@@ -263,14 +309,15 @@ class _SettingsState extends State<Settings> {
               Expanded(
                   child: Container(
                 child: Theme(
-                    data: ThemeData(unselectedWidgetColor: Colors.purple),
+                    data: ThemeData(unselectedWidgetColor: Colors.white),
                     child: Checkbox(
                         value: _isReminderWeekly,
-                        checkColor: Colors.white,
-                        activeColor: Colors.purple,
+                        checkColor: Colors.blue,
+                        activeColor: Colors.white,
                         onChanged: (bool value) {
                           setState(() {
                             _isReminderWeekly = value;
+                            print('Weekly: $_isReminderWeekly');
                             if (value) {
                               _showWeekdays();
                             }
@@ -301,17 +348,25 @@ class _SettingsState extends State<Settings> {
           Expanded(
               child: Container(
             child: Theme(
-                data: ThemeData(unselectedWidgetColor: Colors.purple),
+                data: ThemeData(unselectedWidgetColor: Colors.white),
                 child: Checkbox(
-                    value: _isByCard,
-                    checkColor: Colors.white,
-                    activeColor: Colors.purple,
+                    value: _isPayByCard,
+                    checkColor: Colors.blue,
+                    activeColor: Colors.white,
                     onChanged: (bool value) {
                       setState(() {
-                        _isByCard = value;
+                        _isPayByCard = value;
                       });
                       if (value) {
+                        //Show card Dialog;
                         _cardDialog();
+                        //Set Mpesa to be false
+                        _isPayByMpesa = false;
+                        _prefferedPaymentMethod = 'card';
+                        print(
+                            'Preferred Payment Method: $_prefferedPaymentMethod');
+                      } else {
+                        _prefferedPaymentMethod = null;
                       }
                     })),
           ))
@@ -332,23 +387,53 @@ class _SettingsState extends State<Settings> {
             style: GoogleFonts.muli(textStyle: TextStyle()),
           ),
           content: Form(
+              key: _formPhone,
               child: TextFormField(
-            style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(
-              hintText: '07XXXXXXXX',
-              hintStyle: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.black, fontWeight: FontWeight.w300)),
-              border: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black)),
-              focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.black)),
-            ),
-          )),
+                  autofocus: false,
+                  keyboardType: TextInputType.phone,
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                    color: Colors.black,
+                  )),
+                  onFieldSubmitted: (value) {
+                    FocusScope.of(context).unfocus();
+                  },
+                  validator: (value) {
+                    //Check if phone is available
+                    if (value.isEmpty) {
+                      return 'Phone number is required';
+                    }
+
+                    //Check if phone number has 10 digits
+                    if (value.length != 10) {
+                      return 'Phone number should be 10 digits';
+                    }
+
+                    //Check if phone number starts with 07
+                    if (!value.startsWith('07')) {
+                      return 'Phone number should start with 07';
+                    }
+
+                    return null;
+                  },
+                  autovalidate: true,
+                  textInputAction: TextInputAction.done,
+                  onSaved: _handleSubmittedPhone,
+                  decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red)),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      prefixIcon: Icon(Icons.phone, color: Colors.black),
+                      labelText: 'Enter your Phone Number',
+                      labelStyle: hintStyleBlack))),
           actions: [
             FlatButton(
-                onPressed: () {},
+                onPressed: _setPhone,
                 child: Text('Verify',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
@@ -357,6 +442,13 @@ class _SettingsState extends State<Settings> {
         );
       },
     );
+  }
+
+  void _setPhone() {
+    final form = _formPhone.currentState;
+    if (form.validate()) {
+      form.save();
+    }
   }
 
   Future _cardDialog() {
@@ -371,94 +463,187 @@ class _SettingsState extends State<Settings> {
             style: GoogleFonts.muli(textStyle: TextStyle()),
           ),
           content: Form(
+              key: _formCard,
               child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextFormField(
-                style:
-                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Card Number',
-                  hintStyle: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.w300)),
-                  border: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.black)),
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextFormField(
+                      autofocus: false,
                       keyboardType: TextInputType.number,
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                        color: Colors.black,
+                      )),
+                      onFieldSubmitted: (value) {
+                        FocusScope.of(context).requestFocus(focusCVV);
+                      },
+                      validator: (value) {
+                        //Check if phone is available
+                        if (value.isEmpty) {
+                          return 'Card number is required';
+                        }
+
+                        return null;
+                      },
+                      autovalidate: true,
+                      textInputAction: TextInputAction.next,
+                      onSaved: _handleSubmittedCardNumber,
                       decoration: InputDecoration(
-                        hintText: 'CVV',
-                        hintStyle: GoogleFonts.muli(
-                            textStyle: TextStyle(
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                          errorBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.red)),
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                          labelText: 'Enter your Card Number',
+                          labelStyle: hintStyleBlack)),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                          child: TextFormField(
+                              autofocus: false,
+                              maxLength: 3,
+                              keyboardType: TextInputType.number,
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
                                 color: Colors.black,
-                                fontWeight: FontWeight.w300)),
-                        border: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
+                              )),
+                              onFieldSubmitted: (value) {
+                                FocusScope.of(context)
+                                    .requestFocus(focusExpiry);
+                              },
+                              validator: (value) {
+                                //Check if phone is available
+                                if (value.isEmpty) {
+                                  return 'CVV is required';
+                                }
+
+                                if (value.length != 3) {
+                                  return 'This number should be 3 digits';
+                                }
+
+                                return null;
+                              },
+                              focusNode: focusCVV,
+                              autovalidate: true,
+                              textInputAction: TextInputAction.next,
+                              onSaved: _handleSubmittedCardCvv,
+                              decoration: InputDecoration(
+                                  enabledBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  errorBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.red)),
+                                  border: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  prefixIcon:
+                                      Icon(Icons.phone, color: Colors.black),
+                                  labelText: 'CVV',
+                                  labelStyle: hintStyleBlack))),
+                      SizedBox(
+                        width: 10,
                       ),
-                    ),
+                      Expanded(
+                        child: TextFormField(
+                            autofocus: false,
+                            keyboardType: TextInputType.number,
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                              color: Colors.black,
+                            )),
+                            onFieldSubmitted: (value) {
+                              FocusScope.of(context).requestFocus(focusBilling);
+                            },
+                            validator: (value) {
+                              //Check if phone is available
+                              if (value.isEmpty) {
+                                return 'Expiry is required';
+                              }
+                              return null;
+                            },
+                            focusNode: focusExpiry,
+                            autovalidate: true,
+                            textInputAction: TextInputAction.next,
+                            onSaved: _handleSubmittedCardExpiry,
+                            decoration: InputDecoration(
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.black)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.black)),
+                                errorBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.red)),
+                                border: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.black)),
+                                labelText: 'MM/YYYY',
+                                labelStyle: hintStyleBlack)),
+                      )
+                    ],
                   ),
                   SizedBox(
-                    width: 10,
+                    height: 10,
                   ),
-                  Expanded(
-                    child: TextFormField(
+                  TextFormField(
+                      autofocus: false,
+                      keyboardType: TextInputType.text,
                       style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.black)),
-                      keyboardType: TextInputType.number,
+                          textStyle: TextStyle(
+                        color: Colors.black,
+                      )),
+                      onFieldSubmitted: (value) {
+                        FocusScope.of(context).unfocus();
+                      },
+                      validator: (value) {
+                        //Check if phone is available
+                        if (value.isEmpty) {
+                          return 'Phone number is required';
+                        }
+
+                        //Check if phone number has 10 digits
+                        if (value.length != 10) {
+                          return 'Phone number should be 10 digits';
+                        }
+
+                        //Check if phone number starts with 07
+                        if (!value.startsWith('07')) {
+                          return 'Phone number should start with 07';
+                        }
+
+                        return null;
+                      },
+                      focusNode: focusBilling,
+                      autovalidate: true,
+                      textInputAction: TextInputAction.done,
+                      onSaved: _handleSubmittedCardBilling,
                       decoration: InputDecoration(
-                        hintText: 'Expiry',
-                        hintStyle: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w300)),
-                        border: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                      ),
-                    ),
-                  )
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                          errorBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.red)),
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                          labelText: 'Billing Address',
+                          labelStyle: hintStyleBlack))
                 ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                style:
-                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Billing Address',
-                  hintStyle: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.w300)),
-                  border: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
-                ),
-              )
-            ],
-          )),
+              )),
           actions: [
             FlatButton(
-                onPressed: () {},
+                onPressed: _setCard,
                 child: Text('Verify',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
@@ -467,6 +652,13 @@ class _SettingsState extends State<Settings> {
         );
       },
     );
+  }
+
+  void _setCard() {
+    final form = _formCard.currentState;
+    if (form.validate()) {
+      form.save();
+    }
   }
 
   Widget _bankName() {
@@ -694,18 +886,26 @@ class _SettingsState extends State<Settings> {
           Expanded(
               child: Container(
             child: Theme(
-                data: ThemeData(unselectedWidgetColor: Colors.purple),
+                data: ThemeData(unselectedWidgetColor: Colors.white),
                 child: Checkbox(
-                    value: _isByMpesa,
-                    checkColor: Colors.white,
-                    activeColor: Colors.purple,
+                    value: _isPayByMpesa,
+                    checkColor: Colors.blue,
+                    activeColor: Colors.white,
                     onChanged: (bool value) {
                       setState(() {
-                        _isByMpesa = value;
+                        _isPayByMpesa = value;
                       });
                       //Check if the box is selected
                       if (value) {
+                        //Show Mpesa Number Dialog
                         _mpesaNumberDialog();
+                        //Set Card to be False
+                        _isPayByCard = false;
+                        _prefferedPaymentMethod = 'mpesa';
+                        print(
+                            'Preffered Payment Method: $_prefferedPaymentMethod');
+                      } else {
+                        _prefferedPaymentMethod = null;
                       }
                     })),
           ))
@@ -731,18 +931,26 @@ class _SettingsState extends State<Settings> {
           Expanded(
               child: Container(
             child: Theme(
-                data: ThemeData(unselectedWidgetColor: Colors.purple),
+                data: ThemeData(unselectedWidgetColor: Colors.white),
                 child: Checkbox(
                     value: _isWithdrawByMpesa,
-                    checkColor: Colors.white,
-                    activeColor: Colors.purple,
+                    checkColor: Colors.blue,
+                    activeColor: Colors.white,
                     onChanged: (bool value) {
                       setState(() {
                         _isWithdrawByMpesa = value;
                       });
                       //Check if the box is selected
                       if (value) {
+                        //Show Mpesa dialog
                         _mpesaNumberDialog();
+                        //Set bank payment to false
+                        _isWithdrawToBank = false;
+                        _prefferedWithdrawalMethod = 'mpesa';
+                        print(
+                            'Preferred Withdrawal Method: $_prefferedWithdrawalMethod');
+                      } else {
+                        _prefferedWithdrawalMethod = null;
                       }
                     })),
           ))
@@ -768,17 +976,25 @@ class _SettingsState extends State<Settings> {
           Expanded(
               child: Container(
             child: Theme(
-                data: ThemeData(unselectedWidgetColor: Colors.purple),
+                data: ThemeData(unselectedWidgetColor: Colors.white),
                 child: Checkbox(
                     value: _isWithdrawToBank,
-                    checkColor: Colors.white,
-                    activeColor: Colors.purple,
+                    checkColor: Colors.blue,
+                    activeColor: Colors.white,
                     onChanged: (bool value) {
                       setState(() {
                         _isWithdrawToBank = value;
                       });
                       if (value) {
+                        //Show the bank details dialog
                         _bankDialog();
+                        //Disable payment by m-pesa
+                        _isWithdrawByMpesa = false;
+                        _prefferedWithdrawalMethod = 'bank';
+                        print(
+                            'Preferred Withdrawal Method: $_prefferedWithdrawalMethod');
+                      } else {
+                        _prefferedWithdrawalMethod = null;
                       }
                     })),
           ))
@@ -843,13 +1059,15 @@ class _SettingsState extends State<Settings> {
     );
   }
 
+  void _updatePrefs() {}
+
   Widget _updateBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10),
       width: double.infinity,
       child: RaisedButton(
         elevation: 2,
-        onPressed: () {},
+        onPressed: _updatePrefs,
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         color: Colors.white,
@@ -857,10 +1075,10 @@ class _SettingsState extends State<Settings> {
           'UPDATE',
           style: GoogleFonts.muli(
               textStyle: TextStyle(
-            letterSpacing: 1.5,
-            color: Colors.black,
-            fontSize: 20,
-          )),
+                  letterSpacing: 1.5,
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold)),
         ),
       ),
     );
@@ -894,6 +1112,10 @@ class _SettingsState extends State<Settings> {
 
   @override
   Widget build(BuildContext context) {
+    //Retreieve UID
+    uid = ModalRoute.of(context).settings.arguments;
+    print('Settings UID: $uid');
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF73AEF5),
@@ -920,11 +1142,11 @@ class _SettingsState extends State<Settings> {
                     children: [
                       _passiveWidget(),
                       SizedBox(
-                        height: 20,
+                        height: 30,
                       ),
                       _limitWidget(),
                       SizedBox(
-                        height: 20,
+                        height: 30,
                       ),
                       Text(
                         'Reminders',
@@ -934,7 +1156,7 @@ class _SettingsState extends State<Settings> {
                                 fontWeight: FontWeight.w700)),
                       ),
                       SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       _reminder(),
                       SizedBox(
@@ -948,7 +1170,7 @@ class _SettingsState extends State<Settings> {
                                 fontWeight: FontWeight.w700)),
                       ),
                       SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       _paymentMethod(),
                       SizedBox(
@@ -962,7 +1184,7 @@ class _SettingsState extends State<Settings> {
                                 fontWeight: FontWeight.w700)),
                       ),
                       SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       _withdrawMethod(),
                       _updateBtn()

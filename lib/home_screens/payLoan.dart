@@ -14,11 +14,9 @@ class PayLoan extends StatefulWidget {
 }
 
 class _PayLoanState extends State<PayLoan> {
-
   Map<String, dynamic> loanData;
 
   Widget _balanceText() {
-
     double totalAmount = loanData["totalAmount"];
 
     return Container(
@@ -147,7 +145,6 @@ class _PayLoanState extends State<PayLoan> {
     //Retrieve Loan Data
     loanData = ModalRoute.of(context).settings.arguments;
     print('Retrieved Loan Data: $loanData');
-
 
     return Scaffold(
         appBar: AppBar(

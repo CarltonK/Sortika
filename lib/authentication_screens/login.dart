@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +17,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   //Form Key
   final _formKey = GlobalKey<FormState>();
+
+  Firestore _firestore = Firestore.instance;
 
   //FocusNodes
   final focusPassword = FocusNode();
@@ -402,16 +406,22 @@ class _LoginScreenState extends State<LoginScreen> {
           //Retrieve
           final String uid = result.uid;
 
+          //Retrieve USER DOC
+          DocumentSnapshot userDoc =
+              await _firestore.collection("users").document(uid).get();
+          User user = User.fromJson(userDoc.data);
+
           //Try save credentials using shared preferences
           SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.setString('uid', uid);
+          prefs.setString('uid', user.uid);
 
           Timer(Duration(seconds: 2), () {
             Navigator.of(context).pop();
           });
 
           Timer(Duration(milliseconds: 2200), () {
-            Navigator.of(context).pushReplacementNamed('/home', arguments: uid);
+            Navigator.of(context)
+                .pushReplacementNamed('/home', arguments: user);
           });
         } else {
           //print('Failed response: ${result}');

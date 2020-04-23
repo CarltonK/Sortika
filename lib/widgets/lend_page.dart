@@ -208,7 +208,7 @@ class _LendPageState extends State<LendPage> {
       _promptUser("Please select the payback date");
     } else {
       LoanModel loanModel = new LoanModel(
-        loanLenders: [widget.uid],
+        loanLender: widget.uid,
         loanEndDate: Timestamp.fromDate(_date),
         loanAmountTaken: targetAmount,
       );

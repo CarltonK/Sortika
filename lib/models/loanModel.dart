@@ -6,7 +6,8 @@ LoanModel loanmodelFromJson(String str) => LoanModel.fromJson(json.decode(str));
 String loanmodelToJson(LoanModel data) => json.encode(data.toJson());
 
 class LoanModel {
-  List<dynamic> loanLenders;
+  String loanLender;
+  List<dynamic> loanInvitees;
   String loanBorrower;
   double loanAmountTaken;
   double loanAmountRepaid;
@@ -17,7 +18,8 @@ class LoanModel {
   double totalAmountToPay;
 
   LoanModel(
-      {this.loanLenders,
+      {this.loanLender,
+      this.loanInvitees,
       this.loanBorrower,
       this.loanAmountTaken,
       this.loanAmountRepaid,
@@ -28,18 +30,19 @@ class LoanModel {
       this.totalAmountToPay});
 
   factory LoanModel.fromJson(Map<String, dynamic> json) => LoanModel(
-      loanLenders: json["loanLenders"],
+      loanLender: json["loanLender"],
       loanBorrower: json["loanBorrower"],
       loanAmountTaken: json["loanAmountTaken"],
       loanAmountRepaid: json["loanAmountRepaid"],
       loanInterest: json["loanInterest"],
+      loanInvitees: json["loanInvitees"],
       loanEndDate: json["loanEndDate"],
       loanTakenDate: json["loanTakenDate"],
       loanIC: json["loanIC"],
       totalAmountToPay: json["totalAmountToPay"]);
 
   Map<String, dynamic> toJson() => {
-        "loanLenders": loanLenders,
+        "loanLender": loanLender,
         "loanBorrower": loanBorrower,
         "loanAmountTaken": loanAmountTaken,
         "loanAmountRepaid": loanAmountRepaid,
@@ -47,6 +50,7 @@ class LoanModel {
         "loanEndDate": loanEndDate,
         "loanTakenDate": loanTakenDate,
         "loanIC": loanIC,
-        "totalAmountToPay": totalAmountToPay
+        "totalAmountToPay": totalAmountToPay,
+        "loanInvitees": loanInvitees
       };
 }

@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wealth/models/usermodel.dart';
 
 class OnBoarding extends StatefulWidget {
   @override
@@ -16,6 +18,7 @@ class _OnBoardingState extends State<OnBoarding> {
   final int _numPages = 4;
   //Placeholder for current page
   int _currentPage = 0;
+  Firestore _firestore = Firestore.instance;
 
   Future checkFirstSeen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -23,12 +26,15 @@ class _OnBoardingState extends State<OnBoarding> {
     if (_seen) {
       // Navigator.of(context).pushReplacementNamed('/login');
       if (_seen) {
-        checkLoginStatus().then((value) {
+        checkLoginStatus().then((value) async {
           if (value == null) {
             Navigator.of(context).pushReplacementNamed('/login');
           } else {
+            DocumentSnapshot doc =
+                await _firestore.collection("users").document(value).get();
+            User user = User.fromJson(doc.data);
             Navigator.of(context)
-                .pushReplacementNamed('/home', arguments: value);
+                .pushReplacementNamed('/home', arguments: user);
           }
         });
       }

@@ -10,7 +10,6 @@ import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/models/loanModel.dart';
-import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
@@ -21,7 +20,6 @@ import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/group_savings_colored.dart';
 import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/widgets/portfolio.dart';
 import 'package:wealth/widgets/savings_colored.dart';
 
@@ -45,7 +43,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   double screenWidth, screenHeight;
   //Animation Duration
   final Duration duration = const Duration(milliseconds: 200);
-  static String dp;
 
   //Controllers
   AnimationController _controller;
@@ -129,7 +126,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   // }
 
   //Goals Page
-  Widget _goalsPage(context, String uid) {
+  Widget _goalsPage(context) {
     return AnimatedPositioned(
       duration: duration,
       curve: Curves.ease,
@@ -180,8 +177,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       IconButton(
                           icon: Icon(Icons.settings),
-                          onPressed: () =>
-                              Navigator.of(context).pushNamed('/settings')),
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed('/settings', arguments: uid))
                     ],
                   ),
                   SizedBox(
@@ -679,7 +676,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Welcome Jon',
+            'Welcome ${userData.fullName.split(' ')[0]}',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
                     color: Colors.black,
@@ -774,8 +771,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     ),
                     IconButton(
                         icon: Icon(Icons.settings),
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed('/settings')),
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed('/settings', arguments: uid)),
                   ],
                 ),
                 SizedBox(
@@ -862,8 +859,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       IconButton(
                           icon: Icon(Icons.settings),
-                          onPressed: () =>
-                              Navigator.of(context).pushNamed('/settings')),
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed('/settings', arguments: uid)),
                     ],
                   ),
                   SizedBox(
@@ -906,6 +903,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     stream: _firestore
                         .collection("loans")
                         .where("loanBorrower", isEqualTo: uid)
+                        .orderBy("loanEndDate")
                         .snapshots(),
                     builder: (BuildContext context,
                         AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -945,7 +943,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       child: StreamBuilder<QuerySnapshot>(
                     stream: _firestore
                         .collection("loans")
-                        .where("loanLenders", arrayContains: uid)
+                        .where("loanLender", isEqualTo: uid)
                         .snapshots(),
                     builder: (BuildContext context,
                         AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -1091,7 +1089,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       BorderRadius.only(bottomRight: Radius.circular(20)),
                   color: Colors.white),
               child: Text(
-                model.loanLenders.contains(uid) ? 'Self Loan' : 'Loan Fund',
+                model.loanLender == uid ? 'Self Loan' : 'Loan Fund',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -1569,7 +1567,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                   fontWeight: FontWeight.w600, fontSize: 24)),
                         ),
                         IconButton(
-                            icon: Icon(Icons.settings), onPressed: () {}),
+                            icon: Icon(Icons.settings),
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed('/settings', arguments: uid);
+                            }),
                       ],
                     ),
                     Container(
@@ -1887,8 +1889,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       IconButton(
                           icon: Icon(Icons.settings),
-                          onPressed: () =>
-                              Navigator.of(context).pushNamed('/settings')),
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed('/settings', arguments: uid)),
                     ],
                   ),
                   SizedBox(
@@ -1982,8 +1984,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     ),
                     IconButton(
                         icon: Icon(Icons.settings),
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed('/settings')),
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed('/settings', arguments: uid)),
                   ],
                 ),
                 SizedBox(
@@ -2076,8 +2078,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     ),
                     IconButton(
                         icon: Icon(Icons.settings),
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed('/settings')),
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed('/settings', arguments: uid)),
                   ],
                 ),
                 SizedBox(
@@ -2164,8 +2166,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     ),
                     IconButton(
                         icon: Icon(Icons.settings),
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed('/settings')),
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed('/settings', arguments: uid)),
                   ],
                 ),
                 SizedBox(
@@ -2233,11 +2235,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 onTap: () =>
                     Navigator.of(context).pushNamed('/profile', arguments: uid),
                 child: CircleAvatar(
-                  child: Icon(
-                    Icons.person,
-                    size: 40,
-                  ),
                   radius: 40,
+                  backgroundImage: userData.photoURL != null
+                      ? NetworkImage(userData.photoURL)
+                      : null,
                 ),
               ),
               SizedBox(height: 5),
@@ -2686,9 +2687,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     screenHeight = size.height;
     screenWidth = size.width;
 
-    //Retrieve the uid
-    uid = ModalRoute.of(context).settings.arguments;
-    print('Retrieved UID: $uid');
+    //Retrieve the user
+    userData = ModalRoute.of(context).settings.arguments;
+    uid = userData.uid;
+    //print('Retrieved UID: $uid');
 
     return Scaffold(
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -2728,7 +2730,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
               _menu(context),
               _pageSelection == 'main'
-                  ? _goalsPage(context, uid)
+                  ? _goalsPage(context)
                   : _pageSelection == 'invest'
                       ? _investmentPage(context)
                       : _pageSelection == 'save'

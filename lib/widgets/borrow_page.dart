@@ -64,6 +64,7 @@ class _BorrowPageState extends State<BorrowPage> {
   //Placeholder of type
   String typeLoan;
   List<String> takeLoanFrom;
+  String lender;
 
   //Placeholder of amount
   double amountLoan = 0;
@@ -137,9 +138,11 @@ class _BorrowPageState extends State<BorrowPage> {
             typeLoan = value;
 
             if (value == 'self') {
-              takeLoanFrom = [widget.uid];
+              lender = widget.uid;
             }
-            if (value == 'p2p') {}
+            if (value == 'p2p') {
+              lender = null;
+            }
           });
         },
       ),
@@ -469,7 +472,8 @@ class _BorrowPageState extends State<BorrowPage> {
           loanIC: interestCoverLoan,
           loanTakenDate: Timestamp.fromDate(rightNow),
           loanEndDate: Timestamp.fromDate(_date),
-          loanLenders: takeLoanFrom,
+          loanInvitees: takeLoanFrom,
+          loanLender: lender,
           loanBorrower: widget.uid);
 
       //Show a dialog
@@ -485,11 +489,6 @@ class _BorrowPageState extends State<BorrowPage> {
 
         //Show a success message for two seconds
         Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
-
-        //Pop the dialog then redirect to home page
-        Timer(Duration(milliseconds: 4500), () {
-          Navigator.of(context).popAndPushNamed('/home', arguments: widget.uid);
-        });
       }).catchError((error) {
         _promptUser(error);
       });
