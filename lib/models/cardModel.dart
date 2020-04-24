@@ -9,9 +9,19 @@ class PaymentCard {
   int month;
   int year;
   int cvv;
+  String address;
 
   PaymentCard(
-      {this.type, this.number, this.name, this.month, this.year, this.cvv});
+      {this.type, this.number, this.name, this.month, this.year, this.cvv, this.address});
+
+  Map<String, dynamic> toJson() => {
+    "cardNumber": number,
+    "cardName": name,
+    "cardMonth": month,
+    "cardYear": year,
+    "cardCvv": cvv,
+    "cardAddress": address
+  };
 }
 
 class CardUtils {
@@ -124,6 +134,7 @@ class CardUtils {
         img = 'visa.png';
         break;
     }
+
     Widget widget;
     if (img.isNotEmpty) {
       widget = Padding(
