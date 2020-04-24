@@ -1,12 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wealth/models/usermodel.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class LoginScreen extends StatefulWidget {

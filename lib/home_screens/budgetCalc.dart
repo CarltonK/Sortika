@@ -341,7 +341,7 @@ class _BudgetCalcState extends State<BudgetCalc> {
   }
 
   Future _addCustomGoal() {
-    showCupertinoModalPopup(
+    return showCupertinoModalPopup(
       context: context,
       builder: (context) {
         return AlertDialog(

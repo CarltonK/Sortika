@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/models/cardModel.dart';
 import 'package:wealth/models/days.dart';
+import 'package:wealth/utilities/inputFormatter.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class Settings extends StatefulWidget {
@@ -30,12 +32,18 @@ class _SettingsState extends State<Settings> {
   bool _isPayByCard = false;
   bool _isWithdrawToBank = false;
 
+  var _card = new PaymentCard();
+  var _paymentCard = PaymentCard();
+  var _autoValidate = false;
+  TextEditingController numberController = new TextEditingController();
+
   String _phone;
-  String _cardNumber;
-  String _cvv;
-  String _cardExpiry;
+//  String _cardNumber;
+//  String _cvv;
+//  String _cardExpiry;
   String _billing;
 
+  final focusNumber = FocusNode();
   final focusCVV = FocusNode();
   final focusExpiry = FocusNode();
   final focusBilling = FocusNode();
@@ -46,19 +54,26 @@ class _SettingsState extends State<Settings> {
     print('Phone: ' + _phone);
   }
 
+  void _handleSubmittedCardName(String value) {
+    _card.name = value.trim();
+    print('Card Name: ' + _card.name);
+  }
+
   void _handleSubmittedCardNumber(String value) {
-    _cardNumber = value.trim();
-    print('Card Number: ' + _cardNumber);
+    _paymentCard.number = value.trim();
+    print('Card Number: ' + _paymentCard.number);
   }
 
   void _handleSubmittedCardCvv(String value) {
-    _cvv = value.trim();
-    print('Card CVV: ' + _cvv);
+    _paymentCard.cvv = int.parse(value);
+    print('Card CVV: ' + _paymentCard.cvv.toString());
   }
 
   void _handleSubmittedCardExpiry(String value) {
-    _cardExpiry = value.trim();
-    print('Card Expiry: ' + _cardExpiry);
+    List<int> expiryDate = CardUtils.getExpiryDate(value);
+    _paymentCard.month = expiryDate[0];
+    _paymentCard.year = expiryDate[1];
+    print('Card Expiry: ' + expiryDate.toString());
   }
 
   void _handleSubmittedCardBilling(String value) {
@@ -464,76 +479,143 @@ class _SettingsState extends State<Settings> {
           ),
           content: Form(
               key: _formCard,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  TextFormField(
-                      autofocus: false,
-                      keyboardType: TextInputType.number,
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                        color: Colors.black,
-                      )),
-                      onFieldSubmitted: (value) {
-                        FocusScope.of(context).requestFocus(focusCVV);
-                      },
-                      validator: (value) {
-                        //Check if phone is available
-                        if (value.isEmpty) {
-                          return 'Card number is required';
-                        }
-
-                        return null;
-                      },
-                      autovalidate: true,
-                      textInputAction: TextInputAction.next,
-                      onSaved: _handleSubmittedCardNumber,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black)),
-                          errorBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.red)),
-                          border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black)),
-                          labelText: 'Enter your Card Number',
-                          labelStyle: hintStyleBlack)),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Expanded(
+              autovalidate: _autoValidate,
+              child: SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    TextFormField(
+                        autofocus: false,
+                        keyboardType: TextInputType.text,
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                          color: Colors.black,
+                        )),
+                        onFieldSubmitted: (value) {
+                          FocusScope.of(context).requestFocus(focusNumber);
+                        },
+                        validator: (value) {
+                          //Check if name is available
+                          if (value.isEmpty) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                        textInputAction: TextInputAction.next,
+                        onSaved: _handleSubmittedCardName,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red)),
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            labelText: 'Enter the name on the card',
+                            labelStyle: hintStyleBlack)),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    TextFormField(
+                        autofocus: false,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          WhitelistingTextInputFormatter.digitsOnly,
+                          new LengthLimitingTextInputFormatter(19),
+                          new CardNumberInputFormatter()
+                        ],
+                        controller: numberController,
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                          color: Colors.black,
+                        )),
+                        onFieldSubmitted: (value) {
+                          FocusScope.of(context).requestFocus(focusCVV);
+                        },
+                        validator: CardUtils.validateCardNum,
+                        focusNode: focusNumber,
+                        textInputAction: TextInputAction.next,
+                        onSaved: _handleSubmittedCardNumber,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red)),
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            labelText: 'Enter your Card Number',
+                            prefixIcon:
+                                CardUtils.getCardIcon(_paymentCard.type),
+                            labelStyle: hintStyleBlack)),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Expanded(
+                            child: TextFormField(
+                                autofocus: false,
+                                inputFormatters: [
+                                  WhitelistingTextInputFormatter.digitsOnly,
+                                  new LengthLimitingTextInputFormatter(4),
+                                ],
+                                keyboardType: TextInputType.number,
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                  color: Colors.black,
+                                )),
+                                onFieldSubmitted: (value) {
+                                  FocusScope.of(context)
+                                      .requestFocus(focusExpiry);
+                                },
+                                validator: CardUtils.validateCVV,
+                                focusNode: focusCVV,
+                                textInputAction: TextInputAction.next,
+                                onSaved: _handleSubmittedCardCvv,
+                                decoration: InputDecoration(
+                                    enabledBorder: OutlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Colors.black)),
+                                    focusedBorder: OutlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Colors.black)),
+                                    errorBorder: OutlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Colors.red)),
+                                    border: OutlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Colors.black)),
+                                    labelText: 'CVV',
+                                    labelStyle: hintStyleBlack))),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
                           child: TextFormField(
                               autofocus: false,
-                              maxLength: 3,
                               keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                WhitelistingTextInputFormatter.digitsOnly,
+                                new LengthLimitingTextInputFormatter(4),
+                                new CardMonthInputFormatter()
+                              ],
                               style: GoogleFonts.muli(
                                   textStyle: TextStyle(
                                 color: Colors.black,
                               )),
                               onFieldSubmitted: (value) {
                                 FocusScope.of(context)
-                                    .requestFocus(focusExpiry);
+                                    .requestFocus(focusBilling);
                               },
-                              validator: (value) {
-                                //Check if phone is available
-                                if (value.isEmpty) {
-                                  return 'CVV is required';
-                                }
-
-                                if (value.length != 3) {
-                                  return 'This number should be 3 digits';
-                                }
-
-                                return null;
-                              },
-                              focusNode: focusCVV,
-                              autovalidate: true,
+                              validator: CardUtils.validateDate,
+                              focusNode: focusExpiry,
                               textInputAction: TextInputAction.next,
-                              onSaved: _handleSubmittedCardCvv,
+                              onSaved: _handleSubmittedCardExpiry,
                               decoration: InputDecoration(
                                   enabledBorder: OutlineInputBorder(
                                       borderSide:
@@ -547,99 +629,48 @@ class _SettingsState extends State<Settings> {
                                   border: OutlineInputBorder(
                                       borderSide:
                                           BorderSide(color: Colors.black)),
-                                  prefixIcon:
-                                      Icon(Icons.phone, color: Colors.black),
-                                  labelText: 'CVV',
-                                  labelStyle: hintStyleBlack))),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                            autofocus: false,
-                            keyboardType: TextInputType.number,
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(
-                              color: Colors.black,
-                            )),
-                            onFieldSubmitted: (value) {
-                              FocusScope.of(context).requestFocus(focusBilling);
-                            },
-                            validator: (value) {
-                              //Check if phone is available
-                              if (value.isEmpty) {
-                                return 'Expiry is required';
-                              }
-                              return null;
-                            },
-                            focusNode: focusExpiry,
-                            autovalidate: true,
-                            textInputAction: TextInputAction.next,
-                            onSaved: _handleSubmittedCardExpiry,
-                            decoration: InputDecoration(
-                                enabledBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.black)),
-                                focusedBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.black)),
-                                errorBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.red)),
-                                border: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.black)),
-                                labelText: 'MM/YYYY',
-                                labelStyle: hintStyleBlack)),
-                      )
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  TextFormField(
-                      autofocus: false,
-                      keyboardType: TextInputType.text,
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                        color: Colors.black,
-                      )),
-                      onFieldSubmitted: (value) {
-                        FocusScope.of(context).unfocus();
-                      },
-                      validator: (value) {
-                        //Check if phone is available
-                        if (value.isEmpty) {
-                          return 'Phone number is required';
-                        }
+                                  labelText: 'MM/YY',
+                                  labelStyle: hintStyleBlack)),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    TextFormField(
+                        autofocus: false,
+                        keyboardType: TextInputType.text,
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                          color: Colors.black,
+                        )),
+                        onFieldSubmitted: (value) {
+                          FocusScope.of(context).unfocus();
+                        },
+                        validator: (value) {
+                          //Check if phone is available
+                          if (value.isEmpty) {
+                            return 'Billing Address is required';
+                          }
 
-                        //Check if phone number has 10 digits
-                        if (value.length != 10) {
-                          return 'Phone number should be 10 digits';
-                        }
-
-                        //Check if phone number starts with 07
-                        if (!value.startsWith('07')) {
-                          return 'Phone number should start with 07';
-                        }
-
-                        return null;
-                      },
-                      focusNode: focusBilling,
-                      autovalidate: true,
-                      textInputAction: TextInputAction.done,
-                      onSaved: _handleSubmittedCardBilling,
-                      decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black)),
-                          errorBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.red)),
-                          border: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.black)),
-                          labelText: 'Billing Address',
-                          labelStyle: hintStyleBlack))
-                ],
+                          return null;
+                        },
+                        focusNode: focusBilling,
+                        textInputAction: TextInputAction.done,
+                        onSaved: _handleSubmittedCardBilling,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red)),
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            labelText: 'Billing Address',
+                            labelStyle: hintStyleBlack))
+                  ],
+                ),
               )),
           actions: [
             FlatButton(
@@ -656,7 +687,11 @@ class _SettingsState extends State<Settings> {
 
   void _setCard() {
     final form = _formCard.currentState;
-    if (form.validate()) {
+    if (!form.validate()) {
+      setState(() {
+        _autoValidate = true; // Start validating on every change.
+      });
+    } else {
       form.save();
     }
   }
@@ -688,7 +723,6 @@ class _SettingsState extends State<Settings> {
           setState(() {
             _nameBank = value;
           });
-          //print(goal);
         },
       ),
     );
@@ -729,24 +763,42 @@ class _SettingsState extends State<Settings> {
 
   List<DropdownMenuItem> itemsBanks = [
     DropdownMenuItem(
-      value: '',
+      value: 'ncba',
       child: Text(
-        'CBA',
+        'NCBA',
         style: GoogleFonts.muli(
             textStyle:
                 TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    ),
+    DropdownMenuItem(
+      value: 'kcb',
+      child: Text(
+        'KCB',
+        style: GoogleFonts.muli(
+            textStyle:
+            TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
   ];
 
   List<DropdownMenuItem> itemsBranches = [
     DropdownMenuItem(
-      value: '',
+      value: 'uph',
       child: Text(
         'Upper Hill',
         style: GoogleFonts.muli(
             textStyle:
                 TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    ),
+    DropdownMenuItem(
+      value: 'gty',
+      child: Text(
+        'Garden City',
+        style: GoogleFonts.muli(
+            textStyle:
+            TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
   ];
@@ -763,98 +815,101 @@ class _SettingsState extends State<Settings> {
             style: GoogleFonts.muli(textStyle: TextStyle()),
           ),
           content: Form(
-              child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              _bankName(),
-              SizedBox(
-                height: 10,
-              ),
-              _bankBranch(),
-              SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.black)),
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        hintText: 'Bank Code',
-                        hintStyle: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w300)),
-                        border: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
+              child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _bankName(),
+                SizedBox(
+                  height: 10,
+                ),
+                _bankBranch(),
+                SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.black)),
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                          hintText: 'Bank Code',
+                          hintStyle: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w300)),
+                          border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: TextFormField(
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.black)),
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        hintText: 'Swift Code',
-                        hintStyle: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w300)),
-                        border: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                      ),
+                    SizedBox(
+                      width: 10,
                     ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                style:
-                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                  hintText: 'Account Name',
-                  hintStyle: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.w300)),
-                  border: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
+                    Expanded(
+                      child: TextFormField(
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.black)),
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                          hintText: 'Swift Code',
+                          hintStyle: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w300)),
+                          border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black)),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                style:
-                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                  hintText: 'Account Number',
-                  hintStyle: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.w300)),
-                  border: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
+                SizedBox(
+                  height: 10,
                 ),
-              )
-            ],
+                TextFormField(
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black)),
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    hintText: 'Account Name',
+                    hintStyle: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.w300)),
+                    border: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black)),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                TextFormField(
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black)),
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    hintText: 'Account Number',
+                    hintStyle: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.w300)),
+                    border: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.black)),
+                  ),
+                )
+              ],
+            ),
           )),
           actions: [
             FlatButton(
@@ -1111,10 +1166,33 @@ class _SettingsState extends State<Settings> {
   }
 
   @override
+  void initState() {
+    _paymentCard.type = CardType.Invalid;
+    numberController.addListener(_getCardTypeFrmNumber);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the Widget is removed from the Widget tree
+    numberController.removeListener(_getCardTypeFrmNumber);
+    numberController.dispose();
+    super.dispose();
+  }
+
+  void _getCardTypeFrmNumber() {
+    String input = CardUtils.getCleanedNumber(numberController.text);
+    CardType cardType = CardUtils.getCardTypeFrmNumber(input);
+    setState(() {
+      this._paymentCard.type = cardType;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     //Retreieve UID
     uid = ModalRoute.of(context).settings.arguments;
-    print('Settings UID: $uid');
+    //print('Settings UID: $uid');
 
     return Scaffold(
       appBar: AppBar(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wealth/models/cardModel.dart';
 import 'package:wealth/models/days.dart';
 
 class UserPref {
@@ -11,10 +12,7 @@ class UserPref {
   TimeOfDay reminderTime;
   //Payments
   String preferredPaymentMethod;
-  String creditCardNumber;
-  String creditCardCVV;
-  String creditCardBilling;
-  String creditCardExpiry;
+  PaymentCard paymentCard;
   //Withdrawal
   String preferredWithdrawalMethod;
   String bankName;
@@ -32,10 +30,7 @@ class UserPref {
       this.weeklyDays,
       this.reminderTime,
       this.preferredPaymentMethod,
-      this.creditCardNumber,
-      this.creditCardCVV,
-      this.creditCardBilling,
-      this.creditCardExpiry,
+      this.paymentCard,
       this.preferredWithdrawalMethod,
       this.bankName,
       this.bankBranch,
@@ -52,10 +47,7 @@ class UserPref {
         weeklyDays: json["weeklyDays"],
         reminderTime: json["reminderTime"],
         preferredPaymentMethod: json["preferredPaymentMethod"],
-        creditCardNumber: json["creditCardNumber"],
-        creditCardCVV: json["creditCardCVV"],
-        creditCardBilling: json["creditCardBilling"],
-        creditCardExpiry: json["creditCardExpiry"],
+        paymentCard: json["paymentCard"],
         preferredWithdrawalMethod: json["preferredWithdrawalMethod"],
         bankName: json["bankName"],
         bankBranch: json["bankBranch"],
@@ -73,10 +65,7 @@ class UserPref {
         "weeklyDays": weeklyDays,
         "reminderTime": reminderTime,
         "preferredPaymentMethod": preferredPaymentMethod,
-        "creditCardNumber": creditCardNumber,
-        "creditCardCVV": creditCardCVV,
-        "creditCardBilling": creditCardBilling,
-        "creditCardExpiry": creditCardExpiry,
+        "paymentCard": paymentCard,
         "preferredWithdrawalMethod": preferredWithdrawalMethod,
         "bankName": bankName,
         "bankBranch": bankBranch,
