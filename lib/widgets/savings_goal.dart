@@ -594,9 +594,11 @@ class _SavingsGoalState extends State<SavingsGoal> {
               style: styleLabel,
             ),
             _savingsDurationWidget(),
-            SizedBox(
-              height: 30,
-            ),
+            classSavings == 'custom'
+                ? SizedBox(
+                    height: 30,
+                  )
+                : Container(),
             Text(
               classSavings == 'custom' && goalName != null
                   ? 'I have decided to create my own goal titled: ${goalName.toUpperCase()}'

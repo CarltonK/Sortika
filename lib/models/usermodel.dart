@@ -32,6 +32,9 @@ class User {
   String kinName;
   String kinPhone;
   String kinID;
+  String kinPhotoURL;
+  String kinNatIdURL;
+  String kinKraUrl;
 
   User(
       {this.fullName,
@@ -53,7 +56,10 @@ class User {
       this.monthlyTarget,
       this.kinName,
       this.kinPhone,
-      this.kinID});
+      this.kinID,
+      this.kinPhotoURL,
+      this.kinKraUrl,
+      this.kinNatIdURL});
 
   factory User.fromJson(Map<String, dynamic> json) => User(
       fullName: json["fullName"],
@@ -75,7 +81,10 @@ class User {
       monthlyTarget: json["monthlyTarget"],
       kinName: json["kinName"],
       kinPhone: json["kinPhone"],
-      kinID: json["kinID"]);
+      kinID: json["kinID"],
+      kinKraUrl: json["kinKraUrl"],
+      kinNatIdURL: json["kinNatIdURL"],
+      kinPhotoURL: json["kinPhotoURL"]);
 
   //Convert Dart object to JSON
   Map<String, dynamic> toJson() => {
@@ -98,6 +107,9 @@ class User {
         "monthlyTarget": monthlyTarget,
         "kinName": kinName,
         "kinPhone": kinPhone,
-        "kinID": kinID
+        "kinID": kinID,
+        "kinKraUrl": kinKraUrl,
+        "kinNatIdURL": kinNatIdURL,
+        "kinPhotoURL": kinPhotoURL
       };
 }

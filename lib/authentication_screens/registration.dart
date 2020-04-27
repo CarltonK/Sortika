@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -391,7 +392,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     /*
     Before we go to the next page we need to auto create a loan fund goal
     */
-
     //This is the name of the collection we will be reading
     final String _collectionUpper = 'users';
     final String _collectionLower = 'goals';
@@ -440,9 +440,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           registerDate: Timestamp.fromDate(DateTime.now()),
           token: token,
           platform: Platform.operatingSystem,
-          dailyTarget: 15,
-          weeklyTarget: 100,
-          monthlyTarget: 434);
+          dailyTarget: 0,
+          weeklyTarget: 0,
+          monthlyTarget: 0);
 
       //Show Progress Dialog
       setState(() {
@@ -452,7 +452,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       serverCall(user).whenComplete(() {
         if (callResponse) {
           // print('Successful response $result');
-
           //Show a welcome message
           showCupertinoModalPopup(
             context: context,

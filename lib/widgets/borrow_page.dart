@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/models/loanModel.dart';
@@ -40,10 +40,16 @@ class _BorrowPageState extends State<BorrowPage> {
   String _dateDay = oneMonthFromNow.day.toString();
   int _dateMonth = oneMonthFromNow.month;
   String _dateYear = oneMonthFromNow.year.toString();
+  String _nameLender;
 
   Firestore _firestore = Firestore.instance;
 
-  //List
+  final _formPhone = GlobalKey<FormState>();
+  String _phone;
+  void _handleSubmittedPhone(String value) {
+    _phone = value.trim();
+    print('Phone: ' + _phone);
+  }
 
   //Month Names
   List<String> monthNames = [
@@ -63,7 +69,7 @@ class _BorrowPageState extends State<BorrowPage> {
 
   //Placeholder of type
   String typeLoan;
-  List<String> takeLoanFrom;
+  var takeLoanFrom;
   String lender;
 
   //Placeholder of amount
@@ -82,7 +88,7 @@ class _BorrowPageState extends State<BorrowPage> {
     DropdownMenuItem(
       value: 'self',
       child: Text(
-        'Self Loan',
+        'Borrow from savings',
         style: GoogleFonts.muli(
             textStyle:
                 TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
@@ -91,7 +97,7 @@ class _BorrowPageState extends State<BorrowPage> {
     DropdownMenuItem(
       value: 'p2p',
       child: Text(
-        'Peer to Peer Loan',
+        'Borrow from others',
         style: GoogleFonts.muli(
             textStyle:
                 TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
@@ -300,50 +306,254 @@ class _BorrowPageState extends State<BorrowPage> {
       ],
     );
   }
+//
+//  Future _showContactList(Iterable<Contact> contacts) {
+//    return showCupertinoModalPopup(
+//        context: context,
+//        builder: (BuildContext context) {
+//          return AlertDialog(
+//            content: Container(
+//              height: MediaQuery.of(context).size.height * 0.75,
+//              width: MediaQuery.of(context).size.width,
+//              child: ListView(
+//                children: contacts.map((map) {
+//                  return Container(
+//                    child: ListTile(
+//                      leading: Icon(Icons.person),
+//                      title: Text(
+//                        '${map.displayName}',
+//                        style: GoogleFonts.muli(),
+//                      ),
+//                      subtitle: Text(
+//                        map.phones.length == 0
+//                            ? ''
+//                            : '${map.phones.first.value}',
+//                        style: GoogleFonts.muli(),
+//                      ),
+//                    ),
+//                  );
+//                }).toList(),
+//              ),
+//            ),
+//          );
+//        });
+//  }
 
-  Future _showContactList(Iterable<Contact> contacts) {
+  Future _specificBtnPressed() async {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            content: Container(
-              height: MediaQuery.of(context).size.height * 0.75,
-              width: MediaQuery.of(context).size.width,
-              child: ListView(
-                children: contacts.map((map) {
-                  return Container(
-                    child: ListTile(
-                      leading: Icon(Icons.person),
-                      title: Text(
-                        '${map.displayName}',
-                        style: GoogleFonts.muli(),
-                      ),
-                      subtitle: Text(
-                        map.phones.length == 0
-                            ? ''
-                            : '${map.phones.first.value}',
-                        style: GoogleFonts.muli(),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            title: Text(
+              'Phone Number',
+              style: GoogleFonts.muli(textStyle: TextStyle()),
+            ),
+            content: Form(
+                key: _formPhone,
+                child: TextFormField(
+                    autofocus: true,
+                    keyboardType: TextInputType.phone,
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                      color: Colors.black,
+                    )),
+                    onFieldSubmitted: (value) {
+                      FocusScope.of(context).unfocus();
+                    },
+                    validator: (value) {
+                      //Check if phone is available
+                      if (value.isEmpty) {
+                        return 'Phone number is required';
+                      }
+
+                      //Check if phone number has 10 digits
+                      if (value.length != 10) {
+                        return 'Phone number should be 10 digits';
+                      }
+
+                      //Check if phone number starts with 07
+                      if (!value.startsWith('07')) {
+                        return 'Phone number should start with 07';
+                      }
+
+                      return null;
+                    },
+                    autovalidate: true,
+                    textInputAction: TextInputAction.done,
+                    onSaved: _handleSubmittedPhone,
+                    decoration: InputDecoration(
+                        enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                        focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                        errorBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red)),
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.black)),
+                        prefixIcon: Icon(Icons.phone, color: Colors.black),
+                        labelText: '',
+                        labelStyle: hintStyleBlack))),
+            actions: [
+              FlatButton(
+                  onPressed: _checkValidity,
+                  child: Text('Request',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold))))
+            ],
+          );
+        });
+  }
+
+  Future<bool> _checkPhoneNumber() async {
+    final String _collection = 'users';
+    QuerySnapshot query = await _firestore
+        .collection(_collection)
+        .where("phone", isEqualTo: _phone)
+        .getDocuments();
+    int numDocs = query.documents.length;
+    if (numDocs >= 1) {
+      DocumentSnapshot doc = query.documents[0];
+      _nameLender = doc.data["fullName"].split(' ')[0];
+
+      if (_phone == doc.data["phone"]) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  void _checkValidity() {
+    //Dismiss the keyboard
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    //Validate the form
+    final FormState form = _formPhone.currentState;
+    if (form.validate()) {
+      form.save();
+
+      //Check if phone number exists in backend
+      //Dismiss the form dialog
+      Navigator.of(context).pop();
+      //Show a dialog
+      _showUserProgress();
+      _checkPhoneNumber().then((value) {
+        if (value) {
+          //Pop the initial dialog
+          Navigator.of(context).pop();
+          //Show the new dialog
+          _promptLenderFound();
+          takeLoanFrom = _nameLender;
+        } else {
+          //Pop the initial dialog
+          Navigator.of(context).pop();
+          //Show the new dialog
+          _promptLenderNotFound();
+          takeLoanFrom = null;
+          //Pop after a while and return the form
+          Timer(Duration(seconds: 4), () => Navigator.pop(context));
+          Timer(Duration(seconds: 5), () => _specificBtnPressed());
+        }
+      });
+    }
+  }
+
+  Future _promptLenderFound() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.sentiment_satisfied,
+                  size: 50,
+                  color: Colors.green,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'Your request will be sent to $_nameLender',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                ),
+              ],
             ),
           );
         });
   }
 
-  void _specificBtnPressed() async {
-    bool permissionStatus = await _service.requestContactsPermission();
-    print(permissionStatus);
-    //If permissionStatus is true, loop through to get Contacts
-    if (permissionStatus) {
-      // Get all contacts without thumbnail (faster)
-      ContactsService.getContacts(withThumbnails: false)
-          .then((value) => _showContactList(value));
-    } else {
-      await _service.requestContactsPermission();
-    }
+  Future _promptSendToAll() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.sentiment_satisfied,
+                  size: 50,
+                  color: Colors.green,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'Your request will be sent to everyone on Sortika who can fulfill your request',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future _promptLenderNotFound() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.sentiment_dissatisfied,
+                  size: 50,
+                  color: Colors.red,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'The requested lender is not on Sortika or you tried to lend a'
+                  ' loan request to yourself',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        });
   }
 
   Widget _p2pButtons() {
@@ -351,7 +561,10 @@ class _BorrowPageState extends State<BorrowPage> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: <Widget>[
         FlatButton(
-          onPressed: () {},
+          onPressed: () {
+            takeLoanFrom = 'All';
+            _promptSendToAll();
+          },
           color: Colors.white70,
           child: Text(
             'All',
@@ -410,6 +623,7 @@ class _BorrowPageState extends State<BorrowPage> {
                   'Your loan application has been received',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -463,6 +677,8 @@ class _BorrowPageState extends State<BorrowPage> {
       _promptUser("Please select the loan amount you want");
     } else if (_date == null) {
       _promptUser("Please select the payback date");
+    } else if (typeLoan == 'p2p' && takeLoanFrom == null) {
+      _promptUser("You have not selected the recipient of your loan request");
     } else {
       //Create an instance of a Loan
       LoanModel loanModel = new LoanModel(
@@ -474,6 +690,7 @@ class _BorrowPageState extends State<BorrowPage> {
           loanEndDate: Timestamp.fromDate(_date),
           loanInvitees: takeLoanFrom,
           loanLender: lender,
+          totalAmountToPay: (amountLoan * (1 + (interestLoan / 100))),
           loanBorrower: widget.uid);
 
       //Show a dialog
@@ -559,22 +776,28 @@ class _BorrowPageState extends State<BorrowPage> {
               style: styleLabel,
             ),
             _loanDurationWidget(),
-            SizedBox(
-              height: 30,
-            ),
-            _loanICWidget(),
-            SizedBox(
-              height: 30,
-            ),
+            typeLoan == 'p2p'
+                ? SizedBox(
+                    height: 30,
+                  )
+                : Container(),
+            typeLoan == 'p2p' ? _loanICWidget() : Container(),
+            typeLoan == 'p2p'
+                ? SizedBox(
+                    height: 30,
+                  )
+                : Container(),
             typeLoan == 'p2p'
                 ? Text(
                     'Who will receive the request',
                     style: styleLabel,
                   )
-                : Text(''),
-            SizedBox(
-              height: 10,
-            ),
+                : Container(),
+            typeLoan == 'p2p'
+                ? SizedBox(
+                    height: 10,
+                  )
+                : Container(),
             typeLoan == 'p2p' ? _p2pButtons() : Text(''),
             _applyBtn()
           ],

@@ -6,20 +6,20 @@ class BankModel {
   String bankAccountName;
   String bankAccountNumber;
 
-  BankModel({
-    this.bankName,
-    this.bankBranch,
-    this.bankCode,
-    this.bankSwiftCode,
-    this.bankAccountNumber,
-    this.bankAccountName});
+  BankModel(
+      {this.bankName,
+      this.bankBranch,
+      this.bankCode,
+      this.bankSwiftCode,
+      this.bankAccountNumber,
+      this.bankAccountName});
 
   Map<String, dynamic> toJson() => {
-    "bankName": bankName,
-    "bankBranch": bankBranch,
-    "bankCode": bankCode,
-    "bankSwiftCode": bankSwiftCode,
-    "bankAccountName": bankAccountName,
-    "bankAccountNumber": bankAccountNumber
-  };
+        "bankName": bankName,
+        "bankBranch": bankBranch,
+        "bankCode": bankCode,
+        "bankSwiftCode": bankSwiftCode,
+        "bankAccountName": bankAccountName,
+        "bankAccountNumber": bankAccountNumber
+      };
 }

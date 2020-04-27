@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 LoanModel loanmodelFromJson(String str) => LoanModel.fromJson(json.decode(str));
@@ -7,13 +8,14 @@ String loanmodelToJson(LoanModel data) => json.encode(data.toJson());
 
 class LoanModel {
   String loanLender;
-  List<dynamic> loanInvitees;
+  var loanInvitees;
   String loanBorrower;
   double loanAmountTaken;
   double loanAmountRepaid;
   double loanInterest;
   Timestamp loanEndDate;
   Timestamp loanTakenDate;
+  bool loanStatus;
   double loanIC;
   double totalAmountToPay;
 
@@ -24,6 +26,7 @@ class LoanModel {
       this.loanAmountTaken,
       this.loanAmountRepaid,
       this.loanInterest,
+      this.loanStatus,
       this.loanEndDate,
       this.loanTakenDate,
       this.loanIC,
@@ -36,6 +39,7 @@ class LoanModel {
       loanAmountRepaid: json["loanAmountRepaid"],
       loanInterest: json["loanInterest"],
       loanInvitees: json["loanInvitees"],
+      loanStatus: json["loanStatus"],
       loanEndDate: json["loanEndDate"],
       loanTakenDate: json["loanTakenDate"],
       loanIC: json["loanIC"],
@@ -49,6 +53,7 @@ class LoanModel {
         "loanInterest": loanInterest,
         "loanEndDate": loanEndDate,
         "loanTakenDate": loanTakenDate,
+        "loanStatus": loanStatus,
         "loanIC": loanIC,
         "totalAmountToPay": totalAmountToPay,
         "loanInvitees": loanInvitees

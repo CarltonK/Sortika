@@ -130,8 +130,8 @@ class Help extends StatelessWidget {
         onPressed: () {
           try {
             //Launch whatsapp with no message
-            FlutterOpenWhatsapp.sendSingleMessage("254727286123",
-                "Hello. I would like to have an app developed for me");
+            FlutterOpenWhatsapp.sendSingleMessage(
+                "254727286123", "Hello. I would like to have an app developed");
           } catch (e) {
             print('This is the exception $e');
           }

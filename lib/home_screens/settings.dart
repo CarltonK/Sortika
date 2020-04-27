@@ -44,6 +44,7 @@ class _SettingsState extends State<Settings> {
   var _paymentCard = new PaymentCard();
   var _bankDetals = BankModel();
   var _autoValidate = false;
+
   TextEditingController numberController = new TextEditingController();
   Firestore _firestore = Firestore.instance;
 
@@ -127,7 +128,7 @@ class _SettingsState extends State<Settings> {
     print('Bank Acc Num: ' + _bankAccNum);
   }
 
-  TimeOfDay _defaultTime;
+  TimeOfDay _defaultTime = TimeOfDay(hour: 8, minute: 00);
 
   Widget _backgroundWidget() {
     return Container(
@@ -296,8 +297,6 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-
-
   Future _showWeekdays() {
     return showCupertinoModalPopup(
       context: context,
@@ -325,7 +324,7 @@ class _SettingsState extends State<Settings> {
                             checkColor: Colors.white,
                             activeColor: Colors.blue,
                             onChanged: (bool value) {
-                              if (! _days.contains(allDays[index])) {
+                              if (!_days.contains(allDays[index])) {
                                 _days.add(allDays[index]);
                               }
                               setState(() {
@@ -826,7 +825,7 @@ class _SettingsState extends State<Settings> {
         'KCB',
         style: GoogleFonts.muli(
             textStyle:
-            TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
   ];
@@ -847,7 +846,7 @@ class _SettingsState extends State<Settings> {
         'Garden City',
         style: GoogleFonts.muli(
             textStyle:
-            TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
       ),
     ),
   ];
@@ -864,164 +863,174 @@ class _SettingsState extends State<Settings> {
             style: GoogleFonts.muli(textStyle: TextStyle()),
           ),
           content: Form(
-            key: _formBank,
+              key: _formBank,
               child: SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                _bankName(),
-                SizedBox(
-                  height: 10,
-                ),
-                _bankBranch(),
-                SizedBox(
-                  height: 10,
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                          autofocus: false,
-                          keyboardType: TextInputType.number,
-                          style: GoogleFonts.muli(
-                              textStyle: TextStyle(
+                physics: AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    _bankName(),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    _bankBranch(),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                              autofocus: false,
+                              keyboardType: TextInputType.number,
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
                                 color: Colors.black,
                               )),
-                          onFieldSubmitted: (value) {
-                            FocusScope.of(context).requestFocus(focusSwiftCode);
-                          },
-                          validator: (value) {
-                            //Check if phone is available
-                            if (value.isEmpty) {
-                              return 'Required';
-                            }
-                            return null;
-                          },
-                          textInputAction: TextInputAction.next,
-                          onSaved: _handleSubmittedBankCode,
-                          decoration: InputDecoration(
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.black)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.black)),
-                              errorBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.red)),
-                              border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.black)),
-                              labelText: 'Bank Code',
-                              labelStyle: hintStyleBlack)),
+                              onFieldSubmitted: (value) {
+                                FocusScope.of(context)
+                                    .requestFocus(focusSwiftCode);
+                              },
+                              validator: (value) {
+                                //Check if phone is available
+                                if (value.isEmpty) {
+                                  return 'Required';
+                                }
+                                return null;
+                              },
+                              textInputAction: TextInputAction.next,
+                              onSaved: _handleSubmittedBankCode,
+                              decoration: InputDecoration(
+                                  enabledBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  errorBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.red)),
+                                  border: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  labelText: 'Bank Code',
+                                  labelStyle: hintStyleBlack)),
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                              autofocus: false,
+                              keyboardType: TextInputType.text,
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                color: Colors.black,
+                              )),
+                              onFieldSubmitted: (value) {
+                                FocusScope.of(context)
+                                    .requestFocus(focusAccName);
+                              },
+                              validator: (value) {
+                                //Check if phone is available
+                                if (value.isEmpty) {
+                                  return 'Required';
+                                }
+                                return null;
+                              },
+                              focusNode: focusSwiftCode,
+                              textInputAction: TextInputAction.next,
+                              onSaved: _handleSubmittedBankSwift,
+                              decoration: InputDecoration(
+                                  enabledBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  focusedBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  errorBorder: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.red)),
+                                  border: OutlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.black)),
+                                  labelText: 'Swift Code',
+                                  labelStyle: hintStyleBlack)),
+                        )
+                      ],
                     ),
                     SizedBox(
-                      width: 10,
+                      height: 10,
                     ),
-                    Expanded(
-                      child: TextFormField(
-                          autofocus: false,
-                          keyboardType: TextInputType.text,
-                          style: GoogleFonts.muli(
-                              textStyle: TextStyle(
-                                color: Colors.black,
-                              )),
-                          onFieldSubmitted: (value) {
-                            FocusScope.of(context).requestFocus(focusAccName);
-                          },
-                          validator: (value) {
-                            //Check if phone is available
-                            if (value.isEmpty) {
-                              return 'Required';
-                            }
-                            return null;
-                          },
-                          focusNode: focusSwiftCode,
-                          textInputAction: TextInputAction.next,
-                          onSaved: _handleSubmittedBankSwift,
-                          decoration: InputDecoration(
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.black)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.black)),
-                              errorBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.red)),
-                              border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.black)),
-                              labelText: 'Swift Code',
-                              labelStyle: hintStyleBlack)),
-                    )
+                    TextFormField(
+                        autofocus: false,
+                        keyboardType: TextInputType.text,
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                          color: Colors.black,
+                        )),
+                        onFieldSubmitted: (value) {
+                          FocusScope.of(context).requestFocus(focusAccNumber);
+                        },
+                        validator: (value) {
+                          //Check if phone is available
+                          if (value.isEmpty) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                        focusNode: focusAccName,
+                        textInputAction: TextInputAction.next,
+                        onSaved: _handleSubmittedBankAccName,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red)),
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            labelText: 'Account Name',
+                            labelStyle: hintStyleBlack)),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    TextFormField(
+                        autofocus: false,
+                        keyboardType: TextInputType.number,
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                          color: Colors.black,
+                        )),
+                        onFieldSubmitted: (value) {
+                          FocusScope.of(context).unfocus();
+                        },
+                        validator: (value) {
+                          //Check if phone is available
+                          if (value.isEmpty) {
+                            return 'Required';
+                          }
+                          return null;
+                        },
+                        focusNode: focusAccNumber,
+                        textInputAction: TextInputAction.done,
+                        onSaved: _handleSubmittedBankAccNum,
+                        decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            errorBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red)),
+                            border: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black)),
+                            labelText: 'Account Number',
+                            labelStyle: hintStyleBlack))
                   ],
                 ),
-                SizedBox(
-                  height: 10,
-                ),
-                TextFormField(
-                    autofocus: false,
-                    keyboardType: TextInputType.text,
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                          color: Colors.black,
-                        )),
-                    onFieldSubmitted: (value) {
-                      FocusScope.of(context).requestFocus(focusAccNumber);
-                    },
-                    validator: (value) {
-                      //Check if phone is available
-                      if (value.isEmpty) {
-                        return 'Required';
-                      }
-                      return null;
-                    },
-                    focusNode: focusAccName,
-                    textInputAction: TextInputAction.next,
-                    onSaved: _handleSubmittedBankAccName,
-                    decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        errorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.red)),
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        labelText: 'Account Name',
-                        labelStyle: hintStyleBlack)),
-                SizedBox(
-                  height: 10,
-                ),
-                TextFormField(
-                    autofocus: false,
-                    keyboardType: TextInputType.number,
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                          color: Colors.black,
-                        )),
-                    onFieldSubmitted: (value) {
-                      FocusScope.of(context).unfocus();
-                    },
-                    validator: (value) {
-                      //Check if phone is available
-                      if (value.isEmpty) {
-                        return 'Required';
-                      }
-                      return null;
-                    },
-                    focusNode: focusAccNumber,
-                    textInputAction: TextInputAction.done,
-                    onSaved: _handleSubmittedBankAccNum,
-                    decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        errorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.red)),
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        labelText: 'Account Number',
-                        labelStyle: hintStyleBlack))
-              ],
-            ),
-          )),
+              )),
           actions: [
             FlatButton(
                 onPressed: _setBank,
@@ -1203,7 +1212,9 @@ class _SettingsState extends State<Settings> {
                     height: 5,
                   ),
                   Text(
-                    '${_defaultTime.format(context)}',
+                    _defaultTime != null
+                        ? '${_defaultTime.format(context)}'
+                        : '',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.white,
@@ -1232,12 +1243,12 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-
   Future _UpdateUserPrefs(UserPref model) async {
     //Add request to Loans Collections
     final String _collectionUpper = "users";
     final String _collectionLower = "preferences";
-    await _firestore.collection(_collectionUpper)
+    await _firestore
+        .collection(_collectionUpper)
         .document(uid)
         .collection(_collectionLower)
         .document("my_prefs")
@@ -1248,25 +1259,22 @@ class _SettingsState extends State<Settings> {
     //Check if there is a preferred payment method
     if (_prefferedPaymentMethod == null) {
       _promptUser('Please select your preferred payment method');
-    }
-    else if (_prefferedWithdrawalMethod == null) {
+    } else if (_prefferedWithdrawalMethod == null) {
       _promptUser('Please select your preferred withdrawal method');
-    }
-    else {
+    } else {
       //Create a new model
       UserPref userPref = new UserPref(
-        //bankDetails: _bankDetals,
-        phone: _phone,
-        isReminderDaily: _isReminderDaily,
-        isReminderWeekly: _isReminderWeekly,
-        loanLimit: _loanLimitRate,
-        passiveSavingsRate: _passiveRate,
-        //paymentCard: _paymentCard,
-        preferredPaymentMethod: _prefferedPaymentMethod,
-        preferredWithdrawalMethod: _prefferedWithdrawalMethod,
-        reminderTime: _defaultTime.toString(),
-        weeklyDays: _days
-      );
+          bankDetails: _bankDetals.toJson(),
+          phone: _phone,
+          isReminderDaily: _isReminderDaily,
+          isReminderWeekly: _isReminderWeekly,
+          loanLimit: _loanLimitRate,
+          passiveSavingsRate: _passiveRate,
+          paymentCard: _paymentCard.toJson(),
+          preferredPaymentMethod: _prefferedPaymentMethod,
+          preferredWithdrawalMethod: _prefferedWithdrawalMethod,
+          reminderTime: _defaultTime,
+          weeklyDays: _days);
 
       //Show a dialog
       _showUserProgress();
@@ -1285,10 +1293,8 @@ class _SettingsState extends State<Settings> {
         print('Update Prefs Error: $error');
         _promptUser(error);
       });
-
     }
   }
-
 
   Future _promptUser(String message) {
     return showCupertinoModalPopup(
@@ -1310,7 +1316,7 @@ class _SettingsState extends State<Settings> {
         builder: (BuildContext context) {
           return AlertDialog(
             shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1341,7 +1347,7 @@ class _SettingsState extends State<Settings> {
         builder: (BuildContext context) {
           return AlertDialog(
             shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1418,7 +1424,6 @@ class _SettingsState extends State<Settings> {
   void initState() {
     _paymentCard.type = CardType.Invalid;
     numberController.addListener(_getCardTypeFrmNumber);
-    _defaultTime = TimeOfDay(hour: 8, minute: 00);
     super.initState();
   }
 

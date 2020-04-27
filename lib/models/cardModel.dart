@@ -12,16 +12,22 @@ class PaymentCard {
   String address;
 
   PaymentCard(
-      {this.type, this.number, this.name, this.month, this.year, this.cvv, this.address});
+      {this.type,
+      this.number,
+      this.name,
+      this.month,
+      this.year,
+      this.cvv,
+      this.address});
 
   Map<String, dynamic> toJson() => {
-    "cardNumber": number,
-    "cardName": name,
-    "cardMonth": month,
-    "cardYear": year,
-    "cardCvv": cvv,
-    "cardAddress": address
-  };
+        "cardNumber": number,
+        "cardName": name,
+        "cardMonth": month,
+        "cardYear": year,
+        "cardCvv": cvv,
+        "cardAddress": address
+      };
 }
 
 class CardUtils {
@@ -132,6 +138,9 @@ class CardUtils {
         break;
       case CardType.Visa:
         img = 'visa.png';
+        break;
+      case CardType.Invalid:
+        // TODO: Handle this case.
         break;
     }
 

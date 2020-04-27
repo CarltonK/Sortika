@@ -1,5 +1,3 @@
-import 'package:wealth/models/bankModel.dart';
-import 'package:wealth/models/cardModel.dart';
 import 'package:wealth/models/days.dart';
 
 class UserPref {
@@ -10,19 +8,18 @@ class UserPref {
   bool isReminderDaily;
   bool isReminderWeekly;
   List<Days> weeklyDays;
-  String reminderTime;
+  var reminderTime;
   //Payments
   String preferredPaymentMethod;
-  PaymentCard paymentCard;
+  var paymentCard;
   //Withdrawal
   String preferredWithdrawalMethod;
-  BankModel bankDetails;
-
+  var bankDetails;
 
   UserPref(
       {this.passiveSavingsRate,
       this.loanLimit,
-        this.phone,
+      this.phone,
       this.isReminderDaily,
       this.isReminderWeekly,
       this.weeklyDays,

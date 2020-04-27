@@ -247,6 +247,30 @@ class _MyGroupsState extends State<MyGroups> {
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasData) {
+                if (snapshot.data.documents.length == 0) {
+                  return Center(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.sentiment_neutral,
+                        size: 100,
+                        color: Colors.red,
+                      ),
+                      Text(
+                        'You are not a member of any group(s)',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 16)),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                    ],
+                  ));
+                }
                 return ListView(
                   children: snapshot.data.documents
                       .map((map) => _singleGroup(map))

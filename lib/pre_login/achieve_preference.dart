@@ -1,6 +1,11 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/borrow_page.dart';
 import 'package:wealth/widgets/group_savings.dart';
 import 'package:wealth/widgets/investment_goal.dart';
@@ -25,6 +30,8 @@ class _AchievePreferenceState extends State<AchievePreference> {
 
   //UID Placeholder
   static String uid;
+
+  Firestore _firestore = Firestore.instance;
 
   TextStyle _subtitleStyle() {
     return GoogleFonts.muli(
@@ -160,7 +167,6 @@ class _AchievePreferenceState extends State<AchievePreference> {
                   color = Colors.purple;
                 }
               });
-              //print(goal);
             },
           ),
         )
@@ -198,7 +204,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
             ),
             message: Icon(
               Icons.warning,
-              size: 35,
+              size: 50,
               color: Colors.red,
             ),
             cancelButton: CupertinoActionSheetAction(
@@ -209,6 +215,44 @@ class _AchievePreferenceState extends State<AchievePreference> {
                       textStyle: TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.red)),
                 )),
+          );
+        });
+  }
+
+  Future<User> _userSkips() async {
+    //Retrieve USER DOC
+    DocumentSnapshot userDoc =
+        await _firestore.collection("users").document(uid).get();
+    User user = User.fromJson(userDoc.data);
+    return user;
+  }
+
+  Future _showUserProgress() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  'Logging you in for the first time...',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                SpinKitDualRing(
+                  color: Colors.greenAccent[700],
+                  size: 100,
+                )
+              ],
+            ),
           );
         });
   }
@@ -237,9 +281,13 @@ class _AchievePreferenceState extends State<AchievePreference> {
                     child: FlatButton(
                         onPressed: () {
                           // print('I want to skip and go home page');
+                          //Show a dialog first
+                          _showUserProgress();
                           //Takes you directly to home page
-                          Navigator.of(context)
-                              .popAndPushNamed('/home', arguments: uid);
+                          Timer(Duration(seconds: 3), () {
+                            _userSkips().then((value) => Navigator.of(context)
+                                .popAndPushNamed('/home', arguments: value));
+                          });
                         },
                         child: Text(
                           'Skip',
@@ -327,9 +375,16 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                     //Page Two
                                     //Peer to Peer request, then create a loan fund goal
                                     if (_currentPage == 1) {
-                                      // _pageController.dispose();
-                                      // Navigator.of(context)
-                                      //     .popAndPushNamed('/home');
+                                      //Show a dialog first
+                                      _showUserProgress();
+                                      //Fetch user data
+                                      Timer(Duration(seconds: 3), () {
+                                        _userSkips().then((value) {
+                                          Navigator.of(context).popAndPushNamed(
+                                              '/home',
+                                              arguments: value);
+                                        });
+                                      });
                                     }
                                   },
                                   child: Padding(

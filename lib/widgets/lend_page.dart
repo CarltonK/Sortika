@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -158,6 +159,7 @@ class _LendPageState extends State<LendPage> {
                   'Your lending application has been received',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -226,11 +228,6 @@ class _LendPageState extends State<LendPage> {
 
         //Show a success message for two seconds
         Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
-
-        //Pop the dialog then redirect to home page
-        Timer(Duration(milliseconds: 4500), () {
-          Navigator.of(context).popAndPushNamed('/home', arguments: widget.uid);
-        });
       }).catchError((error) {
         _promptUser(error);
       });
@@ -268,7 +265,7 @@ class _LendPageState extends State<LendPage> {
           child: Slider.adaptive(
               value: targetAmount,
               inactiveColor: Colors.white,
-              divisions: 10,
+              divisions: 20,
               min: 0,
               max: 100000,
               label: targetAmount.toInt().toString(),
@@ -301,42 +298,12 @@ class _LendPageState extends State<LendPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'You are creating the loan fund goal that allows you to lend to Sortika customers against their investments at your agreed interest rate.',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(color: Colors.white, fontSize: 16)),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Divider(
-                height: 2,
-                thickness: 2,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(
               '* You could also borrow from your fund at your own defined rate *',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold)),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Divider(
-                height: 2,
-                thickness: 2,
-                color: Colors.white,
-              ),
             ),
             SizedBox(
               height: 30,

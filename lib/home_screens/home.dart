@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,13 +8,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:wealth/api/auth.dart';
-import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
 import 'package:wealth/home_screens/sortikaLottery.dart';
 import 'package:wealth/home_screens/sortikaSavings.dart';
 import 'package:wealth/models/goalmodel.dart';
+import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/group_savings_colored.dart';
 import 'package:wealth/widgets/investment_colored.dart';
@@ -202,7 +201,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   SizedBox(
                     height: 10,
                   ),
-                  _goalDisplay(uid),
+                  _goalDisplay(),
                   SizedBox(
                     height: 20,
                   ),
@@ -638,7 +637,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   // }
 
   //Display Goals in horizontal scroll view
-  Widget _goalDisplay(String uid) {
+  Widget _goalDisplay() {
     return Container(
       height: 200,
       child: StreamBuilder<QuerySnapshot>(
@@ -650,6 +649,27 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasData) {
+            if (snapshot.data.documents.length == 0) {
+              return Center(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.sentiment_neutral,
+                    size: 100,
+                    color: Colors.red,
+                  ),
+                  Text(
+                    'You have not defined any goals',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 16)),
+                  ),
+                ],
+              ));
+            }
             return PageView(
               controller: PageController(viewportFraction: 0.8),
               scrollDirection: Axis.horizontal,
@@ -1061,11 +1081,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     var formatter = new DateFormat('d MMM y');
     String date = formatter.format(dateRetrieved.toDate());
 
-    double amount = model.loanAmountTaken;
-    double interest = model.loanInterest;
-    double totalAmount = (amount * (100 + interest)) / 100;
-
-    loanData["totalAmount"] = totalAmount;
+//    double amount = model.loanAmountTaken;
+//    double interest = model.loanInterest;
+//    double totalAmount = (amount * (100 + interest)) / 100;
+//
+//    loanData["totalAmount"] = totalAmount;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -1089,7 +1109,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       BorderRadius.only(bottomRight: Radius.circular(20)),
                   color: Colors.white),
               child: Text(
-                model.loanLender == uid ? 'Self Loan' : 'Loan Fund',
+                model.loanLender == uid ? 'Self Loan' : '${model.loanInvitees}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -1150,11 +1170,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         child: Slider(
                             value: model.loanAmountRepaid,
                             min: 0,
-                            max: double.parse(totalAmount.round().toString()),
+                            max: model.totalAmountToPay,
                             onChanged: (value) {}),
                       ),
                       Text(
-                        '${totalAmount.round().toString()}',
+                        '${model.totalAmountToPay.toInt().toString()}',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.white,
@@ -1372,7 +1392,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       BorderRadius.only(bottomRight: Radius.circular(20)),
                   color: Colors.white),
               child: Text(
-                '${model.loanBorrower}',
+                model.loanBorrower == null
+                    ? 'Pending'
+                    : '${model.loanBorrower}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -1411,7 +1433,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       style: GoogleFonts.muli(
                           textStyle: TextStyle(color: Colors.white))),
                   TextSpan(
-                      text: '${model.loanAmountRepaid.toInt().toString()}',
+                      text: model.loanAmountRepaid == null
+                          ? 'Pending'
+                          : '${model.loanAmountRepaid.toInt().toString()}',
                       style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.white,
@@ -1432,7 +1456,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       Expanded(
                         child: Slider(
-                            value: model.loanAmountRepaid,
+                            value: model.loanAmountRepaid == null
+                                ? 0
+                                : model.loanAmountRepaid,
                             min: 0,
                             max: model.loanAmountTaken,
                             onChanged: (value) {}),
@@ -1505,7 +1531,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    '${model.loanInterest.toString()}',
+                    model.loanInterest == null
+                        ? 'Pending'
+                        : '${model.loanInterest.toString()}',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -2281,7 +2309,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 //Implement Firebase Dynamic Links Here
                 //Else use share package
                 try {
-                  Share.share('Check out our website https://www.sortika.com');
+                  Share.share(
+                      'Check out our app https://appdistribution.firebase.dev/i/e1p93hk6');
                 } catch (error) {
                   print('SHARE ERROR: $error');
                 }

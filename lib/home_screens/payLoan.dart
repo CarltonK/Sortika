@@ -17,7 +17,7 @@ class _PayLoanState extends State<PayLoan> {
   Map<String, dynamic> loanData;
 
   Widget _balanceText() {
-    double totalAmount = loanData["totalAmount"];
+    double totalAmount = loanData["totalAmountToPay"];
 
     return Container(
       child: Column(
