@@ -13,6 +13,7 @@ import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
 import 'package:wealth/home_screens/sortikaLottery.dart';
 import 'package:wealth/home_screens/sortikaSavings.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/models/usermodel.dart';
@@ -146,89 +147,87 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             padding: EdgeInsets.only(
               top: 25,
             ),
-            child: SingleChildScrollView(
-              physics: ClampingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.subject),
-                        onPressed: () {
-                          setState(() {
-                            if (isCollapsed) {
-                              _controller.forward();
-                            } else {
-                              _controller.reverse();
-                            }
-                            isCollapsed = !isCollapsed;
-                          });
-                        },
-                      ),
-                      Text(
-                        'Home',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 24)),
-                      ),
-                      IconButton(
-                          icon: Icon(Icons.settings),
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed('/settings', arguments: uid))
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  _introText(),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Here are your goals',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.subject),
+                      onPressed: () {
+                        setState(() {
+                          if (isCollapsed) {
+                            _controller.forward();
+                          } else {
+                            _controller.reverse();
+                          }
+                          isCollapsed = !isCollapsed;
+                        });
+                      },
+                    ),
+                    Text(
+                      'Home',
                       style: GoogleFonts.muli(
                           textStyle: TextStyle(
-                              color: Colors.black,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold)),
+                              fontWeight: FontWeight.w600, fontSize: 24)),
                     ),
+                    IconButton(
+                        icon: Icon(Icons.settings),
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed('/settings', arguments: uid))
+                  ],
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                _introText(),
+                SizedBox(
+                  height: 20,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Here are your goals',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold)),
                   ),
-                  SizedBox(
-                    height: 10,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                _goalDisplay(),
+                SizedBox(
+                  height: 20,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        'Activity',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.filter_list),
+                        onPressed: () {
+                          _filterActivity();
+                        },
+                      )
+                    ],
                   ),
-                  _goalDisplay(),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          'Activity',
-                          style: GoogleFonts.muli(
-                              textStyle: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.filter_list),
-                          onPressed: () {
-                            _filterActivity();
-                          },
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
+                ),
+                _activityDisplay(),
+              ],
             ),
           ),
         ),
@@ -299,9 +298,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   //Savings Target Breakdown
   Widget _targetSavings() {
+    double dailyTarget = userData.dailyTarget;
+    double weeklyTarget = userData.weeklyTarget;
+    double monthlyTarget = userData.monthlyTarget;
+
     return Row(
       mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
           child: Container(
@@ -336,7 +338,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 SizedBox(
                   height: 5,
                 ),
-                Text('15',
+                Text('${dailyTarget.toStringAsFixed(2)}',
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           color: Colors.white,
@@ -380,7 +382,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 SizedBox(
                   height: 5,
                 ),
-                Text('100',
+                Text('${weeklyTarget.toStringAsFixed(2)}',
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           color: Colors.white,
@@ -424,7 +426,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 SizedBox(
                   height: 5,
                 ),
-                Text('434',
+                Text('${monthlyTarget.toStringAsFixed(2)}',
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           color: Colors.white,
@@ -578,7 +580,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    '${model.goalAllocation.toInt().toString()} %',
+                    '${model.goalAllocation.round().toString()} %',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -635,6 +637,67 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   //   }
   //   return null;
   // }
+
+  Widget _singleAct(DocumentSnapshot doc) {
+    ActivityModel model = ActivityModel.fromJson(doc.data);
+
+    //Date Parsing and Formatting
+    Timestamp dateRetrieved = model.activityDate;
+    var formatter = new DateFormat('h:mm a, d MMM y');
+    String date = formatter.format(dateRetrieved.toDate());
+
+    DateTime now = DateTime.now();
+    DateTime retrieved = dateRetrieved.toDate();
+    int timeDiff = now.compareTo(retrieved);
+    String elapsed;
+    if (timeDiff <= 1) {
+      elapsed = 'Today';
+    }
+    else {
+      elapsed = '$timeDiff days ago';
+    }
+
+    return ListTile(
+      title: Text(
+        model.activity,
+        style: GoogleFonts.muli(textStyle: TextStyle()),
+      ),
+      leading: Icon(Icons.flag, color: Colors.green,),
+      subtitle: Text(
+        '$date'
+      ),
+      trailing: Text(
+        elapsed
+      )
+    );
+  }
+
+  Widget _activityDisplay() {
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10),
+        child: StreamBuilder(
+            stream: _firestore
+                .collection("users")
+                .document(uid)
+                .collection("activity")
+                .orderBy("activityDate",descending: true)
+                .snapshots(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasData) {
+                    return ListView(
+                      children: snapshot.data.documents.map((map) => _singleAct(map)).toList(),
+                    );
+                  }
+              return SpinKitDoubleBounce(
+                color: Colors.greenAccent[700],
+                size: 100,
+              );
+            }),
+      ),
+    );
+  }
 
   //Display Goals in horizontal scroll view
   Widget _goalDisplay() {

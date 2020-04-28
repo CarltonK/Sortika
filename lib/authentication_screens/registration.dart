@@ -407,6 +407,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         goalCategory: 'Loan Fund',
         goalAllocation: 100,
         goalAmount: 5200,
+        uid: uid,
         goalAmountSaved: 0,
         goalCreateDate: Timestamp.fromDate(rightNow),
         goalEndDate: Timestamp.fromDate(oneYearFromNow),

@@ -30,6 +30,7 @@ class GroupModel extends GoalModel {
       Timestamp goalEndDate,
       bool isGoalDeletable,
       double goalAllocation,
+      String uid,
       this.groupObjective,
       this.groupAdmin,
       this.members,
@@ -41,6 +42,7 @@ class GroupModel extends GoalModel {
       : super(
             goalCategory: goalCategory,
             goalName: goalName,
+            uid: uid,
             goalAmount: goalAmount,
             goalCreateDate: goalCreateDate,
             goalEndDate: goalEndDate,
@@ -58,6 +60,7 @@ class GroupModel extends GoalModel {
         goalCreateDate: model.goalCreateDate,
         goalEndDate: model.goalEndDate,
         isGoalDeletable: model.isGoalDeletable,
+        uid: model.uid,
         groupObjective: json["groupObjective"],
         groupAdmin: json["groupAdmin"],
         members: json["members"],
@@ -70,6 +73,7 @@ class GroupModel extends GoalModel {
   }
   Map<String, dynamic> toJson() => {
         "goalCategory": goalCategory,
+        "uid": uid,
         "goalName": goalName,
         "goalAmount": goalAmount,
         "goalAmountSaved": goalAmountSaved,

@@ -598,6 +598,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
             isGroupRegistered: _isRegistered,
             shouldMemberSeeSavings: _canSeeSavings,
             goalAmount: _amount,
+            uid: widget.uid,
             targetAmountPerp: _amountpp);
 
         //Create an activity

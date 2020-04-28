@@ -591,6 +591,7 @@ class _GroupSavingsState extends State<GroupSavings> {
             goalAllocation: 0,
             groupMembersTargeted: members.toInt(),
             groupMembers: 1,
+            uid: widget.uid,
             groupObjective: _objective,
             isGoalDeletable: true,
             isGroupRegistered: _isRegistered,

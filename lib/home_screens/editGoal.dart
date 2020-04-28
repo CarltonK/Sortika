@@ -73,9 +73,6 @@ class _EditGoalState extends State<EditGoal> {
                         .collection(_collectionLower)
                         .document(dId)
                         .delete();
-
-                    //Pop the page
-                    Navigator.of(context).pop();
                   },
                   child: Text(
                     'YES',

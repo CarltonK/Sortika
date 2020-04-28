@@ -91,7 +91,7 @@ export async function createUser (request: Request, response: Response) {
             })
         }
 
-        if (user.phone.length != 10) {
+        if (user.phone.length !== 10) {
             return response.status(400).send({
                 status: false,
                 message: 'You phone number must be 10 digits'
@@ -112,7 +112,7 @@ export async function createUser (request: Request, response: Response) {
             })
         }
 
-        if (user.confirmPass != user.password) {
+        if (user.confirmPass !== user.password) {
             return response.status(400).send({
                 status: false,
                 message: "Passwords do not match"

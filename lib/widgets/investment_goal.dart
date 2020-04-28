@@ -378,6 +378,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
           goalEndDate: Timestamp.fromDate(_date),
           goalCategory: 'Investment',
           goalClass: classInvestment,
+          uid: widget.uid,
           goalType: goalInvestment,
           isGoalDeletable: true,
           goalAmountSaved: 0,

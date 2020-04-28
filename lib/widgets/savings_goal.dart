@@ -268,6 +268,7 @@ class _SavingsGoalState extends State<SavingsGoal> {
           goalClass: classSavings,
           goalName: goalName,
           goalType: typeSavings,
+          uid: widget.uid,
           isGoalDeletable: true,
           goalAmountSaved: 0,
           goalAllocation: 0);

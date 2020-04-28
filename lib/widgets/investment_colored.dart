@@ -379,6 +379,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
           goalCategory: 'Investment',
           goalClass: classInvestment,
           goalType: goalInvestment,
+          uid: widget.uid,
           isGoalDeletable: true,
           goalAmountSaved: 0,
           goalAllocation: 0);
