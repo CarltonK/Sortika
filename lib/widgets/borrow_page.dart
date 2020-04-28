@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/services/permissions.dart';
 import 'package:wealth/utilities/styles.dart';
@@ -43,8 +45,10 @@ class _BorrowPageState extends State<BorrowPage> {
   String _nameLender;
 
   Firestore _firestore = Firestore.instance;
+  AuthService authService = new AuthService();
 
   final _formPhone = GlobalKey<FormState>();
+
   String _phone;
   void _handleSubmittedPhone(String value) {
     _phone = value.trim();
@@ -485,6 +489,7 @@ class _BorrowPageState extends State<BorrowPage> {
                   'Your request will be sent to $_nameLender',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -516,6 +521,7 @@ class _BorrowPageState extends State<BorrowPage> {
                   'Your request will be sent to everyone on Sortika who can fulfill your request',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -647,6 +653,7 @@ class _BorrowPageState extends State<BorrowPage> {
                   'Processing your request...',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
                 ),
                 SizedBox(
                   height: 10,
@@ -667,7 +674,7 @@ class _BorrowPageState extends State<BorrowPage> {
     await _firestore.collection(_collection).document().setData(model.toJson());
   }
 
-  void _applyBtnPressed() {
+  void _applyBtnPressed() async {
     //Check if loan type is selected
     if (typeLoan == null) {
       _promptUser("Please select the type of loan you want");
@@ -688,10 +695,17 @@ class _BorrowPageState extends State<BorrowPage> {
           loanIC: interestCoverLoan,
           loanTakenDate: Timestamp.fromDate(rightNow),
           loanEndDate: Timestamp.fromDate(_date),
+          loanStatus: false,
           loanInvitees: takeLoanFrom,
           loanLender: lender,
           totalAmountToPay: (amountLoan * (1 + (interestLoan / 100))),
           loanBorrower: widget.uid);
+
+      //Create an activity
+      ActivityModel borrowAct = new ActivityModel(
+          activity: 'You sent a borrow request',
+          activityDate: Timestamp.fromDate(rightNow));
+      await authService.postActivity(widget.uid, borrowAct);
 
       //Show a dialog
       _showUserProgress();
@@ -699,13 +713,13 @@ class _BorrowPageState extends State<BorrowPage> {
       _applyForALoan(loanModel).whenComplete(() {
         //Pop that dialog
         //Show a success message for two seconds
-        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => _promptUserSuccess());
+        Timer(Duration(seconds: 4), () => _promptUserSuccess());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 5), () => Navigator.of(context).pop());
       }).catchError((error) {
         _promptUser(error);
       });

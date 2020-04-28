@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -46,6 +48,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
   String _dateYear = oneMonthFromNow.year.toString();
 
   Firestore _firestore = Firestore.instance;
+  AuthService authService = new AuthService();
 
   //List
 
@@ -569,7 +572,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
     await _firestore.collection("groups").document().setData(model.toJson());
   }
 
-  void createBtnPressed() {
+  void createBtnPressed() async {
     if (_date == null) {
       _promptUser("Please select the target end date");
     } else {
@@ -597,25 +600,25 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
             goalAmount: _amount,
             targetAmountPerp: _amountpp);
 
+        //Create an activity
+        ActivityModel groupSavingsAct = new ActivityModel(
+            activity: 'You created a group called $_name',
+            activityDate: Timestamp.fromDate(rightNow));
+        await authService.postActivity(widget.uid, groupSavingsAct);
+
         //Show a dialog
         _showUserProgress();
 
         _createGroupGoal(model).whenComplete(() {
           //Pop that dialog
           //Show a success message for two seconds
-          Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
+          Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
 
           //Show a success message for two seconds
-          Timer(Duration(seconds: 3), () => _promptUserSuccess());
+          Timer(Duration(seconds: 4), () => _promptUserSuccess());
 
           //Show a success message for two seconds
-          Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
-
-          // //Pop the dialog then redirect to home page
-          // Timer(Duration(milliseconds: 4500), () {
-          //   Navigator.of(context)
-          //       .popAndPushNamed('/home', arguments: widget.uid);
-          // });
+          Timer(Duration(seconds: 5), () => Navigator.of(context).pop());
         }).catchError((error) {
           _promptUser(error);
         });

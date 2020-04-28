@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/utilities/styles.dart';
@@ -410,6 +411,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         goalCreateDate: Timestamp.fromDate(rightNow),
         goalEndDate: Timestamp.fromDate(oneYearFromNow),
         isGoalDeletable: false);
+
+    //Create an activity
+    ActivityModel userRegActivity = new ActivityModel(
+        activity: 'A Loan Fund Goal was autocreated for you',
+        activityDate: Timestamp.fromDate(rightNow));
+    await authService.postActivity(uid, userRegActivity);
 
     //Save goal to goals subcollection
     document

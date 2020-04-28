@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -37,6 +39,7 @@ class _SavingsColoredState extends State<SavingsColored> {
   String _dateYear = oneMonthFromNow.year.toString();
 
   Firestore _firestore = Firestore.instance;
+  AuthService authService = new AuthService();
 
   //List
 
@@ -242,7 +245,7 @@ class _SavingsColoredState extends State<SavingsColored> {
         .setData(model.toJson());
   }
 
-  void _setBtnPressed() {
+  void _setBtnPressed() async {
     //Check if goal class exists
     if (classSavings == null) {
       _promptUser("You haven't told us what you're saving towards");
@@ -267,19 +270,25 @@ class _SavingsColoredState extends State<SavingsColored> {
           goalAmountSaved: 0,
           goalAllocation: 0);
 
+      //Create an activity
+      ActivityModel investmentAct = new ActivityModel(
+          activity: 'You created a new Savings Goal in the $classSavings class',
+          activityDate: Timestamp.fromDate(rightNow));
+      await authService.postActivity(widget.uid, investmentAct);
+
       //Show a dialog
       _showUserProgress();
 
       _createSavingsGoal(goalModel).whenComplete(() {
         //Pop that dialog
         //Show a success message for two seconds
-        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => _promptUserSuccess());
+        Timer(Duration(seconds: 4), () => _promptUserSuccess());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 5), () => Navigator.of(context).pop());
 
         // //Pop the dialog then redirect to home page
         // Timer(Duration(milliseconds: 4500), () {

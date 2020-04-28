@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -33,6 +35,7 @@ class _LendPageState extends State<LendPage> {
   String _dateYear = oneMonthFromNow.year.toString();
 
   Firestore _firestore = Firestore.instance;
+  AuthService authService = new AuthService();
 
   //List
 
@@ -203,7 +206,7 @@ class _LendPageState extends State<LendPage> {
     await _firestore.collection(_collection).document().setData(model.toJson());
   }
 
-  void _lendBtnPressed() {
+  void _lendBtnPressed() async {
     if (targetAmount == 0) {
       _promptUser("Please select the amount you want to lend");
     } else if (_date == null) {
@@ -215,19 +218,26 @@ class _LendPageState extends State<LendPage> {
         loanAmountTaken: targetAmount,
       );
 
+      //Create an activity
+      ActivityModel lendingAct = new ActivityModel(
+          activity:
+              'You have put up ${targetAmount.toInt().toString()} for lending to prospective borrowers',
+          activityDate: Timestamp.fromDate(rightNow));
+      await authService.postActivity(widget.uid, lendingAct);
+
       //Show a dialog
       _showUserProgress();
 
       _lendLoan(loanModel).whenComplete(() {
         //Pop that dialog
         //Show a success message for two seconds
-        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => _promptUserSuccess());
+        Timer(Duration(seconds: 4), () => _promptUserSuccess());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 5), () => Navigator.of(context).pop());
       }).catchError((error) {
         _promptUser(error);
       });

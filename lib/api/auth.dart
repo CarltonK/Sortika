@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/usermodel.dart';
 
 class AuthService {
@@ -60,12 +61,10 @@ class AuthService {
         response = 'Your password is weak. Please choose another';
         //print('Negative Response: $response');
       }
-
       if (e.toString().contains("ERROR_INVALID_EMAIL")) {
         response = 'The email format entered is invalid';
         //print('Negative Response: $response');
       }
-
       if (e.toString().contains("ERROR_EMAIL_ALREADY_IN_USE")) {
         response = 'An account with the same email exists';
         //print('Negative Response: $response');
@@ -79,12 +78,16 @@ class AuthService {
     //Remove password from user class and replace with 'XXXXX'
     int passLength = user.password.length;
     user.password = 'X' * passLength;
-
     //Set uid to user model
     user.uid = uid;
     try {
       await _firestore.collection("users").document(uid).setData(user.toJson());
       print("The user was successfully saved");
+      //Create an activity model
+      ActivityModel signUpAct = new ActivityModel(
+          activity: 'Welcome to Sortika',
+          activityDate: Timestamp.fromDate(DateTime.now()));
+      await postActivity(uid, signUpAct);
     } catch (e) {
       print("The user was not successfully saved");
       print("This is the error ${e.toString()}");
@@ -141,7 +144,6 @@ class AuthService {
   */
   Future resetPass(User user) async {
     var response;
-
     try {
       await _auth.sendPasswordResetEmail(email: user.email);
       response = true;
@@ -157,5 +159,20 @@ class AuthService {
       }
       return response;
     }
+  }
+
+  /*
+  USER ACTIVITY
+  */
+  Future postActivity(String uid, ActivityModel activity) async {
+    //Activities will be posted in user subcollection
+    final String collectionUpper = "users";
+    final String collectionLower = "activity";
+    await _firestore
+        .collection(collectionUpper)
+        .document(uid)
+        .collection(collectionLower)
+        .document()
+        .setData(activity.toJson());
   }
 }
