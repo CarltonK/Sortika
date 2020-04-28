@@ -43,8 +43,4 @@ app.*.map.json
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
 #Python
-python/Lib/**
-python/.ipynb_checkpoints
-python/include
-python/Scripts/**
-python/pyvenv.cfg
+/python/
