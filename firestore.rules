@@ -13,9 +13,18 @@ service cloud.firestore {
     
     //USERS Collection
     match /users/{user} {
-    	allow read, write: if isSignedInOwner(user);
+    	allow write: if isSignedInOwner(user);
+      allow read: if isUserAuthorised();
       //GOALS Subcollection
       match /goals/{goal} {
+      	allow read, write: if isSignedInOwner(user);
+      }
+      //Preferences Subcollection
+      match /preferences/{pref} {
+      	allow read, write: if isSignedInOwner(user);
+      }
+      //Activity subcollection
+      match /activity/{act} {
       	allow read, write: if isSignedInOwner(user);
       }
     }

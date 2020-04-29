@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class EditGoal extends StatefulWidget {
@@ -25,6 +30,7 @@ class _EditGoalState extends State<EditGoal> {
   String _dateYear = '2020';
 
   Firestore _firestore = Firestore.instance;
+  AuthService authService = new AuthService();
 
   //Month Names
   List<String> monthNames = [
@@ -42,6 +48,69 @@ class _EditGoalState extends State<EditGoal> {
     'Dec'
   ];
 
+  Future _showUserProgress() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  'Deleting your goal...',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                SpinKitDualRing(
+                  color: Colors.greenAccent[700],
+                  size: 100,
+                )
+              ],
+            ),
+          );
+        });
+  }
+
+  Future _promptUserSuccess() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.done,
+                  size: 50,
+                  color: Colors.green,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'Your goal has been deleted',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
   void _deleteGoal() {
     showCupertinoModalPopup(
         context: context,
@@ -58,7 +127,6 @@ class _EditGoalState extends State<EditGoal> {
                   onPressed: () async {
                     //Pop the dialog first
                     Navigator.of(context).pop();
-
                     //Delete goal in goals subcollection of user
                     final String _collectionUpper = "users";
                     final String _collectionLower = "goals";
@@ -73,6 +141,14 @@ class _EditGoalState extends State<EditGoal> {
                         .collection(_collectionLower)
                         .document(dId)
                         .delete();
+
+                    //Create an activity
+                    ActivityModel deleteAct = new ActivityModel(
+                        activity: 'You deleted a ${data["goalCategory"]} goal',
+                        activityDate: Timestamp.now());
+                    await authService.postActivity(uid, deleteAct);
+                    //Show a success message for two seconds
+                    Timer(Duration(seconds: 2), () => _promptUserSuccess());
                   },
                   child: Text(
                     'YES',

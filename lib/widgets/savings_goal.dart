@@ -259,6 +259,10 @@ class _SavingsGoalState extends State<SavingsGoal> {
       _promptUser("Please select an amount");
     } else if (_date == null) {
       _promptUser("You haven't selected the targeted completion date");
+    }
+    //Check if goal ends on the same day
+    else if (_date.difference(rightNow).inDays < 1) {
+      _promptUser('The goal end date is too soon');
     } else {
       GoalModel goalModel = new GoalModel(
           goalAmount: targetAmount,

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -51,6 +52,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Animation<Offset> _slideAnimation;
 
   final Firestore _firestore = Firestore.instance;
+  final FirebaseMessaging _fcm = FirebaseMessaging();
 
   //Saved amount
   double saved = 2000;
@@ -147,87 +149,91 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             padding: EdgeInsets.only(
               top: 25,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.subject),
-                      onPressed: () {
-                        setState(() {
-                          if (isCollapsed) {
-                            _controller.forward();
-                          } else {
-                            _controller.reverse();
-                          }
-                          isCollapsed = !isCollapsed;
-                        });
-                      },
-                    ),
-                    Text(
-                      'Home',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 24)),
-                    ),
-                    IconButton(
-                        icon: Icon(Icons.settings),
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed('/settings', arguments: uid))
-                  ],
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                _introText(),
-                SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Here are your goals',
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            color: Colors.black,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                _goalDisplay(),
-                SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.subject),
+                        onPressed: () {
+                          setState(() {
+                            if (isCollapsed) {
+                              _controller.forward();
+                            } else {
+                              _controller.reverse();
+                            }
+                            isCollapsed = !isCollapsed;
+                          });
+                        },
+                      ),
                       Text(
-                        'Activity',
+                        'Home',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold)),
+                                fontWeight: FontWeight.w600, fontSize: 24)),
                       ),
                       IconButton(
-                        icon: Icon(Icons.filter_list),
-                        onPressed: () {
-                          _filterActivity();
-                        },
-                      )
+                          icon: Icon(Icons.settings),
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed('/settings', arguments: uid))
                     ],
                   ),
-                ),
-                _activityDisplay(),
-              ],
+                  SizedBox(
+                    height: 10,
+                  ),
+                  _introText(),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'Here are your goals',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  _goalDisplay(),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text(
+                          'Activity',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.filter_list),
+                          onPressed: () {
+                            _filterActivity();
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                  _activityDisplay(),
+                ],
+              ),
             ),
           ),
         ),
@@ -245,15 +251,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
           ),
           actions: [
-            CupertinoActionSheetAction(
-              child: Text(
-                '24 Hrs',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.normal)),
-              ),
-              onPressed: () {},
-            ),
             CupertinoActionSheetAction(
               child: Text(
                 '7 Days',
@@ -641,19 +638,21 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget _singleAct(DocumentSnapshot doc) {
     ActivityModel model = ActivityModel.fromJson(doc.data);
 
-    //Date Parsing and Formatting
-    Timestamp dateRetrieved = model.activityDate;
-    var formatter = new DateFormat('h:mm a, d MMM y');
-    String date = formatter.format(dateRetrieved.toDate());
-
     DateTime now = DateTime.now();
+    Timestamp dateRetrieved = model.activityDate;
     DateTime retrieved = dateRetrieved.toDate();
     int timeDiff = now.compareTo(retrieved);
     String elapsed;
+
     if (timeDiff <= 1) {
-      elapsed = 'Today';
-    }
-    else {
+      int hours = now.difference(retrieved).inHours;
+      if (hours < 1) {
+        int minutes = now.difference(retrieved).inMinutes;
+        elapsed = '$minutes minutes ago';
+      } else {
+        elapsed = '$hours hours ago';
+      }
+    } else {
       elapsed = '$timeDiff days ago';
     }
 
@@ -662,18 +661,23 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         model.activity,
         style: GoogleFonts.muli(textStyle: TextStyle()),
       ),
-      leading: Icon(Icons.flag, color: Colors.green,),
-      subtitle: Text(
-        '$date'
+      leading: Icon(
+        Icons.flag,
+        color: Colors.green,
       ),
-      trailing: Text(
-        elapsed
-      )
+      subtitle: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Text(
+          '$elapsed',
+          style: GoogleFonts.muli(textStyle: TextStyle(fontSize: 12)),
+        ),
+      ),
     );
   }
 
   Widget _activityDisplay() {
-    return Expanded(
+    return Flexible(
+      fit: FlexFit.loose,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10),
         child: StreamBuilder(
@@ -681,15 +685,30 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 .collection("users")
                 .document(uid)
                 .collection("activity")
-                .orderBy("activityDate",descending: true)
+                .orderBy("activityDate", descending: true)
                 .snapshots(),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasData) {
-                    return ListView(
-                      children: snapshot.data.documents.map((map) => _singleAct(map)).toList(),
-                    );
-                  }
+              if (snapshot.hasData) {
+                if (snapshot.data.documents.length == 0) {
+                  return Center(
+                    child: Text(
+                      'You have not recorded any activity',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 16)),
+                    ),
+                  );
+                }
+                return LimitedBox(
+                  maxHeight: MediaQuery.of(context).size.height * 0.5,
+                  child: ListView(
+                    children: snapshot.data.documents
+                        .map((map) => _singleAct(map))
+                        .toList(),
+                  ),
+                );
+              }
               return SpinKitDoubleBounce(
                 color: Colors.greenAccent[700],
                 size: 100,
@@ -991,6 +1010,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     builder: (BuildContext context,
                         AsyncSnapshot<QuerySnapshot> snapshot) {
                       if (snapshot.hasData) {
+                        if (snapshot.data.documents.length == 0) {
+                          Center(
+                            child: Text(
+                              'You have not received any loan requests',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(fontSize: 16)),
+                            ),
+                          );
+                        }
                         return PageView(
                           scrollDirection: Axis.horizontal,
                           controller: PageController(viewportFraction: 0.85),
@@ -1144,12 +1173,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     var formatter = new DateFormat('d MMM y');
     String date = formatter.format(dateRetrieved.toDate());
 
-//    double amount = model.loanAmountTaken;
-//    double interest = model.loanInterest;
-//    double totalAmount = (amount * (100 + interest)) / 100;
-//
-//    loanData["totalAmount"] = totalAmount;
-
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
@@ -1180,21 +1203,31 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
           Align(
             alignment: Alignment.topRight,
-            child: GestureDetector(
-              onTap: () => Navigator.of(context)
-                  .pushNamed('/pay-loan', arguments: loanData),
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.only(bottomLeft: Radius.circular(20)),
-                    color: Colors.transparent),
-                child: Icon(
-                  Icons.edit,
-                  color: Colors.white,
+            child: model.loanStatus
+                ? GestureDetector(
+                    onTap: () => Navigator.of(context)
+                        .pushNamed('/pay-loan', arguments: loanData),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(20)),
+                          color: Colors.transparent),
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                : Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  child: Text(
+                      'Pending',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.w600)),
+                    ),
                 ),
-              ),
-            ),
           ),
           Align(
             alignment: Alignment.center,
@@ -1203,21 +1236,38 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                RichText(
-                    text: TextSpan(children: [
-                  TextSpan(
-                      text: 'You have repaid ',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.white))),
-                  TextSpan(
-                      text: '${model.loanAmountRepaid.toInt().toString()}',
-                      style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
-                      )),
-                ])),
+                model.loanStatus
+                    ? RichText(
+                        text: TextSpan(children: [
+                        TextSpan(
+                            text: 'You have repaid ',
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(color: Colors.white))),
+                        TextSpan(
+                            text:
+                                '${model.loanAmountRepaid.toInt().toString()}',
+                            style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
+                            )),
+                      ]))
+                    : RichText(
+                        text: TextSpan(children: [
+                        TextSpan(
+                            text: 'You have requested ',
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(color: Colors.white))),
+                        TextSpan(
+                            text: '${model.loanAmountTaken.toInt().toString()}',
+                            style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
+                            )),
+                      ])),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Row(
@@ -1246,21 +1296,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     ],
                   ),
                 ),
-                RichText(
-                    text: TextSpan(children: [
-                  TextSpan(
-                      text: 'You borrowed ',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.white))),
-                  TextSpan(
-                      text: '${model.loanAmountTaken.toInt().toString()}',
-                      style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
-                      )),
-                ]))
               ],
             ),
           ),
@@ -1280,10 +1315,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     'Ends on',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w600)),
-                  ),
-                  SizedBox(
-                    height: 5,
+                            color: Colors.white, fontWeight: FontWeight.w500)),
                   ),
                   Text(
                     '$date',
@@ -1313,10 +1345,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     'Interest',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w600)),
-                  ),
-                  SizedBox(
-                    height: 5,
+                            color: Colors.white, fontWeight: FontWeight.w500)),
                   ),
                   Text(
                     '${model.loanInterest.toString()} %',
@@ -2303,12 +2332,64 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         Tween<double>(begin: 0.5, end: 1).animate(_controller);
     _slideAnimation = Tween<Offset>(begin: Offset(-1, 0), end: Offset(0, 0))
         .animate(_controller);
+
+    //Handle Notifications
+    _fcm.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print('onMessage: $message');
+        notificationPopup(message);
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+      },
+    );
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future notificationPopup(Map<String, dynamic> message) {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: Text(
+              '${message["notification"]["title"]}',
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+              )),
+            ),
+            content: Text(
+              '${message["notification"]["body"]}',
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              )),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'CANCEL',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    )),
+                  ))
+            ],
+          );
+        });
   }
 
   Widget _menuHeader() {

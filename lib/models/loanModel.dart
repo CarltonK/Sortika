@@ -15,6 +15,7 @@ class LoanModel {
   double loanInterest;
   Timestamp loanEndDate;
   Timestamp loanTakenDate;
+  String token;
   bool loanStatus;
   double loanIC;
   double totalAmountToPay;
@@ -26,6 +27,7 @@ class LoanModel {
       this.loanAmountTaken,
       this.loanAmountRepaid,
       this.loanInterest,
+      this.token,
       this.loanStatus,
       this.loanEndDate,
       this.loanTakenDate,
@@ -43,6 +45,7 @@ class LoanModel {
       loanEndDate: json["loanEndDate"],
       loanTakenDate: json["loanTakenDate"],
       loanIC: json["loanIC"],
+      token: json["token"],
       totalAmountToPay: json["totalAmountToPay"]);
 
   Map<String, dynamic> toJson() => {
@@ -54,6 +57,7 @@ class LoanModel {
         "loanEndDate": loanEndDate,
         "loanTakenDate": loanTakenDate,
         "loanStatus": loanStatus,
+        "token": token,
         "loanIC": loanIC,
         "totalAmountToPay": totalAmountToPay,
         "loanInvitees": loanInvitees

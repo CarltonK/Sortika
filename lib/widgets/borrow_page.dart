@@ -43,6 +43,7 @@ class _BorrowPageState extends State<BorrowPage> {
   int _dateMonth = oneMonthFromNow.month;
   String _dateYear = oneMonthFromNow.year.toString();
   String _nameLender;
+  String _token;
 
   Firestore _firestore = Firestore.instance;
   AuthService authService = new AuthService();
@@ -419,16 +420,16 @@ class _BorrowPageState extends State<BorrowPage> {
         .where("phone", isEqualTo: _phone)
         .getDocuments();
     int numDocs = query.documents.length;
-    if (numDocs >= 1) {
+    if (numDocs > 0) {
       DocumentSnapshot doc = query.documents[0];
       _nameLender = doc.data["fullName"].split(' ')[0];
-
-      if (_phone == doc.data["phone"]) {
-        return false;
-      }
+      _token = doc.data["token"];
+      print(_nameLender);
+      print(_token);
       return true;
+    } else {
+      return false;
     }
-    return false;
   }
 
   void _checkValidity() {
@@ -438,7 +439,6 @@ class _BorrowPageState extends State<BorrowPage> {
     final FormState form = _formPhone.currentState;
     if (form.validate()) {
       form.save();
-
       //Check if phone number exists in backend
       //Dismiss the form dialog
       Navigator.of(context).pop();
@@ -550,7 +550,7 @@ class _BorrowPageState extends State<BorrowPage> {
                   height: 10,
                 ),
                 Text(
-                  'The requested lender is not on Sortika or you tried to lend a'
+                  'The requested lender is not on Sortika or you tried to send a'
                   ' loan request to yourself',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
@@ -686,6 +686,10 @@ class _BorrowPageState extends State<BorrowPage> {
       _promptUser("Please select the payback date");
     } else if (typeLoan == 'p2p' && takeLoanFrom == null) {
       _promptUser("You have not selected the recipient of your loan request");
+    }
+    //Check if goal ends on the same day
+    else if (_date.difference(rightNow).inDays < 1) {
+      _promptUser('The goal end date is too soon');
     } else {
       //Create an instance of a Loan
       LoanModel loanModel = new LoanModel(
@@ -696,6 +700,7 @@ class _BorrowPageState extends State<BorrowPage> {
           loanTakenDate: Timestamp.fromDate(rightNow),
           loanEndDate: Timestamp.fromDate(_date),
           loanStatus: false,
+          token: _token,
           loanInvitees: takeLoanFrom,
           loanLender: lender,
           totalAmountToPay: (amountLoan * (1 + (interestLoan / 100))),

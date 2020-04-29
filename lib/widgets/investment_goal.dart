@@ -371,6 +371,10 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
       _promptUser("Please select your initial investment amount");
     } else if (_date == null) {
       _promptUser("You haven't selected the targeted completion date");
+    }
+    //Check if goal ends on the same day
+    else if (_date.difference(rightNow).inDays < 1) {
+      _promptUser('The goal end date is too soon');
     } else {
       GoalModel goalModel = new GoalModel(
           goalAmount: targetAmount,
@@ -384,15 +388,15 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
           goalAmountSaved: 0,
           goalAllocation: 0);
 
+      //Show a dialog
+      _showUserProgress();
+
       //Create an activity
       ActivityModel investmentAct = new ActivityModel(
           activity:
               'You created a new Investment Goal in the $classInvestment class',
           activityDate: Timestamp.fromDate(rightNow));
       await authService.postActivity(widget.uid, investmentAct);
-
-      //Show a dialog
-      _showUserProgress();
 
       _createInvestmentGoal(goalModel).whenComplete(() {
         //Pop that dialog

@@ -573,6 +573,10 @@ class _GroupSavingsState extends State<GroupSavings> {
   void createBtnPressed() async {
     if (_date == null) {
       _promptUser("Please select the target end date");
+    }
+    //Check if goal ends on the same day
+    else if (_date.difference(rightNow).inDays < 1) {
+      _promptUser('The goal end date is too soon');
     } else {
       final form = _formKey.currentState;
       if (form.validate()) {
