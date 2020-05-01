@@ -201,9 +201,9 @@ export const promptLendRequest = functions.firestore
     .document('loans/{loan}')
     .onCreate(async snapshot => {
         //Retrieve the token (If exists)
-        if (snapshot.get('token') != null) {
+        if (snapshot.get('tokenInvitee') != null) {
             //Retrieve key info
-            const token: string = snapshot.get('token')
+            const token: string = snapshot.get('tokenInvitee')
             const amount: number = snapshot.get('loanAmountTaken')
             const interest: number = snapshot.get('loanInterest')
             //Define the payload
@@ -219,6 +219,36 @@ export const promptLendRequest = functions.firestore
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
                 console.error('promptLendRequest FCM Error',error)
+        })
+        }
+    })
+
+
+export const promptLoanAccepted = functions.firestore
+    .document('loans/{loan}')
+    .onWrite(async snapshot => {
+        //Retrieve the token (If exists)
+        if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === true) {
+            //Retrieve key info
+            const token: string = snapshot.after.get('tokenBorrower')
+            const amount: number = snapshot.after.get('loanAmountTaken')
+            const due: number = snapshot.after.get('totalAmountToPay')
+
+            const time: FirebaseFirestore.Timestamp = snapshot.after.get('loanEndDate')
+            const date: Date = time.toDate()
+            //Define the payload
+            const payload = {
+                notification: {
+                    title: `Good News`,
+                    body: `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${date.toLocaleDateString()}`,
+                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+                }
+            }
+            console.log(payload);
+            //Send to all tenants in the topic "landlord_code"
+            return fcm.sendToDevice(token, payload)
+                .catch(error => {
+                console.error('promptLoanAccepted FCM Error',error)
         })
         }
     })

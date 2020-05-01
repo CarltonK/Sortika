@@ -30,6 +30,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
 
   //UID Placeholder
   static String uid;
+  static String token;
 
   Firestore _firestore = Firestore.instance;
 
@@ -179,7 +180,10 @@ class _AchievePreferenceState extends State<AchievePreference> {
 
   Widget _pageTwo() {
     return goal == 'Borrow Money'
-        ? BorrowPage(uid: uid)
+        ? BorrowPage(
+            uid: uid,
+            mytoken: token,
+          )
         : goal == 'Lend Money'
             ? LendPage(uid: uid)
             : goal == 'Save Money'
@@ -259,8 +263,10 @@ class _AchievePreferenceState extends State<AchievePreference> {
 
   @override
   Widget build(BuildContext context) {
-    //Retrieve UID
-    uid = ModalRoute.of(context).settings.arguments;
+    //Retrieve UID and Token
+    Map<String, dynamic> userData = ModalRoute.of(context).settings.arguments;
+    uid = userData["uid"];
+    token = userData["token"];
 
     return Scaffold(
       body: GestureDetector(

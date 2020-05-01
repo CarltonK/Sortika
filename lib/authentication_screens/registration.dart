@@ -389,7 +389,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   //Return user data
-  Future goToNextPage(String uid) async {
+  Future goToNextPage(String uid, String token) async {
     /*
     Before we go to the next page we need to auto create a loan fund goal
     */
@@ -425,8 +425,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         .document()
         .setData(goalModel.toJson())
         .whenComplete(() {
+      Map<String, dynamic> dataUser = {'uid': uid, 'token': token};
       Navigator.of(context)
-          .pushReplacementNamed('/achieve-pref', arguments: uid);
+          .pushReplacementNamed('/achieve-pref', arguments: dataUser);
     });
   }
 
@@ -493,7 +494,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
           //Take user to next page to complete profile
           Timer(Duration(milliseconds: 2200), () {
-            goToNextPage(authService.currentUser.uid);
+            goToNextPage(authService.currentUser.uid, token);
           });
         } else {
           // print('Failed response: $result');

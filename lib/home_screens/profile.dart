@@ -48,6 +48,9 @@ class _ProfilePageState extends State<ProfilePage> {
   File _imageFile;
   File _idFile;
   File _kraFile;
+  File _kinImageFile;
+  File _kinIDFile;
+  File _kinKraFile;
 
   //Month Names
   List<String> monthNames = [
@@ -896,6 +899,57 @@ class _ProfilePageState extends State<ProfilePage> {
     return urlResult;
   }
 
+  /// Starts an upload task
+  Future<String> _startUploadKinImage(File file) async {
+    /// Unique file name for the file
+    filePath = 'profiles/$uid/kin/displayPic.png';
+    //Create a storage reference
+    StorageReference reference = FirebaseStorage.instance.ref().child(filePath);
+    //Create a task that will handle the upload
+    storageUploadTask = reference.putFile(
+      file,
+    );
+    taskSnapshot = await storageUploadTask.onComplete;
+
+    urlResult = await taskSnapshot.ref.getDownloadURL();
+    //print('URL is $urlResult');
+    return urlResult;
+  }
+
+  /// Starts an upload task
+  Future<String> _startUploadKinID(File file) async {
+    /// Unique file name for the file
+    filePath = 'profiles/$uid/kin/displayPic.png';
+    //Create a storage reference
+    StorageReference reference = FirebaseStorage.instance.ref().child(filePath);
+    //Create a task that will handle the upload
+    storageUploadTask = reference.putFile(
+      file,
+    );
+    taskSnapshot = await storageUploadTask.onComplete;
+
+    urlResult = await taskSnapshot.ref.getDownloadURL();
+    //print('URL is $urlResult');
+    return urlResult;
+  }
+
+  /// Starts an upload task
+  Future<String> _startUploadKinKra(File file) async {
+    /// Unique file name for the file
+    filePath = 'profiles/$uid/kin/displayPic.png';
+    //Create a storage reference
+    StorageReference reference = FirebaseStorage.instance.ref().child(filePath);
+    //Create a task that will handle the upload
+    storageUploadTask = reference.putFile(
+      file,
+    );
+    taskSnapshot = await storageUploadTask.onComplete;
+
+    urlResult = await taskSnapshot.ref.getDownloadURL();
+    //print('URL is $urlResult');
+    return urlResult;
+  }
+
   /// Select an image via gallery or camera
   Future<void> _pickImage(ImageSource source) async {
     await ImagePicker.pickImage(source: source).then((value) {
@@ -924,6 +978,39 @@ class _ProfilePageState extends State<ProfilePage> {
       if (value != null) {
         setState(() {
           _kraFile = value;
+        });
+        _setKraDocPic();
+      }
+    });
+  }
+
+  Future<void> _pickKinImage(ImageSource source) async {
+    await ImagePicker.pickImage(source: source).then((value) {
+      if (value != null) {
+        setState(() {
+          _kinImageFile = value;
+        });
+        _setKraDocPic();
+      }
+    });
+  }
+
+  Future<void> _pickKinId(ImageSource source) async {
+    await ImagePicker.pickImage(source: source).then((value) {
+      if (value != null) {
+        setState(() {
+          _kinIDFile = value;
+        });
+        _setKraDocPic();
+      }
+    });
+  }
+
+  Future<void> _pickKinKra(ImageSource source) async {
+    await ImagePicker.pickImage(source: source).then((value) {
+      if (value != null) {
+        setState(() {
+          _kinKraFile = value;
         });
         _setKraDocPic();
       }
@@ -1085,6 +1172,156 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  Future _setKinImagePic() async {
+    //Action sheet to show upload status
+    showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoActionSheet(
+            title: Text(
+              'Updating your Next of Kin Information',
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            message: SpinKitDualRing(
+              color: Colors.red,
+              size: 50,
+            ),
+          );
+        });
+
+    _startUploadKinImage(_kinImageFile).then((value) {
+      //Change value in firebase users collection
+
+      Firestore.instance
+          .collection("users")
+          .document(uid)
+          .updateData({"kinPhotoURL": value});
+    }).whenComplete(() {
+      Navigator.of(context).pop();
+      //Show a success message
+      showCupertinoModalPopup(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoActionSheet(
+              title: Text(
+                'Your profile has been updated',
+                style: GoogleFonts.quicksand(
+                    textStyle: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                  color: Colors.black,
+                )),
+              ),
+            );
+          });
+    });
+  }
+
+  Future _setKinIdFile() async {
+    //Action sheet to show upload status
+    showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoActionSheet(
+            title: Text(
+              'Updating your Next of Kin Information',
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            message: SpinKitDualRing(
+              color: Colors.red,
+              size: 50,
+            ),
+          );
+        });
+
+    _startUploadKinID(_kinIDFile).then((value) {
+      //Change value in firebase users collection
+
+      Firestore.instance
+          .collection("users")
+          .document(uid)
+          .updateData({"kinNatIdURL": value});
+    }).whenComplete(() {
+      Navigator.of(context).pop();
+      //Show a success message
+      showCupertinoModalPopup(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoActionSheet(
+              title: Text(
+                'Your profile has been updated',
+                style: GoogleFonts.quicksand(
+                    textStyle: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                  color: Colors.black,
+                )),
+              ),
+            );
+          });
+    });
+  }
+
+  Future _setKinKraFile() async {
+    //Action sheet to show upload status
+    showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoActionSheet(
+            title: Text(
+              'Updating your Next of Kin Information',
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            message: SpinKitDualRing(
+              color: Colors.red,
+              size: 50,
+            ),
+          );
+        });
+
+    _startUploadKinKra(_kinKraFile).then((value) {
+      //Change value in firebase users collection
+
+      Firestore.instance
+          .collection("users")
+          .document(uid)
+          .updateData({"kinKraUrl": value});
+    }).whenComplete(() {
+      Navigator.of(context).pop();
+      //Show a success message
+      showCupertinoModalPopup(
+          context: context,
+          builder: (BuildContext context) {
+            return CupertinoActionSheet(
+              title: Text(
+                'Your profile has been updated',
+                style: GoogleFonts.quicksand(
+                    textStyle: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 20,
+                  color: Colors.black,
+                )),
+              ),
+            );
+          });
+    });
+  }
+
   Future _showIdSelection() {
     return showCupertinoModalPopup(
       context: context,
@@ -1111,17 +1348,17 @@ class _ProfilePageState extends State<ProfilePage> {
                         textStyle: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
                   )),
-              // CupertinoActionSheetAction(
-              //     onPressed: () {
-              //       Navigator.of(context).pop();
-              //       _pickIdDocuments(ImageSource.gallery);
-              //     },
-              //     child: Text(
-              //       'GALLERY',
-              //       style: GoogleFonts.muli(
-              //           textStyle: TextStyle(
-              //               fontSize: 20, fontWeight: FontWeight.bold)),
-              //     ))
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickIdDocuments(ImageSource.gallery);
+                  },
+                  child: Text(
+                    'GALLERY',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  ))
             ],
             cancelButton: CupertinoActionSheetAction(
                 onPressed: () {
@@ -1166,17 +1403,17 @@ class _ProfilePageState extends State<ProfilePage> {
                         textStyle: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
                   )),
-              // CupertinoActionSheetAction(
-              //     onPressed: () {
-              //       Navigator.of(context).pop();
-              //       _pickKraDocuments(ImageSource.gallery);
-              //     },
-              //     child: Text(
-              //       'GALLERY',
-              //       style: GoogleFonts.muli(
-              //           textStyle: TextStyle(
-              //               fontSize: 20, fontWeight: FontWeight.bold)),
-              //     ))
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickKraDocuments(ImageSource.gallery);
+                  },
+                  child: Text(
+                    'GALLERY',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  ))
             ],
             cancelButton: CupertinoActionSheetAction(
                 onPressed: () {
@@ -1250,9 +1487,179 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future _showKinImageSelection() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+            title: Text(
+              'Select a source',
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            actions: <Widget>[
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickKinImage(ImageSource.camera);
+                  },
+                  child: Text(
+                    'CAMERA',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  )),
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickKinImage(ImageSource.gallery);
+                  },
+                  child: Text(
+                    'GALLERY',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  ))
+            ],
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  FocusScope.of(context).unfocus();
+                },
+                child: Text(
+                  'CANCEL',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold)),
+                )));
+      },
+    );
+  }
+
+  Future _showKinIdSelection() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+            title: Text(
+              'Select a source',
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            actions: <Widget>[
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickKinId(ImageSource.camera);
+                  },
+                  child: Text(
+                    'CAMERA',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  )),
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickKinId(ImageSource.gallery);
+                  },
+                  child: Text(
+                    'GALLERY',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  ))
+            ],
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  FocusScope.of(context).unfocus();
+                },
+                child: Text(
+                  'CANCEL',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold)),
+                )));
+      },
+    );
+  }
+
+  Future _showKinKraSelection() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+            title: Text(
+              'Select a source',
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            actions: <Widget>[
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickKinKra(ImageSource.camera);
+                  },
+                  child: Text(
+                    'CAMERA',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  )),
+              CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _pickKinKra(ImageSource.gallery);
+                  },
+                  child: Text(
+                    'GALLERY',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                  ))
+            ],
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  FocusScope.of(context).unfocus();
+                },
+                child: Text(
+                  'CANCEL',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold)),
+                )));
+      },
+    );
+  }
+
   void _btnUploadDp() {
     //Show the selection panel
     _showSelection();
+  }
+
+  void _btnUploadKinDp() {
+    //Show the selection panel
+    _showKinImageSelection();
   }
 
   Widget _userDp() {
@@ -1401,6 +1808,153 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Widget _documentsKinUpload() {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Next of Kin Documents',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+          Text(
+            'A quick snap or a picture in your gallery will do',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal)),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'ID/PASSPORT',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.blue[700],
+                          borderRadius: BorderRadius.circular(12)),
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: 150,
+                      child: user.natIDURL == null
+                          ? Center(
+                              child: IconButton(
+                                icon: Icon(Icons.add_a_photo,
+                                    color: Colors.white),
+                                onPressed: () => _showKinIdSelection(),
+                              ),
+                            )
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                user.natIDURL,
+                                fit: BoxFit.fill,
+                              )),
+                    )
+                  ],
+                ),
+              ),
+              Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'KRA PIN',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.blue[700],
+                          borderRadius: BorderRadius.circular(12)),
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: 150,
+                      child: user.kraURL == null
+                          ? Center(
+                              child: IconButton(
+                                icon: Icon(Icons.add_a_photo,
+                                    color: Colors.white),
+                                onPressed: () => _showKinKraSelection(),
+                              ),
+                            )
+                          : ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                user.kraURL,
+                                fit: BoxFit.fill,
+                              )),
+                    )
+                  ],
+                ),
+              )
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _kinDp() {
+    return Center(
+      child: Container(
+        height: 140,
+        width: 140,
+        child: Stack(
+          children: <Widget>[
+            CircleAvatar(
+                radius: 70,
+                backgroundImage: user.kinPhotoURL == null
+                    ? null
+                    : NetworkImage(user.kinPhotoURL)),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Opacity(
+                opacity: 0.4,
+                child: Card(
+                  elevation: 20,
+                  shadowColor: Colors.blue[300],
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.blue,
+                    onTap: _btnUploadKinDp,
+                    child: Container(
+                      child: Icon(Icons.add_a_photo, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _kinSectionWidget() {
     return Container(
       child: Column(
@@ -1431,7 +1985,15 @@ class _ProfilePageState extends State<ProfilePage> {
           SizedBox(
             height: 30,
           ),
-          _natIdKinWidget()
+          _natIdKinWidget(),
+          SizedBox(
+            height: 30,
+          ),
+          _documentsKinUpload(),
+          SizedBox(
+            height: 30,
+          ),
+          _kinDp(),
         ],
       ),
     );

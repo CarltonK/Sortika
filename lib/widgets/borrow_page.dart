@@ -14,7 +14,9 @@ import 'package:wealth/utilities/styles.dart';
 
 class BorrowPage extends StatefulWidget {
   final String uid;
-  BorrowPage({Key key, @required this.uid}) : super(key: key);
+  final String mytoken;
+  BorrowPage({Key key, @required this.uid, @required this.mytoken})
+      : super(key: key);
 
   @override
   _BorrowPageState createState() => _BorrowPageState();
@@ -43,6 +45,7 @@ class _BorrowPageState extends State<BorrowPage> {
   int _dateMonth = oneMonthFromNow.month;
   String _dateYear = oneMonthFromNow.year.toString();
   String _nameLender;
+  String _idInvitee;
   String _token;
 
   Firestore _firestore = Firestore.instance;
@@ -424,8 +427,9 @@ class _BorrowPageState extends State<BorrowPage> {
       DocumentSnapshot doc = query.documents[0];
       _nameLender = doc.data["fullName"].split(' ')[0];
       _token = doc.data["token"];
-      print(_nameLender);
-      print(_token);
+      _idInvitee = doc.data['uid'];
+      // print(_nameLender);
+      // print(_token);
       return true;
     } else {
       return false;
@@ -450,7 +454,7 @@ class _BorrowPageState extends State<BorrowPage> {
           Navigator.of(context).pop();
           //Show the new dialog
           _promptLenderFound();
-          takeLoanFrom = _nameLender;
+          takeLoanFrom = _idInvitee;
         } else {
           //Pop the initial dialog
           Navigator.of(context).pop();
@@ -700,7 +704,9 @@ class _BorrowPageState extends State<BorrowPage> {
           loanTakenDate: Timestamp.fromDate(rightNow),
           loanEndDate: Timestamp.fromDate(_date),
           loanStatus: false,
-          token: _token,
+          tokenInvitee: _token,
+          tokenBorrower: widget.mytoken,
+          loanInviteeName: _nameLender,
           loanInvitees: takeLoanFrom,
           loanLender: lender,
           totalAmountToPay: (amountLoan * (1 + (interestLoan / 100))),
