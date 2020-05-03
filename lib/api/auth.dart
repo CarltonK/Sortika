@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/models/activityModel.dart';
+import 'package:wealth/models/autoCreateModel.dart';
 import 'package:wealth/models/usermodel.dart';
 
 class AuthService {
@@ -176,17 +177,22 @@ class AuthService {
         .setData(activity.toJson());
   }
 
-  Stream<QuerySnapshot> fetchInvestmentAssetClasses()  {
-    Stream<QuerySnapshot> queries = _firestore.collection("investments").snapshots();
+  Stream<QuerySnapshot> fetchInvestmentAssetClasses() {
+    Stream<QuerySnapshot> queries =
+        _firestore.collection("investments").snapshots();
     return queries;
   }
 
-  Future<QuerySnapshot> fetchInvestmentAssetTypes (String title) async {
+  Future<QuerySnapshot> fetchInvestmentAssetTypes(String title) async {
     QuerySnapshot queries = await _firestore
         .collection("investments")
         .document(title)
         .collection("types")
         .getDocuments();
     return queries;
+  }
+
+  Future<void> createAutoGoal(AutoCreateModel model) async {
+    await _firestore.collection("autocreates").document(model.uid).setData(model.toJson());
   }
 }

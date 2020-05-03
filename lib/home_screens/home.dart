@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/home_screens/autoCreate.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
@@ -3063,6 +3064,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         onPressed: () {
                           //Pop the dialog first then open page
                           Navigator.of(context).pop();
+                          // Push to relevant route
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => AutoCreate(
+                                        uid: uid,
+                                      )));
                         },
                         child: Text(
                           'Autocreate Goals',

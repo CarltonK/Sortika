@@ -56,7 +56,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
     'Dec'
   ];
 
- Widget _investClassWidget() {
+  Widget _investClassWidget() {
     return Container(
         alignment: Alignment.centerLeft,
         decoration: BoxDecoration(
@@ -137,8 +137,8 @@ class _InvestmentColoredState extends State<InvestmentColored> {
       child: FutureBuilder(
         future: authService.fetchInvestmentAssetTypes(classInvestment),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.hasData) {
-              return DropdownButton(
+          if (snapshot.hasData) {
+            return DropdownButton(
               disabledHint: Text(
                 'Please select a class',
                 style: GoogleFonts.muli(
@@ -179,8 +179,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
                 });
               },
             );
-            }
-          else {
+          } else {
             return LinearProgressIndicator();
           }
         },

@@ -138,8 +138,8 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
       child: FutureBuilder(
         future: authService.fetchInvestmentAssetTypes(classInvestment),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            if (snapshot.hasData) {
-              return DropdownButton(
+          if (snapshot.hasData) {
+            return DropdownButton(
               autofocus: false,
               disabledHint: Text(
                 'Please select a class',
@@ -182,8 +182,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
                 });
               },
             );
-            }
-          else {
+          } else {
             return LinearProgressIndicator();
           }
         },

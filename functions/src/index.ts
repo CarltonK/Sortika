@@ -252,3 +252,119 @@ export const promptLoanAccepted = functions.firestore
         })
         }
     })
+
+export const goalAutoCreate = functions.firestore
+    .document('autocreates/{autocreate}')
+    .onWrite(async snapshot => {
+        const amount: number = snapshot.after.get('amount')
+        const rate: string = snapshot.after.get('returnRate')
+
+        //Retrieve top collection documents
+        const upperDocs = await db.collection('investments').get()
+        const upperDocsArray: Array<DocumentSnapshot> = upperDocs.docs
+        //Placeholder for the data we want
+        const allInvestments: Array<FirebaseFirestore.DocumentData> = []
+        //Iterate to get investment types in each
+        for (let index = 0; index < upperDocsArray.length; index ++) {
+            var currentDocId = upperDocsArray[index].get('title')
+            const lowerDocs = await db.collection('investments').doc(currentDocId)
+                .collection('types').get()
+            const lowerDocsArray = lowerDocs.docs
+            lowerDocsArray.forEach((type) => {
+                allInvestments.push(type.data())
+            }) 
+        }
+        //Calculate Deviation
+        // This is based on user selected return rate
+        var deviation: number
+        const deviationList: Array<number> = []
+        if (rate == 'low') {
+            const staticFigure: number = 10.5
+            //Cycle through the investments
+            for (let index = 0; index < allInvestments.length; index ++) {
+                deviation = staticFigure - allInvestments[index]['return']
+                deviationList.push(deviation)
+            }
+        }
+        else if (rate == 'med') {
+            const staticFigure: number = 14.25
+            //Cycle through the investments
+            for (let index = 0; index < allInvestments.length; index ++) {
+                deviation = staticFigure - allInvestments[index]['return']
+                deviationList.push(deviation)
+            }
+        }
+        else {
+            const staticFigure: number = 18
+            //Cycle through the investments
+            for (let index = 0; index < allInvestments.length; index ++) {
+                deviation = staticFigure - allInvestments[index]['return']
+                deviationList.push(deviation)
+            }
+        }
+        //console.log(deviationList)
+        //Calculate the weights
+        //This is given by deviation * 0.1
+        const weightCalcs: Array<number> = []
+        //Iterate through the list of deviations
+        for (let index = 0; index < deviationList.length; index ++) {
+            var weight: number = deviationList[index] * 0.1
+            weightCalcs.push(weight)
+        }
+        //console.log(weightCalcs)
+        //Calculate the risk level weight estimates
+        //This is given by (1 - weight)
+        const weightEstimates: Array<number> = []
+        //Iterate through the list of weights
+        for (let index = 0; index < weightCalcs.length; index ++) {
+            var estimate = 1 - weightCalcs[index]
+            weightEstimates.push(estimate)
+        }
+        console.log(`Weight Estimates: ${weightEstimates}`)
+        //Calculate adjusted weight estimates
+        //These are the weightEstimates that are below 1
+        //Keep a running total of adjusted weight estimates
+        var weightEstimatesTotal: number  = 0
+        const adjustedWeightEstimates: Array<number> = []
+        //Iterate through the weight estimates list
+        for (let index = 0; index < weightEstimates.length; index ++) {
+            //convert weight estimate to 0 if it is greater that 1
+            if (weightEstimates[index] > 1) {
+                weightEstimates[index] = 0
+            }
+            weightEstimatesTotal = weightEstimatesTotal + weightEstimates[index]
+            adjustedWeightEstimates.push(weightEstimates[index])
+        }
+        console.log(`Adjusted Weight Estimates: ${adjustedWeightEstimates}`)
+        console.log(`Weight Estimates Total ${weightEstimatesTotal}`)
+        //Calculate the actual weight
+        //This is calculated by (adjustedWeight * (1/weightEstimatesTotal))
+        const actualWeights: Array<number> = []
+        for (let index = 0; index < adjustedWeightEstimates.length; index ++) {
+            var weightActual = adjustedWeightEstimates[index] * (1/weightEstimatesTotal)
+            actualWeights.push(weightActual)
+        }
+        console.log(`Actual Weights: ${actualWeights}`)
+        //Calculate expected return
+        //This is calculated by actual weight * asset return
+        const expectedReturns: Array<number> = []
+        //Keep a counter for total expected return
+        var expectedReturnTotal = 0
+        for (let index = 0; index < actualWeights.length; index ++) {
+            var calculatedReturn = allInvestments[index]['return'] * actualWeights[index]
+            expectedReturns.push(calculatedReturn)
+            expectedReturnTotal = expectedReturnTotal + calculatedReturn
+        }
+        console.log(`Total return rate: ${expectedReturnTotal}%`)
+        //Calculate allocation
+        //This is calculated by actual weight * amount
+        const allocation: Array<number> = []
+        for (let index = 0; index < actualWeights.length; index ++) {
+            var allocatedAmount = actualWeights[index] * amount
+            allocation.push(allocatedAmount)
+        }
+        console.log(`Respective Allocations: ${allocation}`)
+        //Total expected return on investment
+        const returnAmount: number = (1 + (expectedReturnTotal / 100)) * amount
+        console.log(`Expected Return Amount: ${returnAmount}`)
+    })
