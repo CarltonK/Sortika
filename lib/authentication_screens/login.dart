@@ -411,18 +411,29 @@ class _LoginScreenState extends State<LoginScreen> {
               await _firestore.collection("users").document(uid).get();
           User user = User.fromJson(userDoc.data);
 
-          //Try save credentials using shared preferences
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.setString('uid', user.uid);
+          if (user.designation == 'Admin') {
+            Timer(Duration(seconds: 2), () {
+              Navigator.of(context).pop();
+            });
 
-          Timer(Duration(seconds: 2), () {
-            Navigator.of(context).pop();
-          });
+            Timer(Duration(milliseconds: 2200), () {
+              Navigator.of(context)
+                  .pushReplacementNamed('/admin', arguments: user);
+            });
+          } else {
+            //Try save credentials using shared preferences
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            prefs.setString('uid', user.uid);
 
-          Timer(Duration(milliseconds: 2200), () {
-            Navigator.of(context)
-                .pushReplacementNamed('/home', arguments: user);
-          });
+            Timer(Duration(seconds: 2), () {
+              Navigator.of(context).pop();
+            });
+
+            Timer(Duration(milliseconds: 2200), () {
+              Navigator.of(context)
+                  .pushReplacementNamed('/home', arguments: user);
+            });
+          }
         } else {
           //print('Failed response: ${result}');
 

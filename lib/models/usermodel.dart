@@ -13,6 +13,7 @@ class User {
   String email;
   String password;
   Timestamp registerDate;
+  String designation;
   //Firebase user metadata
   String uid;
   //Account Page
@@ -28,6 +29,7 @@ class User {
   double dailyTarget;
   double weeklyTarget;
   double monthlyTarget;
+  double dailySavingsTarget;
   //Kin
   String kinName;
   String kinPhone;
@@ -42,6 +44,7 @@ class User {
       this.email,
       this.password,
       this.registerDate,
+      this.designation,
       this.uid,
       this.photoURL,
       this.natId,
@@ -54,6 +57,7 @@ class User {
       this.dailyTarget,
       this.weeklyTarget,
       this.monthlyTarget,
+      this.dailySavingsTarget,
       this.kinName,
       this.kinPhone,
       this.kinID,
@@ -67,6 +71,7 @@ class User {
       email: json["email"],
       password: json["password"],
       registerDate: json["registerDate"],
+      designation: json['designation'],
       uid: json["uid"],
       photoURL: json["photoURL"],
       natId: json["natId"],
@@ -84,7 +89,8 @@ class User {
       kinID: json["kinID"],
       kinKraUrl: json["kinKraUrl"],
       kinNatIdURL: json["kinNatIdURL"],
-      kinPhotoURL: json["kinPhotoURL"]);
+      kinPhotoURL: json["kinPhotoURL"],
+      dailySavingsTarget: json["dailySavingsTarget"]);
 
   //Convert Dart object to JSON
   Map<String, dynamic> toJson() => {
@@ -93,6 +99,7 @@ class User {
         "email": email,
         "password": password,
         "registerDate": registerDate,
+        'designation': designation,
         "uid": uid,
         "photoURL": photoURL,
         "natId": natId,
@@ -110,6 +117,7 @@ class User {
         "kinID": kinID,
         "kinKraUrl": kinKraUrl,
         "kinNatIdURL": kinNatIdURL,
-        "kinPhotoURL": kinPhotoURL
+        "kinPhotoURL": kinPhotoURL,
+        "dailySavingsTarget": dailySavingsTarget
       };
 }

@@ -1,7 +1,7 @@
 name: wealth
 description: A new Flutter application.
 
-version: 1.0.8+1
+version: 1.0.9+1
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -46,6 +46,7 @@ dependencies:
   # Image Picker
   image_picker: any
   cupertino_icons: ^0.1.3
+  fancy_bottom_navigation: ^0.3.2
 
 dev_dependencies:
   flutter_test:

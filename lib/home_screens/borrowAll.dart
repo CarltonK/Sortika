@@ -12,12 +12,14 @@ class BorrowAll extends StatefulWidget {
 class _BorrowAllState extends State<BorrowAll> {
   static String uid;
   static String token;
+  static String name;
   @override
   Widget build(BuildContext context) {
     //Retrieve uid
     Map<String, dynamic> userData = ModalRoute.of(context).settings.arguments;
     uid = userData['uid'];
     token = userData['token'];
+    name = userData["name"];
     print('Borrow Page Uid: $uid');
 
     return Scaffold(
@@ -40,6 +42,7 @@ class _BorrowAllState extends State<BorrowAll> {
                 child: BorrowPage(
                   uid: uid,
                   mytoken: token,
+                  name: name,
                 ))
           ],
         ),

@@ -15,7 +15,12 @@ import 'package:wealth/utilities/styles.dart';
 class BorrowPage extends StatefulWidget {
   final String uid;
   final String mytoken;
-  BorrowPage({Key key, @required this.uid, @required this.mytoken})
+  final String name;
+  BorrowPage(
+      {Key key,
+      @required this.uid,
+      @required this.mytoken,
+      @required this.name})
       : super(key: key);
 
   @override
@@ -44,9 +49,9 @@ class _BorrowPageState extends State<BorrowPage> {
   String _dateDay = oneMonthFromNow.day.toString();
   int _dateMonth = oneMonthFromNow.month;
   String _dateYear = oneMonthFromNow.year.toString();
-  String _nameLender;
+  String _loanInviteeName;
   String _idInvitee;
-  String _token;
+  String _loanInviteetoken;
 
   Firestore _firestore = Firestore.instance;
   AuthService authService = new AuthService();
@@ -54,6 +59,7 @@ class _BorrowPageState extends State<BorrowPage> {
   final _formPhone = GlobalKey<FormState>();
 
   String _phone;
+  String _phoneRetrieved;
   void _handleSubmittedPhone(String value) {
     _phone = value.trim();
     print('Phone: ' + _phone);
@@ -79,6 +85,8 @@ class _BorrowPageState extends State<BorrowPage> {
   String typeLoan;
   var takeLoanFrom;
   String lender;
+  String lenderName;
+  String lenderToken;
 
   //Placeholder of amount
   double amountLoan = 0;
@@ -150,7 +158,6 @@ class _BorrowPageState extends State<BorrowPage> {
         onChanged: (value) {
           setState(() {
             typeLoan = value;
-
             if (value == 'self') {
               lender = widget.uid;
             }
@@ -425,11 +432,12 @@ class _BorrowPageState extends State<BorrowPage> {
     int numDocs = query.documents.length;
     if (numDocs > 0) {
       DocumentSnapshot doc = query.documents[0];
-      _nameLender = doc.data["fullName"].split(' ')[0];
-      _token = doc.data["token"];
+      _phoneRetrieved = doc.data["phone"];
+      _loanInviteeName = doc.data["fullName"].split(' ')[0];
+      _loanInviteetoken = doc.data["token"];
       _idInvitee = doc.data['uid'];
-      // print(_nameLender);
-      // print(_token);
+      print(_loanInviteeName);
+      print(_loanInviteetoken);
       return true;
     } else {
       return false;
@@ -454,7 +462,17 @@ class _BorrowPageState extends State<BorrowPage> {
           Navigator.of(context).pop();
           //Show the new dialog
           _promptLenderFound();
-          takeLoanFrom = _idInvitee;
+          if (_phoneRetrieved == _phone) {
+            lender = widget.uid;
+            takeLoanFrom = widget.uid;
+            lenderName = widget.name;
+            lenderToken = widget.mytoken;
+            setState(() {
+              typeLoan = 'self';
+            });
+          } else {
+            takeLoanFrom = _idInvitee;
+          }
         } else {
           //Pop the initial dialog
           Navigator.of(context).pop();
@@ -490,7 +508,7 @@ class _BorrowPageState extends State<BorrowPage> {
                   height: 10,
                 ),
                 Text(
-                  'Your request will be sent to $_nameLender',
+                  'Your request will be sent to $_loanInviteeName',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
                   textAlign: TextAlign.center,
@@ -697,20 +715,24 @@ class _BorrowPageState extends State<BorrowPage> {
     } else {
       //Create an instance of a Loan
       LoanModel loanModel = new LoanModel(
-          loanAmountRepaid: 0,
-          loanAmountTaken: amountLoan,
-          loanInterest: interestLoan,
-          loanIC: interestCoverLoan,
-          loanTakenDate: Timestamp.fromDate(rightNow),
-          loanEndDate: Timestamp.fromDate(_date),
-          loanStatus: false,
-          tokenInvitee: _token,
-          tokenBorrower: widget.mytoken,
-          loanInviteeName: _nameLender,
-          loanInvitees: takeLoanFrom,
-          loanLender: lender,
-          totalAmountToPay: (amountLoan * (1 + (interestLoan / 100))),
-          loanBorrower: widget.uid);
+        loanLender: lender,
+        loanLenderName: lenderName,
+        loanLenderToken: lenderToken,
+        loanInvitees: takeLoanFrom,
+        loanInviteeName: _loanInviteeName,
+        tokenInvitee: _loanInviteetoken,
+        loanBorrower: widget.uid,
+        tokenBorrower: widget.mytoken,
+        borrowerName: widget.name,
+        loanAmountTaken: amountLoan,
+        loanAmountRepaid: 0,
+        loanInterest: interestLoan,
+        loanEndDate: Timestamp.fromDate(_date),
+        loanTakenDate: Timestamp.fromDate(rightNow),
+        loanStatus: false,
+        loanIC: interestCoverLoan,
+        totalAmountToPay: (amountLoan * (1 + (interestLoan / 100))),
+      );
 
       //Create an activity
       ActivityModel borrowAct = new ActivityModel(

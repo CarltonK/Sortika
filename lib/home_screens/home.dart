@@ -652,18 +652,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       if (hours < 1) {
         int minutes = now.difference(retrieved).inMinutes;
         elapsed = '$minutes minutes ago';
-      } 
-      else if (hours == 1) {
+      } else if (hours == 1) {
         elapsed = '$hours hour ago';
-      }
-      else {
+      } else {
         elapsed = '$hours hours ago';
       }
     } else {
       if (timeDiff == 1) {
         elapsed = '$timeDiff day ago';
-      }
-      else {
+      } else {
         elapsed = '$timeDiff days ago';
       }
     }
@@ -784,6 +781,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   //Introduction Text
   Widget _introText() {
+    //Difference in days
+    var creationDate = userData.registerDate.toDate();
+    int diff = DateTime.now().difference(creationDate).inDays;
+    print(diff);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -802,18 +803,33 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
           RichText(
               text: TextSpan(children: [
-            TextSpan(
-                text: 'We went ahead and setup for you a loan fund goal of  ',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(color: Colors.black))),
-            TextSpan(
-                text: '5200',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18),
-                    decoration: TextDecoration.underline)),
+            diff >= 3
+                ? TextSpan(
+                    text: 'Your daily savings rate is  ',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(color: Colors.black)))
+                : TextSpan(
+                    text:
+                        'We went ahead and setup for you a loan fund goal of  ',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(color: Colors.black))),
+            diff >= 3
+                ? TextSpan(
+                    text: '${userData.dailySavingsTarget.toStringAsFixed(1)}%',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22),
+                        decoration: TextDecoration.underline))
+                : TextSpan(
+                    text: '5200',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18),
+                        decoration: TextDecoration.underline)),
           ])),
           SizedBox(
             height: 20,
@@ -1109,6 +1125,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         duration: duration);
   }
 
+  Future _getLoanLimit() async {
+    QuerySnapshot query = await _firestore
+        .collection("users")
+        .document(userData.uid)
+        .collection("goals")
+        .where("goalCategory", isEqualTo: "Loan Fund")
+        .getDocuments();
+    return query.documents[0];
+  }
+
   Widget _loanLimits() {
     return Card(
       elevation: 10,
@@ -1118,50 +1144,63 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           side: BorderSide(color: Colors.greenAccent[700], width: 1.5)),
       child: Container(
         padding: EdgeInsets.all(8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Borrow',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(fontSize: 16, letterSpacing: 0.5)),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Text(
-                  '5,000 KES',
-                  style: GoogleFonts.muli(
-                      textStyle:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                )
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Lend',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(fontSize: 16, letterSpacing: 0.5)),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Text(
-                  '8,000 KES',
-                  style: GoogleFonts.muli(
-                      textStyle:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                )
-              ],
-            )
-          ],
+        child: FutureBuilder(
+          future: _getLoanLimit(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              //Convert Data to a Goal Model
+              GoalModel mods = GoalModel.fromJson(snapshot.data.data);
+              double borrowAmount = (mods.goalAmountSaved * (75 / 100));
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Borrow',
+                        style: GoogleFonts.muli(
+                            textStyle:
+                                TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        '${borrowAmount.toStringAsFixed(1)} KES',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w700)),
+                      )
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Lend',
+                        style: GoogleFonts.muli(
+                            textStyle:
+                                TextStyle(fontSize: 16, letterSpacing: 0.5)),
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        '${mods.goalAmountSaved} KES',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w700)),
+                      )
+                    ],
+                  )
+                ],
+              );
+            }
+            return LinearProgressIndicator();
+          },
         ),
       ),
     );
@@ -1448,9 +1487,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         .updateData({'loanStatus': true, 'loanLender': uid});
 
     ActivityModel loanAcceptedAct = new ActivityModel(
-      activity: 'Loan request accepted',
-      activityDate: Timestamp.now()
-    );
+        activity: 'Loan request accepted', activityDate: Timestamp.now());
     await authService.postActivity(borrower, loanAcceptedAct);
   }
 
@@ -1470,7 +1507,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   onPressed: () {
                     //Pop the Action Sheet First
                     Navigator.of(context).pop();
-                    _updateLoanDoc(loanData['docId'], uid, loanData['loanBorrower']).whenComplete(() {
+                    _updateLoanDoc(
+                            loanData['docId'], uid, loanData['loanBorrower'])
+                        .whenComplete(() {
                       _loanAcceptance(loanData);
                     });
                   },
@@ -2987,7 +3026,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         onPressed: () {
                           Map<String, dynamic> data = {
                             'uid': userData.uid,
-                            'token': userData.token
+                            'token': userData.token,
+                            'name': userData.fullName.split(' ')[0]
                           };
                           //Pop the dialog first then open page
                           Navigator.of(context).pop();
@@ -3019,6 +3059,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           'Create a goal',
                           style: GoogleFonts.muli(textStyle: TextStyle()),
                         )),
+                    CupertinoActionSheetAction(
+                        onPressed: () {
+                          //Pop the dialog first then open page
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Autocreate Goals',
+                          style: GoogleFonts.muli(textStyle: TextStyle()),
+                        ))
                   ],
                 );
               });

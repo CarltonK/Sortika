@@ -425,7 +425,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         .document()
         .setData(goalModel.toJson())
         .whenComplete(() {
-      Map<String, dynamic> dataUser = {'uid': uid, 'token': token};
+      Map<String, dynamic> dataUser = {
+        'uid': uid,
+        'token': token,
+        'name': _names.split(' ')[0]
+      };
       Navigator.of(context)
           .pushReplacementNamed('/achieve-pref', arguments: dataUser);
     });
@@ -446,9 +450,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           phone: _phone,
           email: _email,
           password: _password,
+          designation: null,
           registerDate: Timestamp.fromDate(DateTime.now()),
           token: token,
           platform: Platform.operatingSystem,
+          dailySavingsTarget: 0,
           dailyTarget: 0,
           weeklyTarget: 0,
           monthlyTarget: 0);

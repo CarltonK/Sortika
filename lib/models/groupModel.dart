@@ -15,7 +15,6 @@ class GroupModel extends GoalModel {
   int groupMembersTargeted;
   int groupMembers;
   bool isGroupRegistered;
-  //Group Settings
   double targetAmountPerp;
   bool shouldMemberSeeSavings;
 
@@ -24,13 +23,13 @@ class GroupModel extends GoalModel {
       //Inherited properties
       String goalCategory,
       String goalName,
+      String uid,
       double goalAmount,
       double goalAmountSaved,
       Timestamp goalCreateDate,
       Timestamp goalEndDate,
       bool isGoalDeletable,
       double goalAllocation,
-      String uid,
       this.groupObjective,
       this.groupAdmin,
       this.members,
@@ -44,42 +43,44 @@ class GroupModel extends GoalModel {
             goalName: goalName,
             uid: uid,
             goalAmount: goalAmount,
+            goalAmountSaved: goalAmountSaved,
             goalCreateDate: goalCreateDate,
             goalEndDate: goalEndDate,
-            goalAmountSaved: goalAmountSaved,
             isGoalDeletable: isGoalDeletable,
             goalAllocation: goalAllocation);
 
   factory GroupModel.fromJson(Map<String, dynamic> json) {
     final model = GoalModel.fromJson(json);
     return GroupModel(
-        goalCategory: model.goalCategory,
-        goalName: model.goalName,
-        goalAmount: model.goalAmount,
-        goalAmountSaved: model.goalAmountSaved,
-        goalCreateDate: model.goalCreateDate,
-        goalEndDate: model.goalEndDate,
-        isGoalDeletable: model.isGoalDeletable,
-        uid: model.uid,
-        groupObjective: json["groupObjective"],
-        groupAdmin: json["groupAdmin"],
-        members: json["members"],
-        groupMembersTargeted: json["groupMembersTargeted"],
-        groupMembers: json["groupMembers"],
-        isGroupRegistered: json["isGroupRegistered"],
-        targetAmountPerp: json["targetAmountPerp"],
-        shouldMemberSeeSavings: json["shouldMemberSeeSavings"],
-        goalAllocation: model.goalAllocation);
+      goalCategory: model.goalCategory,
+      goalName: model.goalName,
+      uid: model.uid,
+      goalAmount: model.goalAmount,
+      goalAmountSaved: model.goalAmountSaved,
+      goalCreateDate: model.goalCreateDate,
+      goalEndDate: model.goalEndDate,
+      isGoalDeletable: model.isGoalDeletable,
+      goalAllocation: model.goalAllocation,
+      groupObjective: json["groupObjective"],
+      groupAdmin: json["groupAdmin"],
+      members: json["members"],
+      groupMembersTargeted: json["groupMembersTargeted"],
+      groupMembers: json["groupMembers"],
+      isGroupRegistered: json["isGroupRegistered"],
+      targetAmountPerp: json["targetAmountPerp"],
+      shouldMemberSeeSavings: json["shouldMemberSeeSavings"],
+    );
   }
   Map<String, dynamic> toJson() => {
         "goalCategory": goalCategory,
-        "uid": uid,
         "goalName": goalName,
+        "uid": uid,
         "goalAmount": goalAmount,
         "goalAmountSaved": goalAmountSaved,
         "goalCreateDate": goalCreateDate,
         "goalEndDate": goalEndDate,
         "isGoalDeletable": isGoalDeletable,
+        "goalAllocation": goalAllocation,
         "groupObjective": groupObjective,
         "groupAdmin": groupAdmin,
         "members": members,
@@ -88,6 +89,5 @@ class GroupModel extends GoalModel {
         "isGroupRegistered": isGroupRegistered,
         "targetAmountPerp": targetAmountPerp,
         "shouldMemberSeeSavings": shouldMemberSeeSavings,
-        "goalAllocation": goalAllocation
       };
 }

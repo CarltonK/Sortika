@@ -38,8 +38,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
 
   Firestore _firestore = Firestore.instance;
   AuthService authService = new AuthService();
-
-  //List
+  Future<QuerySnapshot> futureTypes;
 
   //Month Names
   List<String> monthNames = [
@@ -57,72 +56,67 @@ class _InvestmentColoredState extends State<InvestmentColored> {
     'Dec'
   ];
 
-  //Define Dropdown Menu Items
-  List<DropdownMenuItem> itemsAsset = [
-    DropdownMenuItem(
-      value: 'fixed',
-      child: Text(
-        'Fixed Income',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
-
-  List<DropdownMenuItem> itemsGoals = [
-    DropdownMenuItem(
-      value: 'billGoal',
-      child: Text(
-        'Treasury Bill (9.7%)',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
-
-  Widget _investClassWidget() {
+ Widget _investClassWidget() {
     return Container(
-      alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6.0,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 12),
-      child: DropdownButton(
-        items: itemsAsset,
-        underline: Divider(
-          color: Colors.transparent,
+        alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6.0,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
-        value: classInvestment,
-        hint: Text(
-          '',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        child: StreamBuilder(
+          stream: authService.fetchInvestmentAssetClasses(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasData) {
+              return DropdownButton(
+                items: snapshot.data.documents.map((map) {
+                  return DropdownMenuItem(
+                    value: map.data['title'],
+                    child: Text(
+                      '${map.data['title']}',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600)),
+                    ),
+                  );
+                }).toList(),
+                underline: Divider(
+                  color: Colors.transparent,
+                ),
+                value: classInvestment,
+                hint: Text(
+                  '',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600)),
+                ),
+                icon: Icon(
+                  CupertinoIcons.down_arrow,
                   color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600)),
-        ),
-        icon: Icon(
-          CupertinoIcons.down_arrow,
-          color: Colors.black,
-        ),
-        isExpanded: true,
-        onChanged: (value) {
-          setState(() {
-            classInvestment = value;
-          });
-        },
-      ),
-    );
+                ),
+                isExpanded: true,
+                onChanged: (value) async {
+                  setState(() {
+                    classInvestment = value;
+                    print(classInvestment);
+                  });
+                },
+              );
+            }
+            return LinearProgressIndicator();
+          },
+        ));
   }
 
   Widget _investTypeWidget() {
@@ -140,29 +134,55 @@ class _InvestmentColoredState extends State<InvestmentColored> {
         ],
       ),
       padding: EdgeInsets.symmetric(horizontal: 12),
-      child: DropdownButton(
-        items: itemsGoals,
-        underline: Divider(
-          color: Colors.transparent,
-        ),
-        value: goalInvestment,
-        hint: Text(
-          '',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600)),
-        ),
-        icon: Icon(
-          CupertinoIcons.down_arrow,
-          color: Colors.black,
-        ),
-        isExpanded: true,
-        onChanged: (value) {
-          setState(() {
-            goalInvestment = value;
-          });
+      child: FutureBuilder(
+        future: authService.fetchInvestmentAssetTypes(classInvestment),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasData) {
+              return DropdownButton(
+              disabledHint: Text(
+                'Please select a class',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              items: snapshot.data.documents.map((map) {
+                goalInvestment = map.data['name'];
+                return DropdownMenuItem(
+                  value: '${map.data['name']}',
+                  child: Text(
+                    '${map.data['name']} (${map.data['return']}%)',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.w600)),
+                  ),
+                );
+              }).toList(),
+              underline: Divider(
+                color: Colors.transparent,
+              ),
+              value: goalInvestment,
+              hint: Text(
+                '',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600)),
+              ),
+              icon: Icon(
+                CupertinoIcons.down_arrow,
+                color: Colors.black,
+              ),
+              isExpanded: true,
+              onChanged: (value) {
+                setState(() {
+                  goalInvestment = value;
+                });
+              },
+            );
+            }
+          else {
+            return LinearProgressIndicator();
+          }
         },
       ),
     );
