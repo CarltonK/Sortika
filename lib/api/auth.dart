@@ -193,6 +193,9 @@ class AuthService {
   }
 
   Future<void> createAutoGoal(AutoCreateModel model) async {
-    await _firestore.collection("autocreates").document(model.uid).setData(model.toJson());
+    await _firestore
+        .collection("autocreates")
+        .document()
+        .setData(model.toJson());
   }
 }

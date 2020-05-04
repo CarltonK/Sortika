@@ -243,7 +243,7 @@ class _EditGoalState extends State<EditGoal> {
                 height: 10,
               ),
               Text(
-                '${dailySavings.toInt()}',
+                '${dailySavings.toStringAsFixed(2)}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
@@ -438,7 +438,7 @@ class _EditGoalState extends State<EditGoal> {
                             textStyle: TextStyle(color: Colors.black)),
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          hintText: '$amount',
+                          hintText: '${amount.toStringAsFixed(2)}',
                           suffixText: ' KES',
                           suffixStyle: GoogleFonts.muli(
                               textStyle: TextStyle(color: Colors.black)),

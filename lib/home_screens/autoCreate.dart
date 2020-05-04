@@ -8,6 +8,7 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/autoCreateModel.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -30,6 +31,7 @@ class _AutoCreateState extends State<AutoCreate> {
   String _dateDay = oneMonthFromNow.day.toString();
   int _dateMonth = oneMonthFromNow.month;
   String _dateYear = oneMonthFromNow.year.toString();
+  static String docID;
 
   String currentRate;
   List<DropdownMenuItem> items = [
@@ -59,7 +61,7 @@ class _AutoCreateState extends State<AutoCreate> {
         ))
   ];
 
-  // Firestore _firestore = Firestore.instance;
+  Firestore _firestore = Firestore.instance;
   AuthService authService = new AuthService();
 
   //List
@@ -92,7 +94,7 @@ class _AutoCreateState extends State<AutoCreate> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Initial amount',
+          'Target amount',
           style: labelStyle,
         ),
         SizedBox(
@@ -128,7 +130,7 @@ class _AutoCreateState extends State<AutoCreate> {
                     borderSide: BorderSide(color: Colors.white)),
                 prefixIcon:
                     Icon(FontAwesome5.money_bill_alt, color: Colors.white),
-                labelText: 'Enter the initial amount',
+                labelText: 'Enter the target amount',
                 labelStyle: hintStyle))
       ],
     );
@@ -318,6 +320,58 @@ class _AutoCreateState extends State<AutoCreate> {
         });
   }
 
+  Future _showReturnRateAmount() async {
+    return showCupertinoModalPopup(
+      context: context, 
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: StreamBuilder(
+            stream: _firestore.collection('autocreates')
+              .where("uid",isEqualTo: widget.uid)
+              .snapshots(),
+            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.data.documents[0].data["returnInterestRate"] != null) {
+                docID = snapshot.data.documents[0].documentID;
+
+                return Container(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.sentiment_very_satisfied, color: Colors.greenAccent[700],size: 100,),
+                      SizedBox(height: 10,),
+                      Text(
+                        'Interest Rate: ${snapshot.data.documents[0].data["returnInterestRate"].toStringAsFixed(2)} %', 
+                        style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                          ))
+                      ),
+                      SizedBox(height: 10,),
+                      Text(
+                        'Return Amount: ${snapshot.data.documents[0].data["returnAmount"].toStringAsFixed(2)} KES', 
+                      style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                        )
+                      ),
+                      )
+                    ],
+                  ),
+                );
+              }
+              return SpinKitDoubleBounce(
+                size: 100,
+                color: Colors.greenAccent[700],
+              );
+            },),
+        );
+      });
+  }
+
   void _createBtnPressed() async {
     if (_date == null) {
       _promptUser("Please select the targeted end date");
@@ -330,16 +384,28 @@ class _AutoCreateState extends State<AutoCreate> {
         //Show a progress Dialog
         _showUserProgress();
         AutoCreateModel model = new AutoCreateModel(
-          amount: _amount,
-          endDate: Timestamp.now(),
-          returnRate: currentRate,
-          uid: widget.uid
-        );
+            amount: _amount,
+            endDate: Timestamp.fromDate(_date),
+            returnRate: currentRate,
+            uid: widget.uid);
         await authService.createAutoGoal(model);
+        ActivityModel autoGoals = new ActivityModel(
+            activity: 'You autocreated goals', activityDate: Timestamp.now());
+        await authService.postActivity(widget.uid, autoGoals);
         //Pop Dialog
         Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
         //Show a success dialog
         Timer(Duration(milliseconds: 2500), () => _promptUserSuccess());
+        //Pop this success dialog
+        Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
+        //Show expected return rate and return amount
+        Timer(Duration(seconds: 5), () => _showReturnRateAmount());
+        //Pop dialog after 2 seconds
+        Timer(Duration(seconds: 7), () => Navigator.of(context).pop());
+        //Delete the document
+        Timer(Duration(seconds: 8), () async {
+          await _firestore.collection('autocreates').document(docID).delete();
+        });
       }
     }
   }
