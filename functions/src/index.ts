@@ -256,6 +256,7 @@ export const promptLoanAccepted = functions.firestore
 export const goalAutoCreate = functions.firestore
     .document('autocreates/{autocreate}')
     .onCreate(async snapshot => {
+        //Retrieve data from user
         const amount: number = snapshot.get('amount')
         const rate: string = snapshot.get('returnRate')
         const endDate: FirebaseFirestore.Timestamp = snapshot.get('endDate')
@@ -266,9 +267,10 @@ export const goalAutoCreate = functions.firestore
         const upperDocs = await db.collection('investments').get()
         const upperDocsArray: Array<DocumentSnapshot> = upperDocs.docs
         const chosenInvestments: Array<Map<any, any>> = []
+
         //Placeholder for the data we want
         const allInvestments: Array<FirebaseFirestore.DocumentData> = []
-        const allInvestmentDocIds: Array<string> = []
+        //const allInvestmentDocIds: Array<string> = []
         //Iterate to get investment types in each
         for (let index = 0; index < upperDocsArray.length; index ++) {
             var currentDocId: string = upperDocsArray[index].get('title')
@@ -284,7 +286,7 @@ export const goalAutoCreate = functions.firestore
                     }
                 } 
                 if (rate == 'med') {
-                    if (lowerDocsArray[i].get('return') >= 10.5 && lowerDocsArray[i].get('return') < 18) {
+                    if (lowerDocsArray[i].get('return') < 18) {
                         chosenInvestments.push(map)
                     }
                 }
@@ -293,16 +295,11 @@ export const goalAutoCreate = functions.firestore
                         chosenInvestments.push(map)
                     }
                 }
-                allInvestmentDocIds.push(lowerDocsArray[i].id)
+                //allInvestmentDocIds.push(lowerDocsArray[i].id)
                 allInvestments.push(lowerDocsArray[i].data())
             }
-            // lowerDocsArray.forEach((type) => {
-            //     allInvestmentDocIds.push(type.id)
-            //     allInvestments.push(type.data())
-            // })
-            
         }
-        console.log(`Document IDs: ${allInvestmentDocIds}`)
+        //console.log(`Document IDs: ${allInvestmentDocIds}`)
         //Calculate Deviation
         // This is based on user selected return rate
         var deviation: number
@@ -362,19 +359,25 @@ export const goalAutoCreate = functions.firestore
             if (rate == 'high') {
                 if (weightEstimates[index] < 1) {
                     weightEstimates[index] = 0
-                    allInvestmentDocIds[index] = ''
+                    //allInvestmentDocIds[index] = ''
                 }
             }
-            if (rate == 'low' || rate == 'med') {
+            if (rate == 'low') {
                 if (weightEstimates[index] > 1) {
                     weightEstimates[index] = 0
-                    allInvestmentDocIds[index] = ''
+                    //allInvestmentDocIds[index] = ''
+                }
+            }
+            if (rate == 'med') {
+                if (weightEstimates[index] > 1) {
+                    weightEstimates[index] = 0
+                    //allInvestmentDocIds[index] = ''
                 }
             }
             weightEstimatesTotal = weightEstimatesTotal + weightEstimates[index]
             adjustedWeightEstimates.push(weightEstimates[index])
         }
-        console.log(`Relevant Documents: ${allInvestmentDocIds}`)
+        //console.log(`Relevant Documents: ${allInvestmentDocIds}`)
         console.log(`Adjusted Weight Estimates: ${adjustedWeightEstimates}`)
         console.log(`Weight Estimates Total ${weightEstimatesTotal}`)
         //Calculate the actual weight
@@ -420,7 +423,7 @@ export const goalAutoCreate = functions.firestore
         const category: string = 'Investment'
         const created: Date = new Date
         const deletable: boolean = true
-        const amountSaved: number = 0.001
+        const amountSaved: number = 0.0
         var currentKey: string = ''
         var currentValue: string = ''
 
@@ -441,10 +444,10 @@ export const goalAutoCreate = functions.firestore
             for (let i = 0; i < chosenInvestments.length; i ++) {
                 //Iterate over keys
                 
-                for (let key of chosenInvestments[i].keys()) {
+                for (let key of chosenInvestments[index].keys()) {
                     currentKey = key
                 }
-                for (let value of chosenInvestments[i].values()) {
+                for (let value of chosenInvestments[index].values()) {
                     currentValue = value
                 }
                 //console.log(`Key: ${currentKey}, Value: ${currentValue}`)
@@ -452,15 +455,15 @@ export const goalAutoCreate = functions.firestore
             await db.collection('users').doc(uid)
                 .collection('goals').doc().set({
                     "goalCategory": category,
-                    "goalName": null,
                     "goalClass": currentKey,
                     "goalType": currentValue,
+                    "goalName": currentValue,
                     "uid": uid,
                     "goalAmount": newAllocations[index],
                     "goalAmountSaved": amountSaved,
                     "goalCreateDate": created,
                     "goalEndDate": endDate,
-                    "goalAllocation": 0.001,
+                    "goalAllocation": 0.0,
                     "isGoalDeletable": deletable
                 })
         }

@@ -13,10 +13,10 @@ class GoalModel {
   String goalType;
   String uid;
   double goalAmount;
-  double goalAmountSaved;
+  var goalAmountSaved;
   Timestamp goalCreateDate;
   Timestamp goalEndDate;
-  double goalAllocation;
+  var goalAllocation;
   bool isGoalDeletable;
 
   GoalModel(

@@ -298,9 +298,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   //Savings Target Breakdown
   Widget _targetSavings() {
-    double dailyTarget = userData.dailyTarget;
-    double weeklyTarget = userData.weeklyTarget;
-    double monthlyTarget = userData.monthlyTarget;
+    var dailyTarget = userData.dailyTarget;
+    var weeklyTarget = userData.weeklyTarget;
+    var monthlyTarget = userData.monthlyTarget;
 
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -539,7 +539,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       Expanded(
                         child: Slider(
-                            value: model.goalAmountSaved,
+                            value: double.parse('${model.goalAmountSaved.toString()}'),
                             min: 0,
                             max: model.goalAmount,
                             onChanged: (value) {}),

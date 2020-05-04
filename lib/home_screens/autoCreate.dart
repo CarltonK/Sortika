@@ -270,20 +270,7 @@ class _AutoCreateState extends State<AutoCreate> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 50,
-                  color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Your goals have been created successfully',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
+                
               ],
             ),
           );
@@ -335,7 +322,6 @@ class _AutoCreateState extends State<AutoCreate> {
             builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.data.documents[0].data["returnInterestRate"] != null) {
                 docID = snapshot.data.documents[0].documentID;
-
                 return Container(
                   padding: EdgeInsets.all(16),
                   child: Column(
@@ -363,9 +349,14 @@ class _AutoCreateState extends State<AutoCreate> {
                   ),
                 );
               }
-              return SpinKitDoubleBounce(
-                size: 100,
-                color: Colors.greenAccent[700],
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SpinKitDoubleBounce(
+                    size: 100,
+                    color: Colors.greenAccent[700],
+                  ),
+                ],
               );
             },),
         );
@@ -393,17 +384,13 @@ class _AutoCreateState extends State<AutoCreate> {
             activity: 'You autocreated goals', activityDate: Timestamp.now());
         await authService.postActivity(widget.uid, autoGoals);
         //Pop Dialog
-        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
-        //Show a success dialog
-        Timer(Duration(milliseconds: 2500), () => _promptUserSuccess());
-        //Pop this success dialog
-        Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
-        //Show expected return rate and return amount
-        Timer(Duration(seconds: 5), () => _showReturnRateAmount());
+        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
+        //Show return rate
+        Timer(Duration(seconds: 4), () => _showReturnRateAmount());
         //Pop dialog after 2 seconds
-        Timer(Duration(seconds: 7), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 10), () => Navigator.of(context).pop());
         //Delete the document
-        Timer(Duration(seconds: 8), () async {
+        Timer(Duration(seconds: 11), () async {
           await _firestore.collection('autocreates').document(docID).delete();
         });
       }
@@ -490,6 +477,25 @@ class _AutoCreateState extends State<AutoCreate> {
                           height: 5,
                         ),
                         _investClassWidget(),
+                        currentRate == null
+                        ? Container()
+                        : SizedBox(height: 20,),
+                        currentRate == null
+                        ? Container()
+                        : Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Risk Profile', style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 12)),),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                currentRate == 'low' ? 'LOW' : currentRate == 'med' ? 'MEDIUM' : 'HIGH', 
+                              style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 20)))
+                            ],
+                          ),
+                        ),
                         _createGoalBtn()
                       ],
                     ),

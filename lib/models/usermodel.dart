@@ -26,10 +26,10 @@ class User {
   String platform;
   String token;
   //Savings Targets
-  double dailyTarget;
-  double weeklyTarget;
-  double monthlyTarget;
-  double dailySavingsTarget;
+  var dailyTarget;
+  var weeklyTarget;
+  var monthlyTarget;
+  var dailySavingsTarget;
   //Kin
   String kinName;
   String kinPhone;
