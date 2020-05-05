@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share/share.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class EditGroup extends StatefulWidget {
@@ -18,6 +22,93 @@ class _EditGroupState extends State<EditGroup> {
   Future<DocumentSnapshot> singleUserDoc;
   List<Map> users = [];
 
+  Future<bool> _leaveGroup() async {
+    //Leave group
+    await _firestore
+        .collection("groups")
+        .document(data["docId"])
+        .get()
+        .then((value) async {
+      List<dynamic> members = value.data["members"];
+      members.remove(data["uid"]);
+      //Write the document
+      await _firestore
+          .collection("groups")
+          .document(value.documentID)
+          .updateData({"members": members});
+    });
+    //Delete the goal
+    QuerySnapshot snapshot = await _firestore.collection("users").document(data["uid"])
+      .collection("goals").where("groupCode", isEqualTo: data["groupCode"]).getDocuments();
+    String docId = snapshot.documents[0].documentID;
+    await _firestore.collection("users").document(data["uid"]).collection("goals")
+        .document(docId).delete();
+    return true;
+  }
+
+  Future _showUserProgress() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  'Processing your request...',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                SpinKitDualRing(
+                  color: Colors.greenAccent[700],
+                  size: 100,
+                )
+              ],
+            ),
+          );
+        });
+  }
+
+  Future _showleftGroup() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.sentiment_dissatisfied,
+                  size: 50,
+                  color: Colors.red,
+                ),
+                Text(
+                  'We\'re sorry to see you go',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
   void _deleteGroup() {
     showCupertinoModalPopup(
         context: context,
@@ -26,12 +117,27 @@ class _EditGroupState extends State<EditGroup> {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             title: Text(
-              'Are you sure you want to leave?',
+              data["groupAdmin"] == data["uid"]
+                  ? 'Are you sure you want to delete this group?'
+                  : 'Are you sure you want to leave?',
+              textAlign: TextAlign.center,
               style: GoogleFonts.muli(textStyle: TextStyle()),
             ),
             actions: [
               FlatButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    //Pop initial doalog
+                    Navigator.of(context).pop();
+                    _showUserProgress();
+                    Navigator.of(context).pop();
+                    _leaveGroup().then((value) {
+                      if (value) {
+                        _showleftGroup();
+                        Timer(Duration(seconds: 3),
+                                () => Navigator.of(context).pop());
+                      }
+                    });
+                  },
                   child: Text(
                     'YES',
                     style: GoogleFonts.muli(
@@ -50,10 +156,10 @@ class _EditGroupState extends State<EditGroup> {
   }
 
   Widget _groupSummary() {
-    double targetAmount = data["goalAmount"];
+    var targetAmount = data["goalAmount"];
     String targetAmountString = targetAmount.toInt().toString();
 
-    double savedAmount = data["goalAmountSaved"];
+    var savedAmount = data["goalAmountSaved"];
     String savedAmountString = savedAmount.toInt().toString();
 
     return Row(
@@ -190,36 +296,124 @@ class _EditGroupState extends State<EditGroup> {
     );
   }
 
+  Future<List<dynamic>> _getMemberDetails(List members) async {
+    for (int index = 0; index < members.length; index++) {
+      DocumentSnapshot snap =
+          await _firestore.collection("users").document(members[index]).get();
+      Map details = {
+        'name': snap.data["fullName"],
+        'photo': snap.data["photoURL"],
+        'token': snap.data["token"]
+      };
+      users.add(details);
+    }
+    return users;
+  }
+
+  void _nudgeMember(int index) async {
+    await _firestore
+        .collection("nudges")
+        .document()
+        .setData({'token': users[index]['token']});
+  }
+
   Widget _groupMembers() {
     List<dynamic> membersArray = data["members"];
-    // int listLength = membersArray.length;
-    // //Loop through list to get uids
-    // for (int i = 0; i < listLength ; i++) {
-    //   print('Members: ${membersArray[i]}');
-    //   //Retrieve data for each
-    //   singleUserDoc = _firestore.collection("users").document(membersArray[i]).get().then((value) {
-    //     Map<String, dynamic> singleUserMap = {'name': value.data["fullName"],'email':value.data["email"]};
-    //     users.add(singleUserMap);
-    //   });
-    // }
+    _getMemberDetails(membersArray);
 
-    return Card(
-      child: ExpansionTile(
-        leading: Icon(
-          Icons.people,
-        ),
-        title: Text('Members',
-            style: GoogleFonts.muli(
-                textStyle:
-                    TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
-        children: membersArray.map((map) => _getUserDetails(map)).toList(),
+    return Container(
+      padding: EdgeInsets.only(top: 10),
+      height: 200,
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Members',
+              style: GoogleFonts.muli(
+                  textStyle:
+                      TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+          SizedBox(
+            height: 5,
+          ),
+          FutureBuilder<List<dynamic>>(
+            future: _getMemberDetails(membersArray),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Container(
+                  height: 160,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: users.length - 1,
+                    itemBuilder: (context, index) {
+                      var photo = users[index]['photo'];
+                      String fullName = users[index]['name'];
+                      String fname = fullName.split(' ')[0];
+
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
+                        child: Container(
+                          width: 200,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              photo != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Opacity(
+                                        opacity: 0.3,
+                                        child: Image(
+                                            fit: BoxFit.cover,
+                                            width: 200,
+                                            image: NetworkImage(photo)),
+                                      ),
+                                    )
+                                  : Container(),
+                              Text(
+                                fname,
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              Positioned(
+                                right: 1,
+                                top: 1,
+                                child: IconButton(
+                                  icon: Icon(
+                                      MaterialCommunityIcons.human_greeting),
+                                  tooltip: 'Nudge',
+                                  onPressed: () =>
+                                      data["uid"] == data['members'][index]
+                                          ? null
+                                          : _nudgeMember(index),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
+              return Center(child: LinearProgressIndicator());
+            },
+          ),
+        ],
       ),
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
+  void _sendInvite() {
+    var groupName = data["goalName"];
+    var groupCode = data["groupCode"];
+    try {
+      Share.share(
+          'Please join my group ($groupName) on Sortika using this code $groupCode');
+    } catch (error) {
+      print('INVITE ERROR: $error');
+    }
   }
 
   @override
@@ -234,11 +428,18 @@ class _EditGroupState extends State<EditGroup> {
           title: Text('${data["goalName"]}',
               style: GoogleFonts.muli(textStyle: TextStyle())),
           actions: [
+            data["groupAdmin"] == data["uid"]
+                ? IconButton(
+                    icon: Icon(Icons.share),
+                    color: Colors.red,
+                    onPressed: _sendInvite,
+                  )
+                : Container(),
             IconButton(
               icon: Icon(Icons.delete),
               color: Colors.red,
               onPressed: _deleteGroup,
-            )
+            ),
           ],
         ),
         body: AnnotatedRegion<SystemUiOverlayStyle>(

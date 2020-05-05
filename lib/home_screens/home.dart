@@ -78,6 +78,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return list;
   }
 
+  List<Widget> _buildGroupPageIndicator() {
+    List<Widget> list = [];
+    for (int i = 0; i < _numPages; i++) {
+      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
+    }
+    return list;
+  }
+
   List<Widget> _buildPlannerPageIndicator() {
     List<Widget> list = [];
     for (int i = 0; i < _numPlannerPages; i++) {
@@ -539,7 +547,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       Expanded(
                         child: Slider(
-                            value: double.parse('${model.goalAmountSaved.toString()}'),
+                            value: double.parse(
+                                '${model.goalAmountSaved.toString()}'),
                             min: 0,
                             max: model.goalAmount,
                             onChanged: (value) {}),
@@ -804,7 +813,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
           RichText(
               text: TextSpan(children: [
-            diff >= 3
+            diff >= 2
                 ? TextSpan(
                     text: 'Your daily savings rate is  ',
                     style: GoogleFonts.muli(
@@ -2133,7 +2142,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: _buildPageIndicator(),
+                    children: _buildGroupPageIndicator(),
                   ),
                   SizedBox(
                     height: 5,

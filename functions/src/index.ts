@@ -469,3 +469,21 @@ export const goalAutoCreate = functions.firestore
         }
         
     })
+
+export const nudgeFriend = functions.firestore
+    .document('nudges/{nudge}')
+    .onCreate(async snapshot => {
+        const token: string = snapshot.get('token')
+        const payload = {
+            notification: {
+                title: `Nudge`,
+                body: `You received a nudge from a group member`,
+                clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+            }
+        }
+        await db.collection('nudges').doc(snapshot.id).delete()
+        return fcm.sendToDevice(token, payload)
+            .catch(error => {
+            console.error('Nudge FCM Error',error)
+        })
+    })

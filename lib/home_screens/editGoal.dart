@@ -16,6 +16,7 @@ class EditGoal extends StatefulWidget {
 }
 
 class _EditGoalState extends State<EditGoal> {
+  final _formKey = GlobalKey<FormState>();
   //Investment Asset Class
   String classInvestment;
   //Investment Goal
@@ -28,9 +29,15 @@ class _EditGoalState extends State<EditGoal> {
   String _dateDay = '04';
   int _dateMonth = 7;
   String _dateYear = '2020';
+  double amount;
 
   Firestore _firestore = Firestore.instance;
   AuthService authService = new AuthService();
+
+  _handleSavedAmount(String value) {
+    amount = double.parse(value);
+    print(amount);
+  }
 
   //Month Names
   List<String> monthNames = [
@@ -430,13 +437,20 @@ class _EditGoalState extends State<EditGoal> {
                   Container(
                       height: 50,
                       child: TextFormField(
-                        enabled: data["goalCategory"] == 'Loan Fund' ||
+                        enabled:
                                 data["goalCategory"] == 'Group'
                             ? false
                             : true,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(color: Colors.black)),
                         keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value.isEmpty) {
+                            return 'Please specify an amount';
+                          }
+                          return null;
+                        },
+                        onSaved: _handleSavedAmount,
                         decoration: InputDecoration(
                           hintText: '${amount.toStringAsFixed(2)}',
                           suffixText: ' KES',
@@ -461,6 +475,86 @@ class _EditGoalState extends State<EditGoal> {
     );
   }
 
+  void _updateBtnPressed() async {
+    final FormState form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      //Show a dialog
+      _showUserUpdateProgress();
+      //Update goal
+      await _firestore.collection("users").document(data["uid"])
+          .collection("goals").document(data["docId"]).updateData(
+        {'goalAmount' : amount}
+      );
+      //Pop dialog
+      Navigator.of(context).pop();
+      _promptUserUpdateSuccess();
+    }
+  }
+
+  Future _promptUserUpdateSuccess() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.done,
+                  size: 50,
+                  color: Colors.green,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Text(
+                  'Your goal has been updated',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future _showUserUpdateProgress() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  'Updating your goal...',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                SpinKitDualRing(
+                  color: Colors.greenAccent[700],
+                  size: 100,
+                )
+              ],
+            ),
+          );
+        });
+  }
+
   Widget _updateBtn() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10),
@@ -468,7 +562,7 @@ class _EditGoalState extends State<EditGoal> {
       child: RaisedButton(
         elevation: 3,
         disabledColor: Colors.grey,
-        onPressed: () {},
+        onPressed: _updateBtnPressed,
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         color: commonColor,
@@ -618,6 +712,7 @@ class _EditGoalState extends State<EditGoal> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     //Retrieve the data
@@ -644,32 +739,35 @@ class _EditGoalState extends State<EditGoal> {
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: SingleChildScrollView(
               physics: AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _goalSummary(),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  // _tipsWidget(),
-                  // SizedBox(
-                  //   height: 30,
-                  // ),
-                  _typeWidget(),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  _specificGoalWidget(),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  _amountWidget(),
-                  SizedBox(
-                    height: 30,
-                  ),
-                  _maturityDateWidget(),
-                  _updateBtn()
-                ],
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _goalSummary(),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    // _tipsWidget(),
+                    // SizedBox(
+                    //   height: 30,
+                    // ),
+                    _typeWidget(),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    _specificGoalWidget(),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    _amountWidget(),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    _maturityDateWidget(),
+                    _updateBtn()
+                  ],
+                ),
               ),
             ),
           ),

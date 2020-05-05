@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:uuid/uuid.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/groupModel.dart';
@@ -30,6 +31,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
   //Identifiers
   String _name, _objective;
   double _amount, _amountpp;
+  String gID;
 
   //Members
   double members = 1;
@@ -255,7 +257,6 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
   }
 
   //Target Amount
-  //Group Name
   Widget _groupTargetAmountpp() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,9 +319,9 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
           child: Slider.adaptive(
               value: members,
               inactiveColor: Colors.black26,
-              divisions: 10,
+              divisions: 15,
               min: 1,
-              max: 10,
+              max: 150,
               label: members.toInt().toString(),
               onChanged: (value) {
                 setState(() {
@@ -595,6 +596,7 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
             goalName: _name,
             members: membersList,
             goalAllocation: 0,
+            groupCode: gID,
             groupMembersTargeted: members.toInt(),
             groupMembers: 1,
             groupObjective: _objective,
@@ -652,6 +654,19 @@ class _GroupSavingsColoredState extends State<GroupSavingsColored> {
         ),
       ),
     );
+  }
+
+  generateUniqueCode() {
+    var uuid = new Uuid();
+    var splitId = uuid.v1().split('-');
+    gID = splitId[0];
+    print(gID);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    generateUniqueCode();
   }
 
   Widget build(BuildContext context) {

@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -94,7 +93,7 @@ class _AutoCreateState extends State<AutoCreate> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          'Target amount',
+          'Total amount',
           style: labelStyle,
         ),
         SizedBox(
@@ -130,7 +129,7 @@ class _AutoCreateState extends State<AutoCreate> {
                     borderSide: BorderSide(color: Colors.white)),
                 prefixIcon:
                     Icon(FontAwesome5.money_bill_alt, color: Colors.white),
-                labelText: 'Enter the target amount',
+                labelText: 'Enter the total amount to invest',
                 labelStyle: hintStyle))
       ],
     );
@@ -258,25 +257,6 @@ class _AutoCreateState extends State<AutoCreate> {
         });
   }
 
-  Future _promptUserSuccess() {
-    return showCupertinoModalPopup(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                
-              ],
-            ),
-          );
-        });
-  }
-
   Future _showUserProgress() {
     return showCupertinoModalPopup(
         context: context,
@@ -309,58 +289,63 @@ class _AutoCreateState extends State<AutoCreate> {
 
   Future _showReturnRateAmount() async {
     return showCupertinoModalPopup(
-      context: context, 
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          content: StreamBuilder(
-            stream: _firestore.collection('autocreates')
-              .where("uid",isEqualTo: widget.uid)
-              .snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.data.documents[0].data["returnInterestRate"] != null) {
-                docID = snapshot.data.documents[0].documentID;
-                return Container(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.sentiment_very_satisfied, color: Colors.greenAccent[700],size: 100,),
-                      SizedBox(height: 10,),
-                      Text(
-                        'Interest Rate: ${snapshot.data.documents[0].data["returnInterestRate"].toStringAsFixed(2)} %', 
-                        style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                          ))
-                      ),
-                      SizedBox(height: 10,),
-                      Text(
-                        'Return Amount: ${snapshot.data.documents[0].data["returnAmount"].toStringAsFixed(2)} KES', 
-                      style: GoogleFonts.muli(
-                        textStyle: TextStyle(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            content: StreamBuilder(
+              stream: _firestore
+                  .collection('autocreates')
+                  .where("uid", isEqualTo: widget.uid)
+                  .snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.data.documents[0].data["returnInterestRate"] !=
+                    null) {
+                  docID = snapshot.data.documents[0].documentID;
+                  return Container(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.sentiment_very_satisfied,
+                          color: Colors.greenAccent[700],
+                          size: 100,
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                            'Interest Rate: ${snapshot.data.documents[0].data["returnInterestRate"].toStringAsFixed(2)} %',
+                            style: GoogleFonts.muli(textStyle: TextStyle())),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                          'Return Amount: ${snapshot.data.documents[0].data["returnAmount"].toStringAsFixed(2)} KES',
+                          style: GoogleFonts.muli(textStyle: TextStyle()),
                         )
-                      ),
-                      )
-                    ],
-                  ),
+                      ],
+                    ),
+                  );
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SpinKitDoubleBounce(
+                      size: 100,
+                      color: Colors.greenAccent[700],
+                    ),
+                  ],
                 );
-              }
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SpinKitDoubleBounce(
-                    size: 100,
-                    color: Colors.greenAccent[700],
-                  ),
-                ],
-              );
-            },),
-        );
-      });
+              },
+            ),
+          );
+        });
   }
 
   void _createBtnPressed() async {
@@ -478,24 +463,39 @@ class _AutoCreateState extends State<AutoCreate> {
                         ),
                         _investClassWidget(),
                         currentRate == null
-                        ? Container()
-                        : SizedBox(height: 20,),
-                        currentRate == null
-                        ? Container()
-                        : Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('Risk Profile', style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 12)),),
-                              SizedBox(
-                                height: 5,
+                            ? Container()
+                            : SizedBox(
+                                height: 20,
                               ),
-                              Text(
-                                currentRate == 'low' ? 'LOW' : currentRate == 'med' ? 'MEDIUM' : 'HIGH', 
-                              style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 20)))
-                            ],
-                          ),
-                        ),
+                        currentRate == null
+                            ? Container()
+                            : Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Risk Profile',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12)),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                        currentRate == 'low'
+                                            ? 'LOW'
+                                            : currentRate == 'med'
+                                                ? 'MEDIUM'
+                                                : 'HIGH',
+                                        style: GoogleFonts.muli(
+                                            textStyle: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 20)))
+                                  ],
+                                ),
+                              ),
                         _createGoalBtn()
                       ],
                     ),
