@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:wealth/models/usermodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,26 +23,39 @@ class _EditGroupState extends State<EditGroup> {
   List<Map> users = [];
 
   Future<bool> _leaveGroup() async {
-    //Leave group
-    await _firestore
-        .collection("groups")
-        .document(data["docId"])
-        .get()
-        .then((value) async {
-      List<dynamic> members = value.data["members"];
-      members.remove(data["uid"]);
-      //Write the document
+    if (data["groupAdmin"] == data["uid"]) {
+      await _firestore.collection("groups").document(data["docId"]).delete();
+    } else {
+      //Leave group
       await _firestore
           .collection("groups")
-          .document(value.documentID)
-          .updateData({"members": members});
-    });
+          .document(data["docId"])
+          .get()
+          .then((value) async {
+        List<dynamic> members = value.data["members"];
+        members.remove(data["uid"]);
+        //Write the document
+        await _firestore
+            .collection("groups")
+            .document(value.documentID)
+            .updateData({"members": members});
+      });
+    }
     //Delete the goal
-    QuerySnapshot snapshot = await _firestore.collection("users").document(data["uid"])
-      .collection("goals").where("groupCode", isEqualTo: data["groupCode"]).getDocuments();
+    QuerySnapshot snapshot = await _firestore
+        .collection("users")
+        .document(data["uid"])
+        .collection("goals")
+        .where("groupCode", isEqualTo: data["groupCode"])
+        .getDocuments();
     String docId = snapshot.documents[0].documentID;
-    await _firestore.collection("users").document(data["uid"]).collection("goals")
-        .document(docId).delete();
+    print(docId);
+    await _firestore
+        .collection("users")
+        .document(data["uid"])
+        .collection("goals")
+        .document(docId)
+        .delete();
     return true;
   }
 
@@ -134,7 +147,7 @@ class _EditGroupState extends State<EditGroup> {
                       if (value) {
                         _showleftGroup();
                         Timer(Duration(seconds: 3),
-                                () => Navigator.of(context).pop());
+                            () => Navigator.of(context).pop());
                       }
                     });
                   },
@@ -296,31 +309,34 @@ class _EditGroupState extends State<EditGroup> {
     );
   }
 
-  Future<List<dynamic>> _getMemberDetails(List members) async {
-    for (int index = 0; index < members.length; index++) {
-      DocumentSnapshot snap =
-          await _firestore.collection("users").document(members[index]).get();
-      Map details = {
-        'name': snap.data["fullName"],
-        'photo': snap.data["photoURL"],
-        'token': snap.data["token"]
-      };
-      users.add(details);
-    }
-    return users;
+  Future<QuerySnapshot> _getMemberDetails(String gID) async {
+    // for (int index = 0; index < members.length; index++) {
+    //   DocumentSnapshot snap =
+    //       await _firestore.collection("users").document(members[index]).get();
+    //   Map details = {
+    //     'name': snap.data["fullName"],
+    //     'photo': snap.data["photoURL"],
+    //     'token': snap.data["token"]
+    //   };
+    //   users.add(details);
+    // }
+    // return users;
+    QuerySnapshot queries = await _firestore
+        .collection('groups')
+        .document(gID)
+        .collection('members')
+        .getDocuments();
+    return queries;
   }
 
-  void _nudgeMember(int index) async {
+  void _nudgeMember(int index, User user) async {
     await _firestore
         .collection("nudges")
         .document()
-        .setData({'token': users[index]['token']});
+        .setData({'token': user.token});
   }
 
   Widget _groupMembers() {
-    List<dynamic> membersArray = data["members"];
-    _getMemberDetails(membersArray);
-
     return Container(
       padding: EdgeInsets.only(top: 10),
       height: 200,
@@ -335,42 +351,42 @@ class _EditGroupState extends State<EditGroup> {
           SizedBox(
             height: 5,
           ),
-          FutureBuilder<List<dynamic>>(
-            future: _getMemberDetails(membersArray),
-            builder: (context, snapshot) {
+          FutureBuilder<QuerySnapshot>(
+            future: _getMemberDetails(data["docId"]),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasData) {
                 return Container(
                   height: 160,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: users.length - 1,
+                    itemCount: snapshot.data.documents.length,
                     itemBuilder: (context, index) {
-                      var photo = users[index]['photo'];
-                      String fullName = users[index]['name'];
-                      String fname = fullName.split(' ')[0];
+                      User user =
+                          User.fromJson(snapshot.data.documents[index].data);
 
                       return Card(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)),
                         child: Container(
-                          width: 200,
+                          width: 240,
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              photo != null
+                              user.photoURL != null
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(20),
                                       child: Opacity(
                                         opacity: 0.3,
                                         child: Image(
                                             fit: BoxFit.cover,
-                                            width: 200,
-                                            image: NetworkImage(photo)),
+                                            width: 240,
+                                            image: NetworkImage(user.photoURL)),
                                       ),
                                     )
                                   : Container(),
                               Text(
-                                fname,
+                                user.fullName.split(' ')[0],
                                 style: GoogleFonts.muli(
                                     textStyle: TextStyle(
                                         fontSize: 17,
@@ -386,7 +402,7 @@ class _EditGroupState extends State<EditGroup> {
                                   onPressed: () =>
                                       data["uid"] == data['members'][index]
                                           ? null
-                                          : _nudgeMember(index),
+                                          : _nudgeMember(index, user),
                                 ),
                               )
                             ],

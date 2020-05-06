@@ -19,12 +19,14 @@ import 'package:wealth/home_screens/sortikaLottery.dart';
 import 'package:wealth/home_screens/sortikaSavings.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
+import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/group_savings_colored.dart';
 import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
 import 'package:wealth/widgets/portfolio.dart';
+import 'package:wealth/widgets/investmentPortfolio.dart';
 import 'package:wealth/widgets/savings_colored.dart';
 
 final menuLabelStyle = GoogleFonts.muli(
@@ -453,6 +455,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget _singleGoalWidget(DocumentSnapshot doc) {
     GoalModel model = GoalModel.fromJson(doc.data);
 
+    GroupModel groupModel;
+    if (model.goalCategory == 'Group') {
+      groupModel = GroupModel.fromJson(doc.data);
+    }
+
     //Create a map from which you can add as argument to pass into edit goal page
     Map<String, dynamic> editData = doc.data;
     //Add uid to this map
@@ -550,11 +557,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             value: double.parse(
                                 '${model.goalAmountSaved.toString()}'),
                             min: 0,
-                            max: model.goalAmount,
+                            max: model.goalCategory == 'Group'
+                                ? groupModel.targetAmountPerp
+                                : model.goalAmount,
                             onChanged: (value) {}),
                       ),
                       Text(
-                        '${model.goalAmount.toInt().toString()}',
+                        model.goalCategory == 'Group'
+                            ? '${groupModel.targetAmountPerp.toInt().toString()}'
+                            : '${model.goalAmount.toInt().toString()}',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.white,
@@ -589,7 +600,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     height: 5,
                   ),
                   Text(
-                    '${model.goalAllocation.round().toString()} %',
+                    '${model.goalAllocation.toStringAsFixed(2)} %',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             fontSize: 16,
@@ -2228,7 +2239,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     });
                   },
                   children: [
-                    Portfolio(),
+                    InvestmentPortfolio(uid: uid),
                     InvestmentColored(
                       uid: uid,
                     )
@@ -2520,7 +2531,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
               SizedBox(height: 5),
               Text(
-                'Jon Snow',
+                userData.fullName,
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,

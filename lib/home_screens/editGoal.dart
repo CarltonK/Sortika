@@ -437,10 +437,7 @@ class _EditGoalState extends State<EditGoal> {
                   Container(
                       height: 50,
                       child: TextFormField(
-                        enabled:
-                                data["goalCategory"] == 'Group'
-                            ? false
-                            : true,
+                        enabled: data["goalCategory"] == 'Group' ? false : true,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(color: Colors.black)),
                         keyboardType: TextInputType.number,
@@ -482,10 +479,12 @@ class _EditGoalState extends State<EditGoal> {
       //Show a dialog
       _showUserUpdateProgress();
       //Update goal
-      await _firestore.collection("users").document(data["uid"])
-          .collection("goals").document(data["docId"]).updateData(
-        {'goalAmount' : amount}
-      );
+      await _firestore
+          .collection("users")
+          .document(data["uid"])
+          .collection("goals")
+          .document(data["docId"])
+          .updateData({'goalAmount': amount});
       //Pop dialog
       Navigator.of(context).pop();
       _promptUserUpdateSuccess();
@@ -498,7 +497,7 @@ class _EditGoalState extends State<EditGoal> {
         builder: (BuildContext context) {
           return AlertDialog(
             shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -530,7 +529,7 @@ class _EditGoalState extends State<EditGoal> {
         builder: (BuildContext context) {
           return AlertDialog(
             shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -711,7 +710,6 @@ class _EditGoalState extends State<EditGoal> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {

@@ -39,9 +39,9 @@ const fcm = superadmin.messaging()
 
 exports.allocationsCalculatorV1 = functions.firestore
     .document('/users/{user}/goals/{goal}')
-    .onCreate(async (data: DocumentSnapshot, context: functions.EventContext) => {
+    .onCreate(async snapshot => {
         //Retrieve user id
-        const uid = data.get('uid')
+        const uid = snapshot.get('uid')
         const docs = await db.collection('users').doc(uid).collection('goals').get()
         const allDocs: Array<DocumentSnapshot> = docs.docs
         //Periods placeholder
@@ -70,7 +70,6 @@ exports.allocationsCalculatorV1 = functions.firestore
             //Retrieve target amount and save in amounts
             amounts.push(element.get('goalAmount'))
             documentIds.push(element.id)
-
         });
         //Sort from smallest to largest
         periods.sort()
@@ -117,9 +116,11 @@ exports.allocationsCalculatorV1 = functions.firestore
 
 exports.allocationsCalculatorV2 = functions.firestore
     .document('/users/{user}/goals/{goal}')
-    .onDelete(async (data: DocumentSnapshot, context: functions.EventContext) => {
+    .onDelete(async snapshot => {
+        //Redistribute the goal amount
+        const goalAmount: number = snapshot.get('goalAmount')
         //Retrieve user id
-        const uid = data.get('uid')
+        const uid = snapshot.get('uid')
         const docs = await db.collection('users').doc(uid).collection('goals').get()
         const allDocs: Array<DocumentSnapshot> = docs.docs
         //Periods placeholder
@@ -148,7 +149,6 @@ exports.allocationsCalculatorV2 = functions.firestore
             //Retrieve target amount and save in amounts
             amounts.push(element.get('goalAmount'))
             documentIds.push(element.id)
-
         });
         //Sort from smallest to largest
         periods.sort()
@@ -177,8 +177,13 @@ exports.allocationsCalculatorV2 = functions.firestore
         console.log(`Allocation Percents: ${allocationpercents}`)
         //Update each document with new allocations
         for (let index = 0; index < documentIds.length; index ++) {
+            var newAmount: number = amounts[index]
+            const avg: number = (goalAmount / documentIds.length)
+            newAmount = newAmount + avg
             await db.collection('users').doc(uid)
-                .collection('goals').doc(documentIds[index]).update({'goalAllocation':allocationpercents[index]})
+                .collection('goals').doc(documentIds[index]).update(
+                    {'goalAllocation':allocationpercents[index],
+                     'goalAmount': newAmount})
         }
         //Update User Targets
         const dailyTarget: number = (totalAdjusted / 365)
@@ -191,7 +196,6 @@ exports.allocationsCalculatorV2 = functions.firestore
             'monthlyTarget': monthlyTarget
         })
     })
-
 
 /*
 NOTIFICATIONS
@@ -486,4 +490,40 @@ export const nudgeFriend = functions.firestore
             .catch(error => {
             console.error('Nudge FCM Error',error)
         })
+    })
+
+export const groupMembers = functions.firestore
+    .document('groups/{group}')
+    .onWrite(async snapshot => {
+        // const admin: string = snapshot.before.get('groupAdmin')
+        const membersBefore: Array<string> = snapshot.before.get('members')
+        const membersAfter: Array<string> = snapshot.after.get('members');
+
+        if (!snapshot.before.exists) {
+            membersAfter.forEach(async (element) => {
+                const user: DocumentSnapshot = await db.collection('users').doc(element).get()
+                console.log(`Requesting USER: ${user.get('uid')}`)
+                await db.collection('groups').doc(snapshot.after.id).collection('members').doc(element).set({
+                    "fullName": user.get('fullName'),
+                    "photoURL": user.get('photoURL'),
+                    "token": user.get('token'),
+                })
+            })
+        }
+        else {
+            for (let index = 0; index < membersAfter.length; index ++) {
+                if (membersBefore[index] == membersAfter[index]) {
+                    continue
+                }
+                else {
+                    const user: DocumentSnapshot = await db.collection('users').doc(membersAfter[index]).get()
+                    console.log(`Requesting USER: ${user.get('uid')}`)
+                    await db.collection('groups').doc(snapshot.after.id).collection('members').doc(membersAfter[index]).set({
+                        "fullName": user.get('fullName'),
+                        "photoURL": user.get('photoURL'),
+                        "token": user.get('token'),
+                    })
+                }
+            }
+        }
     })

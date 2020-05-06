@@ -523,86 +523,78 @@ class _MyGroupsState extends State<MyGroups> {
       height: double.infinity,
       width: MediaQuery.of(context).size.width,
       padding: EdgeInsets.symmetric(horizontal: 20),
-      child: SingleChildScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'My Groups',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'My Groups',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
+              ),
+              IconButton(
+                tooltip: 'Join Group',
+                icon: Icon(
+                  FontAwesome.group,
+                  color: Colors.black,
                 ),
-                IconButton(
-                  tooltip: 'Join Group',
-                  icon: Icon(
-                    FontAwesome.group,
-                    color: Colors.black,
-                  ),
-                  onPressed: _joinGroup,
-                )
-              ],
-            ),
-            Flexible(
-                fit: FlexFit.loose,
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: Firestore.instance
-                      .collection("groups")
-                      .where("members", arrayContains: widget.uid)
-                      .orderBy("goalCreateDate")
-                      .snapshots(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (snapshot.hasData) {
-                      if (snapshot.data.documents.length == 0) {
-                        return Center(
-                            child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.sentiment_neutral,
-                              size: 100,
-                              color: Colors.red,
-                            ),
-                            Text(
-                              'You are not a member of any group(s)',
-                              style: GoogleFonts.muli(
-                                  textStyle: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 16)),
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                          ],
-                        ));
-                      }
-                      return LimitedBox(
-                        maxHeight: MediaQuery.of(context).size.height,
-                        child: ListView(
-                          children: snapshot.data.documents
-                              .map((map) => _singleGroup(map))
-                              .toList(),
-                        ),
-                      );
-                    }
-                    return SpinKitDoubleBounce(
-                      color: Colors.greenAccent[700],
-                      size: 100,
-                    );
-                  },
-                )),
-          ],
-        ),
+                onPressed: _joinGroup,
+              )
+            ],
+          ),
+          Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+            stream: Firestore.instance
+                .collection("groups")
+                .where("members", arrayContains: widget.uid)
+                .orderBy("goalCreateDate")
+                .snapshots(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasData) {
+                if (snapshot.data.documents.length == 0) {
+                  return Center(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.sentiment_neutral,
+                        size: 100,
+                        color: Colors.red,
+                      ),
+                      Text(
+                        'You are not a member of any group(s)',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 16)),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                    ],
+                  ));
+                }
+                return ListView(
+                  children: snapshot.data.documents
+                      .map((map) => _singleGroup(map))
+                      .toList(),
+                );
+              }
+              return SpinKitDoubleBounce(
+                color: Colors.greenAccent[700],
+                size: 100,
+              );
+            },
+          )),
+        ],
       ),
     );
   }
