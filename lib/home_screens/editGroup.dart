@@ -25,6 +25,25 @@ class _EditGroupState extends State<EditGroup> {
   Future<bool> _leaveGroup() async {
     if (data["groupAdmin"] == data["uid"]) {
       await _firestore.collection("groups").document(data["docId"]).delete();
+
+      //Delete the goal
+      QuerySnapshot snapshot = await _firestore
+          .collection("users")
+          .document(data["uid"])
+          .collection("goals")
+          .where("groupCode", isEqualTo: data["groupCode"])
+          .limit(1)
+          .getDocuments();
+
+      String docId = snapshot.documents[0].documentID;
+      print(docId);
+
+      await _firestore
+          .collection("users")
+          .document(data["uid"])
+          .collection("goals")
+          .document(docId)
+          .delete();
     } else {
       //Leave group
       await _firestore
@@ -40,22 +59,27 @@ class _EditGroupState extends State<EditGroup> {
             .document(value.documentID)
             .updateData({"members": members});
       });
+
+      //Delete the goal
+      QuerySnapshot snapshot = await _firestore
+          .collection("users")
+          .document(data["uid"])
+          .collection("goals")
+          .where("groupCode", isEqualTo: data["groupCode"])
+          .limit(1)
+          .getDocuments();
+
+      String docId = snapshot.documents[0].documentID;
+      print(docId);
+      
+      await _firestore
+          .collection("users")
+          .document(data["uid"])
+          .collection("goals")
+          .document(docId)
+          .delete();
     }
-    //Delete the goal
-    QuerySnapshot snapshot = await _firestore
-        .collection("users")
-        .document(data["uid"])
-        .collection("goals")
-        .where("groupCode", isEqualTo: data["groupCode"])
-        .getDocuments();
-    String docId = snapshot.documents[0].documentID;
-    print(docId);
-    await _firestore
-        .collection("users")
-        .document(data["uid"])
-        .collection("goals")
-        .document(docId)
-        .delete();
+
     return true;
   }
 
@@ -149,6 +173,8 @@ class _EditGroupState extends State<EditGroup> {
                         Timer(Duration(seconds: 3),
                             () => Navigator.of(context).pop());
                       }
+                      Timer(Duration(milliseconds: 3500),
+                            () => Navigator.of(context).pop());
                     });
                   },
                   child: Text(
@@ -310,17 +336,6 @@ class _EditGroupState extends State<EditGroup> {
   }
 
   Future<QuerySnapshot> _getMemberDetails(String gID) async {
-    // for (int index = 0; index < members.length; index++) {
-    //   DocumentSnapshot snap =
-    //       await _firestore.collection("users").document(members[index]).get();
-    //   Map details = {
-    //     'name': snap.data["fullName"],
-    //     'photo': snap.data["photoURL"],
-    //     'token': snap.data["token"]
-    //   };
-    //   users.add(details);
-    // }
-    // return users;
     QuerySnapshot queries = await _firestore
         .collection('groups')
         .document(gID)
@@ -356,6 +371,13 @@ class _EditGroupState extends State<EditGroup> {
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.hasData) {
+                if (snapshot.data.documents.length == 0) {
+                  return Center(
+                    child: Text(
+                      'This group has no members (yet)',
+                      style: GoogleFonts.muli(textStyle: TextStyle(fontSize: 16)),),
+                  );
+                }
                 return Container(
                   height: 160,
                   child: ListView.builder(

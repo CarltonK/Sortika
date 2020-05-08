@@ -12,7 +12,7 @@ class GoalModel {
   String goalClass;
   String goalType;
   String uid;
-  double goalAmount;
+  var goalAmount;
   var goalAmountSaved;
   Timestamp goalCreateDate;
   Timestamp goalEndDate;

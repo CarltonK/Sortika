@@ -397,9 +397,10 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
 
   Map _retrieveAssets(List<DocumentSnapshot> docs) {
     docs.forEach((element) {
-      double allocation = element.data["goalAllocation"];
+      var allocation = element.data["goalAllocation"];
       dataMap.putIfAbsent(element.data["goalName"], () => allocation);
     });
+    print(dataMap);
     return dataMap;
   }
 
@@ -414,16 +415,19 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
               return Center(
                 child: Text('You do not have any investments',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.muli(textStyle: TextStyle())),
+                    style:
+                        GoogleFonts.muli(textStyle: TextStyle(fontSize: 16))),
               );
             }
             return pie.PieChart(
               dataMap: _retrieveAssets(snapshot.data.documents),
-              animationDuration: Duration(seconds: 1),
+              animationDuration: Duration(milliseconds: 750),
               chartType: pie.ChartType.ring,
-              showChartValuesInPercentage: true,
-              showChartValueLabel: true,
+              legendStyle:
+                  GoogleFonts.muli(textStyle: TextStyle(fontSize: 12.5)),
               showChartValues: true,
+              showChartValueLabel: true,
+              showChartValuesInPercentage: true,
               showLegends: true,
               initialAngle: 0,
               chartRadius: MediaQuery.of(context).size.width / 1.5,
@@ -449,6 +453,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
         .collection("goals")
         .where("goalCategory", isEqualTo: 'Investment')
         .getDocuments();
+    print(queries.documents[0].data);
     return queries;
   }
 

@@ -495,7 +495,7 @@ export const nudgeFriend = functions.firestore
 export const groupMembers = functions.firestore
     .document('groups/{group}')
     .onWrite(async snapshot => {
-        // const admin: string = snapshot.before.get('groupAdmin')
+        //const admin: string = snapshot.before.get('groupAdmin')
         const membersBefore: Array<string> = snapshot.before.get('members')
         const membersAfter: Array<string> = snapshot.after.get('members');
 
@@ -510,7 +510,23 @@ export const groupMembers = functions.firestore
                 })
             })
         }
+        if (!snapshot.after.exists) {
+            deleteGroup
+        }
         else {
+            if (membersAfter.length > membersBefore.length && (snapshot.before.exists)) {
+                const diff: number = membersAfter.length - membersBefore.length
+                await db.collection('groups').doc(snapshot.after.id).update({
+                    'groupMembers': FirebaseFirestore.FieldValue.increment(diff)
+                });
+            }
+            if (membersBefore.length > membersAfter.length) {
+                const diff: number = membersBefore.length - membersAfter.length
+                await db.collection('groups').doc(snapshot.after.id).update({
+                    'groupMembers': FirebaseFirestore.FieldValue.increment(-diff)
+                });
+            }
+
             for (let index = 0; index < membersAfter.length; index ++) {
                 if (membersBefore[index] == membersAfter[index]) {
                     continue
@@ -526,4 +542,14 @@ export const groupMembers = functions.firestore
                 }
             }
         }
+    })
+
+export const deleteGroup = functions.firestore
+    .document('groups/{group}')
+    .onDelete(async snapshot => {
+        const uid: string = snapshot.id
+        const queries: FirebaseFirestore.QuerySnapshot = await db.collection('groups').doc(uid).collection('members').get()
+        queries.forEach(async (element) => {
+            await db.collection('groups').doc(uid).collection('members').doc(element.id).delete()
+        })
     })

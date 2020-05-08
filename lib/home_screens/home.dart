@@ -806,6 +806,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     var creationDate = userData.registerDate.toDate();
     int diff = DateTime.now().difference(creationDate).inDays;
     print(diff);
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -834,7 +835,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         'We went ahead and setup for you a loan fund goal of  ',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(color: Colors.black))),
-            diff >= 3
+            diff >= 2
                 ? TextSpan(
                     text: '${userData.dailySavingsTarget.toStringAsFixed(1)}%',
                     style: GoogleFonts.muli(
