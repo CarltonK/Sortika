@@ -23,10 +23,10 @@ import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/group_savings_colored.dart';
+import 'package:wealth/widgets/investmentPortfolio.dart';
 import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
 import 'package:wealth/widgets/portfolio.dart';
-import 'package:wealth/widgets/investmentPortfolio.dart';
 import 'package:wealth/widgets/savings_colored.dart';
 
 final menuLabelStyle = GoogleFonts.muli(
@@ -324,8 +324,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15),
+                        fontWeight: FontWeight.bold,),
                     ))
               ],
             ),
@@ -368,8 +367,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15),
+                        fontWeight: FontWeight.bold,),
                     ))
               ],
             ),
@@ -412,8 +410,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15),
+                        fontWeight: FontWeight.bold,),
                     ))
               ],
             ),
@@ -531,7 +528,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             min: 0,
                             max: model.goalCategory == 'Group'
                                 ? groupModel.targetAmountPerp
-                                : model.goalAmount,
+                                : double.parse(model.goalAmount.toString()),
                             onChanged: (value) {}),
                       ),
                       Text(
@@ -799,7 +796,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               text: TextSpan(children: [
             diff >= 2
                 ? TextSpan(
-                    text: 'Your daily savings rate is  ',
+                text: 'Your current savings rate is  ',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(color: Colors.black)))
                 : TextSpan(
@@ -817,7 +814,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             fontSize: 22),
                         decoration: TextDecoration.underline))
                 : TextSpan(
-                    text: '5200',
+                text: '5200 KES',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.black,

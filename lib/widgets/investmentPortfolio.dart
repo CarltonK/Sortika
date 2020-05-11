@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pie_chart/pie_chart.dart' as pie;
+import 'package:wealth/api/helper.dart';
+import 'package:wealth/models/goalmodel.dart';
 
 class InvestmentPortfolio extends StatefulWidget {
   final String uid;
@@ -21,36 +23,30 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
           fontWeight: FontWeight.normal,
           letterSpacing: 0.5));
   //Page Controller
-  PageController _controller = PageController(viewportFraction: 0.9);
+  PageController _controller;
 
   Map<String, double> dataMap = Map();
 
-  List<Color> chartColors = [Colors.pink];
+  Helper helper = new Helper();
 
-  Firestore _firestore = Firestore.instance;
+  DateTime rightNow = DateTime.now();
 
   @override
   void initState() {
     super.initState();
+    _controller = PageController(viewportFraction: 0.9);
   }
 
-  LineChartData mainData() {
+  LineChartData mainData(double amount, Timestamp end, var saved) {
+    int daysDiff = end
+        .toDate()
+        .difference(rightNow)
+        .inDays;
+    print(daysDiff);
+
+
+
     return LineChartData(
-      gridData: FlGridData(
-          // drawVerticalLine: true,
-          // getDrawingHorizontalLine: (value) {
-          //   return const FlLine(
-          //     color: Color(0xff37434d),
-          //     strokeWidth: 1,
-          //   );
-          // },
-          // getDrawingVerticalLine: (value) {
-          //   return const FlLine(
-          //     color: Color(0xff37434d),
-          //     strokeWidth: 1,
-          //   );
-          // },
-          ),
       titlesData: FlTitlesData(
         show: true,
         bottomTitles: SideTitles(
@@ -73,7 +69,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
             }
             return '';
           },
-          margin: 6,
+          margin: 5,
         ),
         leftTitles: SideTitles(
           showTitles: true,
@@ -84,25 +80,27 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
           getTitles: (value) {
             switch (value.toInt()) {
               case 1:
-                return '10k';
+                return ((amount / 5) * 1).toStringAsFixed(0);
+              case 2:
+                return ((amount / 5) * 2).toStringAsFixed(0);
               case 3:
-                return '30k';
+                return ((amount / 5) * 3).toStringAsFixed(0);
+              case 4:
+                return ((amount / 5) * 4).toStringAsFixed(0);
               case 5:
-                return '50k';
-              case 7:
-                return '70k';
+                return ((amount / 5) * 5).toStringAsFixed(0);
             }
             return '';
           },
-          reservedSize: 20,
-          margin: 6,
+          reservedSize: 35,
+          margin: 10,
         ),
       ),
       borderData: FlBorderData(
           show: false,
-          border: Border.all(color: const Color(0xff37434d), width: 1)),
+      ),
       minX: 0,
-      maxX: 11,
+      maxX: 12,
       minY: 0,
       maxY: 6,
       lineBarsData: [
@@ -116,15 +114,11 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
             FlSpot(9.5, 3),
             FlSpot(11, 4),
           ],
-          colors: chartColors,
           isCurved: true,
           barWidth: 3,
           isStrokeCapRound: true,
           dotData: const FlDotData(
             show: false,
-          ),
-          belowBarData: BarAreaData(
-            show: true,
           ),
         ),
       ],
@@ -192,120 +186,146 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
     );
   }
 
-  Widget _portfolioSummary() {
-    return Container(
-        height: MediaQuery.of(context).size.height * 0.5,
-        child: PageView(
-          scrollDirection: Axis.horizontal,
-          controller: _controller,
-          onPageChanged: (value) {
-            _controller.animateToPage(value,
-                duration: Duration(milliseconds: 200), curve: Curves.ease);
-          },
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Money Market',
-                  style: GoogleFonts.muli(
-                      textStyle:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Card(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
+  Widget _singlePortfolioView(DocumentSnapshot doc) {
+    GoalModel goal = GoalModel.fromJson(doc.data);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          goal.goalClass,
+          style: GoogleFonts.muli(
+              textStyle:
+              TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        ),
+        SizedBox(
+          height: 5,
+        ),
+        Card(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          elevation: 2,
+          child: Container(
+            height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.4,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                  tileMode: TileMode.clamp,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.lightBlue[400],
+                    Colors.greenAccent[400]
+                  ],
+                  stops: [
+                    0,
+                    1.0
+                  ]),
+            ),
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
                   child: Container(
-                    height: MediaQuery.of(context).size.height * 0.4,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: LinearGradient(
-                          tileMode: TileMode.clamp,
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.lightBlue[400],
-                            Colors.greenAccent[400]
-                          ],
-                          stops: [
-                            0,
-                            1.0
-                          ]),
-                    ),
-                    child: Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 8),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                GestureDetector(
-                                  onTap: () => _filterByTime(),
-                                  child: Icon(
-                                    CupertinoIcons.time,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Text(
-                                  '10000 KES',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          fontWeight: FontWeight.normal,
-                                          color: Colors.white)),
-                                ),
-                              ],
-                            ),
+                    padding: EdgeInsets.symmetric(
+                        vertical: 5, horizontal: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        GestureDetector(
+                          onTap: () => _filterByTime(),
+                          child: Icon(
+                            CupertinoIcons.time,
+                            color: Colors.white,
                           ),
                         ),
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 15, horizontal: 10),
-                            child: LineChart(mainData()),
-                          ),
+                        SizedBox(
+                          width: 5,
                         ),
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 8),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Icon(Icons.trending_up, color: Colors.white),
-                                SizedBox(
-                                  width: 5,
-                                ),
-                                Text(
-                                  '10 KES',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.normal)),
-                                )
-                              ],
-                            ),
-                          ),
-                        )
+                        Text(
+                          '10000 KES',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  color: Colors.white)),
+                        ),
                       ],
                     ),
                   ),
                 ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 15, horizontal: 10),
+                    child: LineChart(
+                        mainData(goal.goalAmount, goal.goalEndDate,
+                            goal.goalAmountSaved)),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 5, horizontal: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(Icons.trending_up, color: Colors.white),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        Text(
+                          '10 KES',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.normal)),
+                        )
+                      ],
+                    ),
+                  ),
+                )
               ],
             ),
-          ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _portfolioSummary() {
+    return Container(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: FutureBuilder<QuerySnapshot>(
+            future: helper.getInvestmentGraphData(widget.uid),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return PageView(
+                  scrollDirection: Axis.horizontal,
+                  controller: _controller,
+                  onPageChanged: (value) {
+                    _controller.animateToPage(value,
+                        duration: Duration(milliseconds: 200),
+                        curve: Curves.ease);
+                  },
+                  children: snapshot.data.documents.map(
+                          (element) => _singlePortfolioView(element)).toList(),
+                );
+              }
+              return Center(
+                child: SpinKitDoubleBounce(
+                  size: MediaQuery
+                      .of(context)
+                      .size
+                      .height * 0.25,
+                  color: Colors.greenAccent[700],
+                ),
+              );
+            }
         ));
   }
 
@@ -400,7 +420,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
       var allocation = element.data["goalAllocation"];
       dataMap.putIfAbsent(element.data["goalName"], () => allocation);
     });
-    print(dataMap);
+    //print(dataMap);
     return dataMap;
   }
 
@@ -408,7 +428,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.5,
       child: FutureBuilder(
-        future: _getPieChartData(),
+        future: helper.getPieChartData(widget.uid),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data.documents.length == 0) {
@@ -421,7 +441,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
             }
             return pie.PieChart(
               dataMap: _retrieveAssets(snapshot.data.documents),
-              animationDuration: Duration(milliseconds: 750),
+              animationDuration: Duration(milliseconds: 500),
               chartType: pie.ChartType.ring,
               legendStyle:
                   GoogleFonts.muli(textStyle: TextStyle(fontSize: 12.5)),
@@ -446,16 +466,6 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
     );
   }
 
-  Future<QuerySnapshot> _getPieChartData() async {
-    QuerySnapshot queries = await _firestore
-        .collection("users")
-        .document(widget.uid)
-        .collection("goals")
-        .where("goalCategory", isEqualTo: 'Investment')
-        .getDocuments();
-    print(queries.documents[0].data);
-    return queries;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -478,9 +488,6 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                       fontWeight: FontWeight.bold)),
             ),
             _assetAllocation(),
-            SizedBox(
-              height: 10,
-            ),
             Text(
               'Summary',
               style: GoogleFonts.muli(

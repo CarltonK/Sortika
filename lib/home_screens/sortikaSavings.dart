@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SortikaSavings extends StatefulWidget {
@@ -7,6 +9,8 @@ class SortikaSavings extends StatefulWidget {
 }
 
 class _SortikaSavingsState extends State<SortikaSavings> {
+  Firestore _firestore = Firestore.instance;
+
   Widget _introText() {
     return Container(
       child: Column(
@@ -14,25 +18,25 @@ class _SortikaSavingsState extends State<SortikaSavings> {
         children: [
           RichText(
               text: TextSpan(children: [
-            TextSpan(
-                text: 'You have accumulated  ',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(color: Colors.black))),
-            TextSpan(
-                text: '100 Points',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18),
-                    decoration: TextDecoration.underline)),
-          ])),
+                TextSpan(
+                    text: 'You have accumulated  ',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(color: Colors.black))),
+                TextSpan(
+                    text: '100 Points',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18),
+                        decoration: TextDecoration.underline)),
+              ])),
         ],
       ),
     );
   }
 
-  Widget _cardRedeemItem() {
+  Widget _cardRedeemItem(DocumentSnapshot doc) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: EdgeInsets.symmetric(horizontal: 5, vertical: 4),
@@ -60,7 +64,7 @@ class _SortikaSavingsState extends State<SortikaSavings> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Airtime (50)',
+                  doc.data['name'],
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           color: Colors.white,
@@ -71,7 +75,7 @@ class _SortikaSavingsState extends State<SortikaSavings> {
                   height: 5,
                 ),
                 Text(
-                  '80 Points',
+                  '${doc.data['points']} Points',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           color: Colors.white,
@@ -87,6 +91,12 @@ class _SortikaSavingsState extends State<SortikaSavings> {
         ),
       ),
     );
+  }
+
+  Future<QuerySnapshot> getRedeemables() async {
+    QuerySnapshot queries =
+    await _firestore.collection('redeemables').getDocuments();
+    return queries;
   }
 
   @override
@@ -111,21 +121,32 @@ class _SortikaSavingsState extends State<SortikaSavings> {
           ),
           _introText(),
           SizedBox(
-            height: 30,
+            height: 20,
           ),
           Text(
             'Here\'s what you can redeem',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
-              color: Colors.black,
-            )),
+                  color: Colors.black,
+                )),
           ),
           Expanded(
-              child: ListView(
-            children: [
-              _cardRedeemItem(),
-            ],
-          ))
+              child: FutureBuilder<QuerySnapshot>(
+                  future: getRedeemables(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return ListView(
+                        children: snapshot.data.documents.map(
+                                (map) => _cardRedeemItem(map)).toList(),
+                      );
+                    }
+                    return Center(
+                      child: SpinKitDoubleBounce(
+                        size: 200,
+                        color: Colors.greenAccent[700],
+                      ),
+                    );
+                  })),
         ],
       ),
     );

@@ -191,7 +191,7 @@ class _EditGoalState extends State<EditGoal> {
     /*
     Daily Savings Field
     */
-    double totalSavings;
+    var totalSavings;
     //Check if the goal is Group or otherwise
     data["goalCategory"] == 'Group'
         ? totalSavings = data["targetAmountPerp"]
@@ -411,7 +411,7 @@ class _EditGoalState extends State<EditGoal> {
 
   Widget _amountWidget() {
     //Check if the goal is a group
-    double amount;
+    var amount;
     data["goalCategory"] == 'Group'
         ? amount = data["targetAmountPerp"]
         : amount = data["goalAmount"];
@@ -485,6 +485,12 @@ class _EditGoalState extends State<EditGoal> {
           .collection("goals")
           .document(data["docId"])
           .updateData({'goalAmount': amount});
+
+      ActivityModel updateGoal = new ActivityModel(
+          activityDate: Timestamp.now(),
+          activity: 'You updated your ${data['goalCategory']} goal');
+
+      await authService.postActivity(data['uid'], updateGoal);
       //Pop dialog
       Navigator.of(context).pop();
       _promptUserUpdateSuccess();
@@ -715,7 +721,7 @@ class _EditGoalState extends State<EditGoal> {
   Widget build(BuildContext context) {
     //Retrieve the data
     data = ModalRoute.of(context).settings.arguments;
-    //print('EDIT GOAL PAGE DATA: $data');
+    print('EDIT GOAL PAGE DATA: $data');
 
     return Scaffold(
       appBar: AppBar(
@@ -724,11 +730,13 @@ class _EditGoalState extends State<EditGoal> {
             style: GoogleFonts.muli(textStyle: TextStyle())),
         actions: [
           data["isGoalDeletable"]
+              ? data['goalAmountSaved'] == 0
               ? IconButton(
-                  icon: Icon(Icons.delete),
-                  color: Colors.red,
-                  onPressed: _deleteGoal,
-                )
+            icon: Icon(Icons.delete),
+            color: Colors.red,
+            onPressed: _deleteGoal,
+          ) :
+          Text('')
               : Text('')
         ],
       ),

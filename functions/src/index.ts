@@ -553,3 +553,23 @@ export const deleteGroup = functions.firestore
             await db.collection('groups').doc(uid).collection('members').doc(element.id).delete()
         })
     })
+
+export const lendMoneyGoalFund  = functions.firestore
+    .document('loans/{loan}')
+    .onCreate(async snapshot => {
+        const uid: string =  snapshot.get('loanLender')
+        const amount: number = snapshot.get('loanAmountTaken')
+        const invitee: string = snapshot.get('loanInvitees')
+        if (invitee == null) {
+            //Update Loan Fund Goal
+            const doc: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid)
+                .collection('goals').where('goalCategory', '==', 'Loan Fund').limit(1).get()
+            console.log(`Document ID: ${doc.docs[0].id}`)
+            doc.docs.forEach(async (element) => {
+                const docId: string = element.id
+                await db.collection('users').doc(uid).collection('goals').doc(docId).update({
+                    'goalAmount': amount
+                })
+            })
+        }
+    })

@@ -60,18 +60,6 @@ class _OnBoardingState extends State<OnBoarding> {
         textStyle: TextStyle(color: Colors.white, fontSize: 19));
   }
 
-  //Image Urls
-  //https://www.pinclipart.com/picdir/big/126-1268588_more-money-cliparts-25-buy-clip-art-save.png
-  //https://i.dlpng.com/static/png/6859105_preview.png
-  // String _pageOneImage =
-  //     'https://gopeer.ca/wp-content/uploads/2019/10/Peer-to-peer-lending.png';
-  // String _pageTwoImage =
-  //     'https://openltv.com/wp-content/uploads/2019/04/invest-tree-800x400.png';
-  // String _pageThreeImage =
-  //     'https://www.pinclipart.com/picdir/big/126-1268588_more-money-cliparts-25-buy-clip-art-save.png';
-  // String _pageFourImage =
-  //     'https://cdn.shortpixel.ai/client/q_glossy,ret_img,w_649/https://chamasoft.com/wp-content/uploads/2020/02/group-concept-1.png';
-
   List<Widget> _buildPageIndicator() {
     List<Widget> list = [];
     for (int i = 0; i < _numPages; i++) {

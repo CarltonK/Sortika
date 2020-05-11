@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -326,6 +327,13 @@ class _AutoCreateState extends State<AutoCreate> {
                           height: 10,
                         ),
                         Text(
+                            'Principal Amount: ${_amount.toInt()
+                                .toString()} KES',
+                            style: GoogleFonts.muli(textStyle: TextStyle())),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
                           'Return Amount: ${snapshot.data.documents[0].data["returnAmount"].toStringAsFixed(2)} KES',
                           style: GoogleFonts.muli(textStyle: TextStyle()),
                         )
@@ -344,6 +352,23 @@ class _AutoCreateState extends State<AutoCreate> {
                 );
               },
             ),
+            actions: [
+              FlatButton(
+                  onPressed: () async {
+                    //Delete the document after dismissing the dialog
+                    Navigator.of(context).pop();
+                    await _firestore.collection('autocreates')
+                        .document(docID)
+                        .delete();
+                  },
+                  child: Text(
+                    'OKAY',
+                    style: GoogleFonts.muli(textStyle: TextStyle(
+                        fontSize: 18,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold
+                    )),))
+            ],
           );
         });
   }
@@ -372,12 +397,6 @@ class _AutoCreateState extends State<AutoCreate> {
         Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
         //Show return rate
         Timer(Duration(seconds: 4), () => _showReturnRateAmount());
-        //Pop dialog after 2 seconds
-        Timer(Duration(seconds: 10), () => Navigator.of(context).pop());
-        //Delete the document
-        Timer(Duration(seconds: 11), () async {
-          await _firestore.collection('autocreates').document(docID).delete();
-        });
       }
     }
   }

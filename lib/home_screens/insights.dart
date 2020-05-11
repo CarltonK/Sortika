@@ -263,7 +263,7 @@ class _InsightsState extends State<Insights> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Passive Savings v Incomes',
+            'Passive Savings v Expenses',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
                     color: Colors.black,
