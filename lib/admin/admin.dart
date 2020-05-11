@@ -7,7 +7,7 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
-  int _selectedPage;
+  int _selectedPage = 0;
   List<TabData> _tabs = [
     TabData(iconData: Icons.save, title: 'Savings'),
     TabData(iconData: Icons.redeem, title: 'Redeemables'),

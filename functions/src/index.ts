@@ -102,7 +102,7 @@ exports.allocationsCalculatorV1 = functions.firestore
                 .collection('goals').doc(documentIds[index]).update({'goalAllocation':allocationpercents[index]})
         }
         //Update User Targets
-        const dailyTarget: number = (totalAdjusted / 365)
+        const dailyTarget: number = (totalAdjusted / leastDays)
         const weeklyTarget: number = (dailyTarget * 7)
         const monthlyTarget: number = (dailyTarget * 30)
         //Update USERS Collection

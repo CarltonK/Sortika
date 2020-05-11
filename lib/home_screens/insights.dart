@@ -2,7 +2,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pie_chart/pie_chart.dart' as pie;
 
 class Insights extends StatefulWidget {
   @override
@@ -12,25 +11,9 @@ class Insights extends StatefulWidget {
 class _InsightsState extends State<Insights> {
   String _itemType;
 
-  Map<String, double> dataMap = Map();
-
-  //Pie Chart Colors
-  List<Color> colorList = [
-    Colors.blue,
-    Colors.yellow,
-    Colors.red,
-    Colors.green
-  ];
-
   @override
   void initState() {
     super.initState();
-
-    //Populate Pie Chart
-    dataMap.putIfAbsent("Fixed Income", () => 4);
-    dataMap.putIfAbsent("Crypto", () => 3);
-    dataMap.putIfAbsent("Money Market", () => 2);
-    dataMap.putIfAbsent("Equities", () => 1);
   }
 
   List<DropdownMenuItem> entryTypes = [
@@ -265,6 +248,7 @@ class _InsightsState extends State<Insights> {
             height: 10,
           ),
           Container(
+            width: MediaQuery.of(context).size.width,
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: LineChart(incomeVExpenseData()),
           )
@@ -279,7 +263,7 @@ class _InsightsState extends State<Insights> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Passive Savings v Expenses',
+            'Passive Savings v Incomes',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
                     color: Colors.black,
@@ -290,6 +274,7 @@ class _InsightsState extends State<Insights> {
             height: 10,
           ),
           Container(
+            width: MediaQuery.of(context).size.width,
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: LineChart(incomeVExpenseData()),
           )
@@ -304,7 +289,7 @@ class _InsightsState extends State<Insights> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Active Income v Passive Income',
+            'Active Savings v Income',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
                     color: Colors.black,
@@ -315,54 +300,11 @@ class _InsightsState extends State<Insights> {
             height: 10,
           ),
           Container(
+            width: MediaQuery.of(context).size.width,
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: LineChart(incomeVExpenseData()),
           )
         ],
-      ),
-    );
-  }
-
-  Widget _containerPortfolioCalc() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Portfolio',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16)),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          _assetAllocation()
-        ],
-      ),
-    );
-  }
-
-  Widget _assetAllocation() {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.3,
-      child: pie.PieChart(
-        dataMap: dataMap,
-        animationDuration: Duration(milliseconds: 500),
-        chartType: pie.ChartType.ring,
-        showChartValuesInPercentage: true,
-        showChartValueLabel: false,
-        showChartValues: false,
-        initialAngle: 0,
-        chartRadius: MediaQuery.of(context).size.width / 1.5,
-        chartValueStyle: pie.defaultChartValueStyle.copyWith(
-          color: Colors.blueGrey[900].withOpacity(0.9),
-        ),
-        chartValueBackgroundColor: Colors.grey[200],
-        showLegends: true,
-        colorList: colorList,
       ),
     );
   }
@@ -398,10 +340,6 @@ class _InsightsState extends State<Insights> {
               height: 30,
             ),
             _containerActvPassIncs(),
-            SizedBox(
-              height: 30,
-            ),
-            _containerPortfolioCalc()
           ],
         ),
       ),

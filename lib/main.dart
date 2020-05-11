@@ -20,7 +20,7 @@ import 'package:wealth/home_screens/settings.dart';
 import 'package:wealth/home_screens/updateLoan.dart';
 import 'package:wealth/onboarding.dart';
 import 'package:wealth/pre_login/achieve_preference.dart';
-import 'package:wealth/home_screens/admin.dart';
+import 'package:wealth/admin/admin.dart';
 
 void main() {
   //Set `enableInDevMode` to true to see reports while in debug mode

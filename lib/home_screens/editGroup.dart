@@ -71,7 +71,7 @@ class _EditGroupState extends State<EditGroup> {
 
       String docId = snapshot.documents[0].documentID;
       print(docId);
-      
+
       await _firestore
           .collection("users")
           .document(data["uid"])
@@ -174,7 +174,7 @@ class _EditGroupState extends State<EditGroup> {
                             () => Navigator.of(context).pop());
                       }
                       Timer(Duration(milliseconds: 3500),
-                            () => Navigator.of(context).pop());
+                          () => Navigator.of(context).pop());
                     });
                   },
                   child: Text(
@@ -375,7 +375,9 @@ class _EditGroupState extends State<EditGroup> {
                   return Center(
                     child: Text(
                       'This group has no members (yet)',
-                      style: GoogleFonts.muli(textStyle: TextStyle(fontSize: 16)),),
+                      style:
+                          GoogleFonts.muli(textStyle: TextStyle(fontSize: 16)),
+                    ),
                   );
                 }
                 return Container(

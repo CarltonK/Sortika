@@ -470,7 +470,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              'Asset Allocation',
+              'Allocation',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                       color: Colors.black,

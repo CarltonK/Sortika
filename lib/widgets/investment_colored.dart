@@ -147,7 +147,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
               items: snapshot.data.documents.map((map) {
                 goalInvestment = map.data['name'];
                 return DropdownMenuItem(
-                  value: '${map.data['name']}',
+                  value: goalInvestment,
                   child: Text(
                     '${map.data['name']} (${map.data['return']}%)',
                     style: GoogleFonts.muli(
@@ -176,6 +176,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
               onChanged: (value) {
                 setState(() {
                   goalInvestment = value;
+                  print(goalInvestment);
                 });
               },
             );

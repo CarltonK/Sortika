@@ -1,10 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pie_chart/pie_chart.dart' as pie;
 
 class Portfolio extends StatefulWidget {
+  final String uid;
+  Portfolio({this.uid});
   @override
   _PortfolioState createState() => _PortfolioState();
 }
@@ -18,19 +22,15 @@ class _PortfolioState extends State<Portfolio> {
   //Page Controller
   PageController _controller = PageController(viewportFraction: 0.9);
 
+  List<Color> chartColors = [Colors.pink];
+
   Map<String, double> dataMap = Map();
 
-  List<Color> chartColors = [Colors.pink];
+  Firestore _firestore = Firestore.instance;
 
   @override
   void initState() {
     super.initState();
-
-    //Populate Pie Chart
-    dataMap.putIfAbsent("Fixed Income", () => 4);
-    dataMap.putIfAbsent("Crypto", () => 3);
-    dataMap.putIfAbsent("Money Market", () => 2);
-    dataMap.putIfAbsent("Equities", () => 1);
   }
 
   LineChartData mainData() {
@@ -394,24 +394,61 @@ class _PortfolioState extends State<Portfolio> {
     );
   }
 
+  Future<QuerySnapshot> _getPieChartData() async {
+    QuerySnapshot queries = await _firestore
+        .collection("users")
+        .document(widget.uid)
+        .collection("goals")
+        .where("goalCategory", isEqualTo: 'Saving')
+        .getDocuments();
+    return queries;
+  }
+
+  Map _retrieveAssets(List<DocumentSnapshot> docs) {
+    docs.forEach((element) {
+      var allocation = element.data["goalAllocation"];
+      dataMap.putIfAbsent(element.data["goalClass"], () => allocation);
+    });
+    print(dataMap);
+    return dataMap;
+  }
+
   Widget _assetAllocation() {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.3,
-      child: pie.PieChart(
-        dataMap: dataMap,
-        animationDuration: Duration(milliseconds: 500),
-        chartType: pie.ChartType.ring,
-        showChartValuesInPercentage: true,
-        showChartValueLabel: false,
-        showChartValues: false,
-        initialAngle: 0,
-        chartRadius: MediaQuery.of(context).size.width / 1.5,
-        chartValueStyle: pie.defaultChartValueStyle.copyWith(
-          color: Colors.blueGrey[900].withOpacity(0.9),
-        ),
-        chartValueBackgroundColor: Colors.grey[200],
-        showLegends: true,
-      ),
+      height: MediaQuery.of(context).size.height * 0.4,
+      child: FutureBuilder<Object>(
+          future: _getPieChartData(),
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data.documents.length == 0) {
+                return Center(
+                  child: Text('You do not have any savings',
+                      textAlign: TextAlign.center,
+                      style:
+                          GoogleFonts.muli(textStyle: TextStyle(fontSize: 16))),
+                );
+              }
+              return pie.PieChart(
+                dataMap: _retrieveAssets(snapshot.data.documents),
+                animationDuration: Duration(milliseconds: 500),
+                chartType: pie.ChartType.disc,
+                showChartValuesInPercentage: true,
+                showChartValueLabel: false,
+                showChartValues: false,
+                initialAngle: 0,
+                chartRadius: MediaQuery.of(context).size.width / 1.5,
+                chartValueStyle: pie.defaultChartValueStyle.copyWith(
+                  color: Colors.blueGrey[900].withOpacity(0.9),
+                ),
+                chartValueBackgroundColor: Colors.grey[200],
+                showLegends: true,
+              );
+            }
+            return SpinKitDoubleBounce(
+              size: MediaQuery.of(context).size.height * 0.25,
+              color: Colors.blue,
+            );
+          }),
     );
   }
 
@@ -428,7 +465,7 @@ class _PortfolioState extends State<Portfolio> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Text(
-              'Asset Allocation',
+              'Allocation',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                       color: Colors.black,
