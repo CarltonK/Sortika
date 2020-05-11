@@ -121,6 +121,28 @@ exports.allocationsCalculatorV2 = functions.firestore
         const goalAmount: number = snapshot.get('goalAmount')
         //Retrieve user id
         const uid = snapshot.get('uid')
+        if (snapshot.get('goalCategory') === 'Investment') {
+            const investmentDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
+                .where('goalCategory', '==', 'Investment').get()
+            console.log(`How many investment goals? ${investmentDocuments.docs.length}`)
+            for (let index = 0; index < investmentDocuments.docs.length; index ++) {
+                var currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
+                const averageAmount: number = (goalAmount / investmentDocuments.docs.length)
+                currentAmount = currentAmount + averageAmount
+            
+                await db.collection('users').doc(uid)
+                .collection('goals').doc(investmentDocuments.docs[index].id).update({'goalAmount': currentAmount})
+            }
+        }
+        if (snapshot.get('goalCategory') === 'Saving') {
+            const lFDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals').where('goalCategory', '==', 'Loan Fund').limit(1).get()
+            lFDocuments.docs.forEach(async (element) => {
+                // var amountCurrent = element.get('loanAmount')
+                // amountCurrent = amountCurrent + goalAmount
+                await db.collection('users').doc(uid)
+                .collection('goals').doc(element.id).update({'goalAmount': superadmin.firestore.FieldValue.increment(goalAmount)})
+            })
+        }
         const docs = await db.collection('users').doc(uid).collection('goals').get()
         const allDocs: Array<DocumentSnapshot> = docs.docs
         //Periods placeholder
@@ -177,13 +199,9 @@ exports.allocationsCalculatorV2 = functions.firestore
         console.log(`Allocation Percents: ${allocationpercents}`)
         //Update each document with new allocations
         for (let index = 0; index < documentIds.length; index ++) {
-            var newAmount: number = amounts[index]
-            const avg: number = (goalAmount / documentIds.length)
-            newAmount = newAmount + avg
             await db.collection('users').doc(uid)
                 .collection('goals').doc(documentIds[index]).update(
-                    {'goalAllocation':allocationpercents[index],
-                     'goalAmount': newAmount})
+                    {'goalAllocation':allocationpercents[index]})
         }
         //Update User Targets
         const dailyTarget: number = (totalAdjusted / 365)
