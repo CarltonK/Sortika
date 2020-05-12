@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/api/helper.dart';
 import 'package:wealth/home_screens/autoCreate.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
@@ -41,6 +42,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   //Authentication
   AuthService authService = AuthService();
+  Helper helper = new Helper();
 
   static String uid;
   User userData;
@@ -323,8 +325,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 Text('${dailyTarget.toStringAsFixed(2)}',
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
-                          color: Colors.white,
-                        fontWeight: FontWeight.bold,),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ))
               ],
             ),
@@ -366,8 +369,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 Text('${weeklyTarget.toStringAsFixed(2)}',
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
-                          color: Colors.white,
-                        fontWeight: FontWeight.bold,),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ))
               ],
             ),
@@ -409,8 +413,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 Text('${monthlyTarget.toStringAsFixed(2)}',
                     style: GoogleFonts.muli(
                       textStyle: TextStyle(
-                          color: Colors.white,
-                        fontWeight: FontWeight.bold,),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ))
               ],
             ),
@@ -796,7 +801,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               text: TextSpan(children: [
             diff >= 2
                 ? TextSpan(
-                text: 'Your current savings rate is  ',
+                    text: 'Your current savings rate is  ',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(color: Colors.black)))
                 : TextSpan(
@@ -814,7 +819,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             fontSize: 22),
                         decoration: TextDecoration.underline))
                 : TextSpan(
-                text: '5200 KES',
+                    text: '5200 KES',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.black,
@@ -1385,6 +1390,39 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+    Future _loanRejection(Map<String, dynamic> data) {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                EvilIcons.check,
+                color: Colors.greenAccent[700],
+                size: 50,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                  'You have rejected a loan request from ${data['borrowerName']}',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          fontWeight: FontWeight.normal, color: Colors.black)),
+                  textAlign: TextAlign.center)
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future _showUserProgress() {
     return showCupertinoModalPopup(
         context: context,
@@ -1418,10 +1456,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   Future _updateLoanDoc(String docId, String uid, String borrower) async {
     //Change loanStatus to true
-    await _firestore
-        .collection("loans")
-        .document(docId)
-        .updateData({'loanStatus': true, 'loanLender': uid});
+    await _firestore.collection("loans").document(docId).updateData({
+      'loanStatus': true,
+      'loanLender': uid,
+      'loanLenderName': userData.fullName.split(' ')[0],
+      'loanLenderToken': userData.token
+    });
 
     ActivityModel loanAcceptedAct = new ActivityModel(
         activity: 'Loan request accepted', activityDate: Timestamp.now());
@@ -1429,7 +1469,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   Future _lendingOptions(Map<String, dynamic> loanData) {
-    print('Loan Data: $loanData');
+    // print('Loan Data: ${loanData['docId']}');
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
@@ -1460,7 +1500,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     //Pop the Action Sheet First
                     Navigator.of(context).pop();
 
-                    Navigator.of(context).pushNamed('/update-loan');
+                    Navigator.of(context)
+                        .pushNamed('/update-loan', arguments: loanData);
                   },
                   child: Text(
                     'UPDATE',
@@ -1469,8 +1510,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   )),
             ],
             cancelButton: CupertinoActionSheetAction(
-                onPressed: () {
-                  Navigator.of(context).pop();
+                onPressed: () async {
+                   //Pop the Action Sheet First
+                    Navigator.of(context).pop();
+                    ActivityModel rejectAct = new ActivityModel(
+                      activity: 'You rejected a loan request',
+                      activityDate: Timestamp.now()
+                    );
+                    await authService.postActivity(uid, rejectAct);
+                    await helper.rejectLoanDoc(loanData['docId']).whenComplete(() => _loanRejection(loanData));
                 },
                 child: Text(
                   'REJECT',
@@ -1485,6 +1533,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget _singleLoanGiven(DocumentSnapshot doc) {
     //Retrieve LoanModel from doc
     LoanModel model = LoanModel.fromJson(doc.data);
+    print(model.loanStatus);
 
     //Placeholder Map to be passed to pay loan page
     Map<String, dynamic> loanData = doc.data;
@@ -1520,7 +1569,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               child: Text(
                 model.loanBorrower == null
                     ? 'Pending'
-                    : '${model.loanInviteeName}',
+                    : '${model.borrowerName}',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -1528,24 +1577,34 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
           Align(
             alignment: Alignment.topRight,
-            child: model.loanStatus
+            child: model.loanStatus == true
                 ? Container()
-                : GestureDetector(
-                    onTap: () {
-                      _lendingOptions(loanData);
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(20)),
-                          color: Colors.transparent),
-                      child: Icon(
-                        Icons.edit,
-                        color: Colors.white,
+                : model.loanStatus == 'Revised'
+                    ? Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                      child: Text(
+                          'Revised',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                        ),
+                    )
+                    : GestureDetector(
+                        onTap: () {
+                          _lendingOptions(loanData);
+                        },
+                        child: Container(
+                          padding:
+                              EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(20)),
+                              color: Colors.transparent),
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
           ),
           Align(
             alignment: Alignment.center,
@@ -1557,7 +1616,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 RichText(
                     text: TextSpan(children: [
                   TextSpan(
-                      text: model.loanStatus
+                      text: model.loanStatus == true
                           ? 'They have repaid '
                           : 'They have requested ',
                       style: GoogleFonts.muli(
@@ -2698,7 +2757,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           Map<String, dynamic> data = {
                             'uid': userData.uid,
                             'token': userData.token,
-                            'name': userData.fullName.split(' ')[0]
+                            'name': userData.fullName.split(' ')[0],
+                            'phone': userData.phone
                           };
                           //Pop the dialog first then open page
                           Navigator.of(context).pop();

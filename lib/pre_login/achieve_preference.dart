@@ -32,6 +32,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
   static String uid;
   static String token;
   static String name;
+  static String phone;
 
   Firestore _firestore = Firestore.instance;
 
@@ -184,6 +185,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
         ? BorrowPage(
             uid: uid,
             mytoken: token,
+            phone: phone,
             name: name,
           )
         : goal == 'Lend Money'
@@ -270,6 +272,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
     uid = userData["uid"];
     token = userData["token"];
     name = userData["name"];
+    phone = userData["phone"];
 
     return Scaffold(
       body: GestureDetector(

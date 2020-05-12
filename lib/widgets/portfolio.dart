@@ -423,26 +423,26 @@ class _PortfolioState extends State<Portfolio> {
               if (snapshot.data.documents.length == 0) {
                 return Center(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.sentiment_neutral,
-                          size: 100,
-                          color: Colors.red,
-                        ),
-                        Text(
-                          'You do not have any savings',
-                          style: GoogleFonts.muli(
-                              textStyle: TextStyle(
-                                  fontWeight: FontWeight.w700, fontSize: 16)),
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                      ],
-                    ));
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.sentiment_neutral,
+                      size: 100,
+                      color: Colors.red,
+                    ),
+                    Text(
+                      'You do not have any savings',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 16)),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                  ],
+                ));
               }
               return pie.PieChart(
                 dataMap: _retrieveAssets(snapshot.data.documents),
@@ -463,26 +463,26 @@ class _PortfolioState extends State<Portfolio> {
             if (!snapshot.hasData) {
               return Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.sentiment_neutral,
-                        size: 100,
-                        color: Colors.red,
-                      ),
-                      Text(
-                        'You do not have any savings',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 16)),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                    ],
-                  ));
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.sentiment_neutral,
+                    size: 100,
+                    color: Colors.red,
+                  ),
+                  Text(
+                    'You do not have any savings',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 16)),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                ],
+              ));
             }
             return SpinKitDoubleBounce(
               size: MediaQuery.of(context).size.height * 0.25,

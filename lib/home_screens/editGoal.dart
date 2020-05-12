@@ -731,12 +731,12 @@ class _EditGoalState extends State<EditGoal> {
         actions: [
           data["isGoalDeletable"]
               ? data['goalAmountSaved'] == 0
-              ? IconButton(
-            icon: Icon(Icons.delete),
-            color: Colors.red,
-            onPressed: _deleteGoal,
-          ) :
-          Text('')
+                  ? IconButton(
+                      icon: Icon(Icons.delete),
+                      color: Colors.red,
+                      onPressed: _deleteGoal,
+                    )
+                  : Text('')
               : Text('')
         ],
       ),

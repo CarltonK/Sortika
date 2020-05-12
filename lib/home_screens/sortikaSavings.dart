@@ -18,19 +18,19 @@ class _SortikaSavingsState extends State<SortikaSavings> {
         children: [
           RichText(
               text: TextSpan(children: [
-                TextSpan(
-                    text: 'You have accumulated  ',
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(color: Colors.black))),
-                TextSpan(
-                    text: '100 Points',
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
-                        decoration: TextDecoration.underline)),
-              ])),
+            TextSpan(
+                text: 'You have accumulated  ',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(color: Colors.black))),
+            TextSpan(
+                text: '100 Points',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18),
+                    decoration: TextDecoration.underline)),
+          ])),
         ],
       ),
     );
@@ -95,7 +95,7 @@ class _SortikaSavingsState extends State<SortikaSavings> {
 
   Future<QuerySnapshot> getRedeemables() async {
     QuerySnapshot queries =
-    await _firestore.collection('redeemables').getDocuments();
+        await _firestore.collection('redeemables').getDocuments();
     return queries;
   }
 
@@ -127,8 +127,8 @@ class _SortikaSavingsState extends State<SortikaSavings> {
             'Here\'s what you can redeem',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
-                  color: Colors.black,
-                )),
+              color: Colors.black,
+            )),
           ),
           Expanded(
               child: FutureBuilder<QuerySnapshot>(
@@ -136,8 +136,9 @@ class _SortikaSavingsState extends State<SortikaSavings> {
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       return ListView(
-                        children: snapshot.data.documents.map(
-                                (map) => _cardRedeemItem(map)).toList(),
+                        children: snapshot.data.documents
+                            .map((map) => _cardRedeemItem(map))
+                            .toList(),
                       );
                     }
                     return Center(

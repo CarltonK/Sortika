@@ -13,6 +13,7 @@ class _BorrowAllState extends State<BorrowAll> {
   static String uid;
   static String token;
   static String name;
+  static String phone;
   @override
   Widget build(BuildContext context) {
     //Retrieve uid
@@ -20,7 +21,8 @@ class _BorrowAllState extends State<BorrowAll> {
     uid = userData['uid'];
     token = userData['token'];
     name = userData["name"];
-    print('Borrow Page Uid: $uid');
+    phone = userData["phone"];
+    //print('Borrow Page Uid: $uid');
 
     return Scaffold(
       appBar: AppBar(
@@ -42,6 +44,7 @@ class _BorrowAllState extends State<BorrowAll> {
                 child: BorrowPage(
                   uid: uid,
                   mytoken: token,
+                  phone: phone,
                   name: name,
                 ))
           ],

@@ -38,13 +38,8 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
   }
 
   LineChartData mainData(double amount, Timestamp end, var saved) {
-    int daysDiff = end
-        .toDate()
-        .difference(rightNow)
-        .inDays;
+    int daysDiff = end.toDate().difference(rightNow).inDays;
     print(daysDiff);
-
-
 
     return LineChartData(
       titlesData: FlTitlesData(
@@ -97,7 +92,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
         ),
       ),
       borderData: FlBorderData(
-          show: false,
+        show: false,
       ),
       minX: 0,
       maxX: 12,
@@ -194,43 +189,32 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
         Text(
           goal.goalClass,
           style: GoogleFonts.muli(
-              textStyle:
-              TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         ),
         SizedBox(
           height: 5,
         ),
         Card(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 2,
           child: Container(
-            height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.4,
+            height: MediaQuery.of(context).size.height * 0.4,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               gradient: LinearGradient(
                   tileMode: TileMode.clamp,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Colors.lightBlue[400],
-                    Colors.greenAccent[400]
-                  ],
-                  stops: [
-                    0,
-                    1.0
-                  ]),
+                  colors: [Colors.lightBlue[400], Colors.greenAccent[400]],
+                  stops: [0, 1.0]),
             ),
             child: Stack(
               children: [
                 Align(
                   alignment: Alignment.topLeft,
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 5, horizontal: 8),
+                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
@@ -258,18 +242,15 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 15, horizontal: 10),
-                    child: LineChart(
-                        mainData(goal.goalAmount, goal.goalEndDate,
-                            goal.goalAmountSaved)),
+                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    child: LineChart(mainData(goal.goalAmount, goal.goalEndDate,
+                        goal.goalAmountSaved)),
                   ),
                 ),
                 Align(
                   alignment: Alignment.topRight,
                   child: Container(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 5, horizontal: 8),
+                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
@@ -312,21 +293,18 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                         duration: Duration(milliseconds: 200),
                         curve: Curves.ease);
                   },
-                  children: snapshot.data.documents.map(
-                          (element) => _singlePortfolioView(element)).toList(),
+                  children: snapshot.data.documents
+                      .map((element) => _singlePortfolioView(element))
+                      .toList(),
                 );
               }
               return Center(
                 child: SpinKitDoubleBounce(
-                  size: MediaQuery
-                      .of(context)
-                      .size
-                      .height * 0.25,
+                  size: MediaQuery.of(context).size.height * 0.25,
                   color: Colors.greenAccent[700],
                 ),
               );
-            }
-        ));
+            }));
   }
 
   Widget _singleTransaction() {
@@ -465,7 +443,6 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {

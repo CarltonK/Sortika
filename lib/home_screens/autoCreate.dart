@@ -327,8 +327,7 @@ class _AutoCreateState extends State<AutoCreate> {
                           height: 10,
                         ),
                         Text(
-                            'Principal Amount: ${_amount.toInt()
-                                .toString()} KES',
+                            'Principal Amount: ${_amount.toInt().toString()} KES',
                             style: GoogleFonts.muli(textStyle: TextStyle())),
                         SizedBox(
                           height: 10,
@@ -357,17 +356,19 @@ class _AutoCreateState extends State<AutoCreate> {
                   onPressed: () async {
                     //Delete the document after dismissing the dialog
                     Navigator.of(context).pop();
-                    await _firestore.collection('autocreates')
+                    await _firestore
+                        .collection('autocreates')
                         .document(docID)
                         .delete();
                   },
                   child: Text(
                     'OKAY',
-                    style: GoogleFonts.muli(textStyle: TextStyle(
-                        fontSize: 18,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold
-                    )),))
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 18,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold)),
+                  ))
             ],
           );
         });

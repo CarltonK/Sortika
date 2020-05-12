@@ -31,4 +31,22 @@ class Helper {
     //print(queries.documents[0].data);
     return queries;
   }
+
+  //Loan Lender Update Document
+  Future updateLoanDoc(String docId, num amount, num interest) async {
+    double amountToPay = (amount * (1 + (interest / 100)));
+    await _firestore.collection('loans').document(docId).updateData({
+      'loanStatus': 'Revised',
+      'loanAmountTaken': amount,
+      'loanInterest': interest,
+      'totalAmountToPay': amountToPay
+    });
+  }
+
+  //Loan Rejection
+  Future rejectLoanDoc(String docId) async {
+    await _firestore.collection('loans').document(docId).updateData({
+      'loanStatus': 'Rejected'
+    });
+  }
 }

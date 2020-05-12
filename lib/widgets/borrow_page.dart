@@ -16,10 +16,13 @@ class BorrowPage extends StatefulWidget {
   final String uid;
   final String mytoken;
   final String name;
+  final String phone;
+
   BorrowPage(
       {Key key,
       @required this.uid,
       @required this.mytoken,
+      @required this.phone,
       @required this.name})
       : super(key: key);
 
@@ -142,14 +145,6 @@ class _BorrowPageState extends State<BorrowPage> {
           color: Colors.transparent,
         ),
         value: typeLoan,
-        hint: Text(
-          '',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600)),
-        ),
         icon: Icon(
           CupertinoIcons.down_arrow,
           color: Colors.black,
@@ -165,6 +160,7 @@ class _BorrowPageState extends State<BorrowPage> {
               lender = null;
             }
           });
+          print(lender);
         },
       ),
     );
@@ -438,6 +434,7 @@ class _BorrowPageState extends State<BorrowPage> {
       _idInvitee = doc.data['uid'];
       print(_loanInviteeName);
       print(_loanInviteetoken);
+      print(_phoneRetrieved);
       return true;
     } else {
       return false;
@@ -462,7 +459,8 @@ class _BorrowPageState extends State<BorrowPage> {
           Navigator.of(context).pop();
           //Show the new dialog
           _promptLenderFound();
-          if (_phoneRetrieved == _phone) {
+          if (_phoneRetrieved == widget.phone) {
+            //print('Retrieved \t${_phoneRetrieved}\nMine: \t${widget.phone}');
             lender = widget.uid;
             takeLoanFrom = widget.uid;
             lenderName = widget.name;
@@ -471,7 +469,12 @@ class _BorrowPageState extends State<BorrowPage> {
               typeLoan = 'self';
             });
           } else {
+            //print('Not Me');
             takeLoanFrom = _idInvitee;
+            lender = null;
+            lenderName = null;
+            lenderToken = null;
+            print(takeLoanFrom);
           }
         } else {
           //Pop the initial dialog
