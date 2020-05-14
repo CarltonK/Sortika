@@ -21,6 +21,7 @@ import 'package:wealth/home_screens/updateLoan.dart';
 import 'package:wealth/onboarding.dart';
 import 'package:wealth/pre_login/achieve_preference.dart';
 import 'package:wealth/admin/admin.dart';
+import 'package:wealth/home_screens/reviseLoan.dart';
 
 void main() {
   //Set `enableInDevMode` to true to see reports while in debug mode
@@ -69,7 +70,7 @@ class MyApp extends StatelessWidget {
         '/edit-group': (context) => EditGroup(),
         '/pay-loan': (context) => PayLoan(),
         '/update-loan': (context) => UpdateLoan(),
-        '/notifications': (context) => NotificationsPage(),
+        '/negotiate': (context) => ReviseLoan(),
         //Admin
         '/admin': (context) => AdminHome(),
       },

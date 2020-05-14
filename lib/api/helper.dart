@@ -43,10 +43,49 @@ class Helper {
     });
   }
 
+  //Loan Borrower Revise Loan
+  Future reviseLoanDoc(String docId, num amount, num interest) async {
+    double amountToPay = (amount * (1 + (interest / 100)));
+    await _firestore.collection('loans').document(docId).updateData({
+      'loanStatus': 'Revised2',
+      'loanAmountTaken': amount,
+      'loanInterest': interest,
+      'totalAmountToPay': amountToPay
+    });
+  }
+
   //Loan Rejection
   Future rejectLoanDoc(String docId) async {
-    await _firestore.collection('loans').document(docId).updateData({
-      'loanStatus': 'Rejected'
-    });
+    await _firestore
+        .collection('loans')
+        .document(docId)
+        .updateData({'loanStatus': 'Rejected'});
+  }
+
+  //Fetch user notifications
+  Future<QuerySnapshot> getUserNotification(String uid) async {
+    QuerySnapshot snapshot = await _firestore
+        .collection('users')
+        .document(uid)
+        .collection('notifications')
+        .getDocuments();
+    return snapshot;
+  }
+
+  //Get Group Goal
+  Future<DocumentSnapshot> getGroupGoal(String uid, String code) async {
+    QuerySnapshot queries = await _firestore
+        .collection('users')
+        .document(uid)
+        .collection('goals')
+        .where('goalCategory', isEqualTo: 'Group')
+        .where('groupCode', isEqualTo: code)
+        .getDocuments();
+
+    if (queries.documents.first != null) {
+      return queries.documents.first;
+    } else {
+      return null;
+    }
   }
 }

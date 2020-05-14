@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:wealth/api/helper.dart';
+import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -21,6 +23,7 @@ class _EditGroupState extends State<EditGroup> {
   final Firestore _firestore = Firestore.instance;
   Future<DocumentSnapshot> singleUserDoc;
   List<Map> users = [];
+  Helper _helper = new Helper();
 
   Future<bool> _leaveGroup() async {
     if (data["groupAdmin"] == data["uid"]) {
@@ -344,11 +347,82 @@ class _EditGroupState extends State<EditGroup> {
     return queries;
   }
 
-  void _nudgeMember(int index, User user) async {
-    await _firestore
-        .collection("nudges")
-        .document()
-        .setData({'token': user.token});
+  // void _nudgeMember(int index, User user) async {
+  //   await _firestore
+  //       .collection("nudges")
+  //       .document()
+  //       .setData({'token': user.token});
+  // }
+
+  Future showMemberStats(String uid) async {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Center(
+            child: Text('Member Details',
+                style: GoogleFonts.muli(textStyle: TextStyle())),
+          ),
+          content: Container(
+            height: MediaQuery.of(context).size.height * 0.25,
+            width: MediaQuery.of(context).size.width,
+            child: FutureBuilder<DocumentSnapshot>(
+              future: _helper.getGroupGoal(uid, data['groupCode']),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  GroupModel model = GroupModel.fromJson(snapshot.data.data);
+
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Target:',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600))),
+                          Text('${model.goalAmount} KES',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold))),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Contributed:',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600))),
+                          Text('${model.goalAmountSaved} KES',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold))),
+                        ],
+                      ),
+                    ],
+                  );
+                }
+                return SpinKitDoubleBounce(
+                  color: commonColor,
+                  size: MediaQuery.of(context).size.height * 0.2,
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _groupMembers() {
@@ -420,14 +494,15 @@ class _EditGroupState extends State<EditGroup> {
                                 right: 1,
                                 top: 1,
                                 child: IconButton(
-                                  icon: Icon(
-                                      MaterialCommunityIcons.human_greeting),
-                                  tooltip: 'Nudge',
-                                  onPressed: () =>
-                                      data["uid"] == data['members'][index]
-                                          ? null
-                                          : _nudgeMember(index, user),
-                                ),
+                                    icon: Icon(
+                                        MaterialCommunityIcons.human_greeting),
+                                    tooltip: 'Stats',
+                                    onPressed: () => showMemberStats(snapshot
+                                        .data.documents[index].documentID)
+                                    // data["uid"] == data['members'][index]
+                                    //     ? null
+                                    //     : _nudgeMember(index, user),
+                                    ),
                               )
                             ],
                           ),

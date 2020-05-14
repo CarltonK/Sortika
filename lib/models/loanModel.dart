@@ -21,7 +21,7 @@ class LoanModel {
   String borrowerName;
   //Loan Details
   double loanAmountTaken;
-  double loanAmountRepaid;
+  var loanAmountRepaid;
   double loanInterest;
   Timestamp loanEndDate;
   Timestamp loanTakenDate;

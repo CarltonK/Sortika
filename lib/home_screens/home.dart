@@ -16,6 +16,7 @@ import 'package:wealth/home_screens/autoCreate.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
+import 'package:wealth/home_screens/notifications.dart';
 import 'package:wealth/home_screens/sortikaLottery.dart';
 import 'package:wealth/home_screens/sortikaSavings.dart';
 import 'package:wealth/models/activityModel.dart';
@@ -136,8 +137,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               textStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 24)),
         ),
         IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () => Navigator.of(context).pushNamed('/notifications')),
+          icon: Icon(Icons.notifications),
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => NotificationsPage(
+                          uid: uid,
+                        )));
+          },
+        )
       ],
     );
   }
@@ -1194,33 +1203,73 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
           Align(
             alignment: Alignment.topRight,
-            child: model.loanStatus
-                ? GestureDetector(
-                    onTap: () => Navigator.of(context)
-                        .pushNamed('/pay-loan', arguments: loanData),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(20)),
-                          color: Colors.transparent),
-                      child: Icon(
-                        Icons.edit,
-                        color: Colors.white,
-                      ),
-                    ),
-                  )
-                : Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            child: model.loanStatus == 'Rejected'
+                ? Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                     child: Text(
-                      'Pending',
+                      'Rejected',
                       style: GoogleFonts.muli(
                           textStyle: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600)),
                     ),
-                  ),
+                  )
+                : model.loanStatus == 'Revised'
+                    ? GestureDetector(
+                        onTap: () => _lendingOptions(loanData),
+                        child: Container(
+                          padding:
+                              EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(20)),
+                              color: Colors.transparent),
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    : model.loanStatus == 'Revised2'
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 8),
+                            child: Text(
+                              'Revision',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600)),
+                            ))
+                        : model.loanStatus
+                            ? GestureDetector(
+                                onTap: () => Navigator.of(context).pushNamed(
+                                    '/pay-loan',
+                                    arguments: loanData),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 4),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(20)),
+                                      color: Colors.transparent),
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 8),
+                                child: Text(
+                                  'Pending',
+                                  style: GoogleFonts.muli(
+                                      textStyle: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                              ),
           ),
           Align(
             alignment: Alignment.center,
@@ -1229,38 +1278,65 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                model.loanStatus
-                    ? RichText(
-                        text: TextSpan(children: [
-                        TextSpan(
-                            text: 'You have repaid ',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(color: Colors.white))),
-                        TextSpan(
-                            text:
-                                '${model.loanAmountRepaid.toInt().toString()}',
-                            style: GoogleFonts.muli(
-                              textStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18),
-                            )),
-                      ]))
-                    : RichText(
-                        text: TextSpan(children: [
-                        TextSpan(
-                            text: 'You have requested ',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(color: Colors.white))),
-                        TextSpan(
-                            text: '${model.loanAmountTaken.toInt().toString()}',
+                model.loanStatus == 'Rejected'
+                    ? Text('Your loan request has been rejected',
+                        style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ))
+                    : model.loanStatus == 'Revised'
+                        ? Text('Your loan request has been revised',
                             style: GoogleFonts.muli(
                               textStyle: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 18),
-                            )),
-                      ])),
+                                  fontSize: 16),
+                            ))
+                        : model.loanStatus == 'Revised2'
+                            ? Text('You have sent a revision',
+                                style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16),
+                                ))
+                            : model.loanStatus
+                                ? RichText(
+                                    text: TextSpan(children: [
+                                    TextSpan(
+                                        text: 'You have repaid ',
+                                        style: GoogleFonts.muli(
+                                            textStyle: TextStyle(
+                                                color: Colors.white))),
+                                    TextSpan(
+                                        text:
+                                            '${model.loanAmountRepaid.toInt().toString()}',
+                                        style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18),
+                                        )),
+                                  ]))
+                                : RichText(
+                                    text: TextSpan(children: [
+                                    TextSpan(
+                                        text: 'You have requested ',
+                                        style: GoogleFonts.muli(
+                                            textStyle: TextStyle(
+                                                color: Colors.white))),
+                                    TextSpan(
+                                        text:
+                                            '${model.loanAmountTaken.toInt().toString()}',
+                                        style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18),
+                                        )),
+                                  ])),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Row(
@@ -1274,7 +1350,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       Expanded(
                         child: Slider(
-                            value: model.loanAmountRepaid,
+                            value:
+                                double.parse(model.loanAmountRepaid.toString()),
                             min: 0,
                             max: model.totalAmountToPay,
                             onChanged: (value) {}),
@@ -1378,7 +1455,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 height: 10,
               ),
               Text(
-                  'We will send ${data['loanAmountTaken'].toString()} KES to ${data['loanInviteeName']}',
+                  'We will send ${data['loanAmountTaken'].toString()} KES to ${data['borrowerName']}',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(
                           fontWeight: FontWeight.normal, color: Colors.black)),
@@ -1390,7 +1467,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-    Future _loanRejection(Map<String, dynamic> data) {
+  Future _loanRejection(Map<String, dynamic> data) {
     return showCupertinoModalPopup(
       context: context,
       builder: (context) {
@@ -1454,12 +1531,28 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         });
   }
 
-  Future _updateLoanDoc(String docId, String uid, String borrower) async {
+  Future _updateLoanDoc(
+      String docId, String uid, String lenderName, String borrower) async {
     //Change loanStatus to true
     await _firestore.collection("loans").document(docId).updateData({
       'loanStatus': true,
       'loanLender': uid,
-      'loanLenderName': userData.fullName.split(' ')[0],
+      'loanLenderName': lenderName,
+      'loanLenderToken': userData.token
+    });
+
+    ActivityModel loanAcceptedAct = new ActivityModel(
+        activity: 'Loan request accepted', activityDate: Timestamp.now());
+    await authService.postActivity(borrower, loanAcceptedAct);
+  }
+
+  Future _updateRevision(
+      String docId, String uid, String lenderName, String borrower) async {
+    //Change loanStatus to true
+    await _firestore.collection("loans").document(docId).updateData({
+      'loanStatus': true,
+      'loanLender': uid,
+      'loanLenderName': lenderName,
       'loanLenderToken': userData.token
     });
 
@@ -1484,41 +1577,57 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   onPressed: () {
                     //Pop the Action Sheet First
                     Navigator.of(context).pop();
-                    _updateLoanDoc(
-                            loanData['docId'], uid, loanData['loanBorrower'])
-                        .whenComplete(() {
-                      _loanAcceptance(loanData);
-                    });
+                    loanData['loanStatus'] == 'Revised'
+                        ? _updateRevision(
+                                loanData['docId'],
+                                loanData['loanInvitees'],
+                                loanData['loanInviteeName'],
+                                loanData['loanBorrower'])
+                            .whenComplete(() => _loanAcceptance(loanData))
+                        : _updateLoanDoc(
+                                loanData['docId'],
+                                uid,
+                                userData.fullName.split(' ')[0],
+                                loanData['loanBorrower'])
+                            .whenComplete(() {
+                            _loanAcceptance(loanData);
+                          });
                   },
                   child: Text(
                     'ACCEPT',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(fontWeight: FontWeight.bold)),
                   )),
-              CupertinoActionSheetAction(
-                  onPressed: () {
-                    //Pop the Action Sheet First
-                    Navigator.of(context).pop();
+              loanData['loanStatus'] != 'Revised2'
+                  ? CupertinoActionSheetAction(
+                      onPressed: () {
+                        //Pop the Action Sheet First
+                        Navigator.of(context).pop();
 
-                    Navigator.of(context)
-                        .pushNamed('/update-loan', arguments: loanData);
-                  },
-                  child: Text(
-                    'UPDATE',
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(fontWeight: FontWeight.bold)),
-                  )),
+                        loanData['loanStatus'] == 'Revised'
+                            ? Navigator.of(context)
+                                .pushNamed('/negotiate', arguments: loanData)
+                            : Navigator.of(context)
+                                .pushNamed('/update-loan', arguments: loanData);
+                      },
+                      child: Text(
+                        'UPDATE',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(fontWeight: FontWeight.bold)),
+                      ))
+                  : Container(),
             ],
             cancelButton: CupertinoActionSheetAction(
                 onPressed: () async {
-                   //Pop the Action Sheet First
-                    Navigator.of(context).pop();
-                    ActivityModel rejectAct = new ActivityModel(
+                  //Pop the Action Sheet First
+                  Navigator.of(context).pop();
+                  ActivityModel rejectAct = new ActivityModel(
                       activity: 'You rejected a loan request',
-                      activityDate: Timestamp.now()
-                    );
-                    await authService.postActivity(uid, rejectAct);
-                    await helper.rejectLoanDoc(loanData['docId']).whenComplete(() => _loanRejection(loanData));
+                      activityDate: Timestamp.now());
+                  await authService.postActivity(uid, rejectAct);
+                  await helper
+                      .rejectLoanDoc(loanData['docId'])
+                      .whenComplete(() => _loanRejection(loanData));
                 },
                 child: Text(
                   'REJECT',
@@ -1581,13 +1690,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 ? Container()
                 : model.loanStatus == 'Revised'
                     ? Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                      child: Text(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        child: Text(
                           'Revised',
                           style: GoogleFonts.muli(
-                              textStyle: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                              textStyle: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white)),
                         ),
-                    )
+                      )
                     : GestureDetector(
                         onTap: () {
                           _lendingOptions(loanData);
@@ -1647,7 +1759,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         child: Slider(
                             value: model.loanAmountRepaid == null
                                 ? 0
-                                : model.loanAmountRepaid,
+                                : double.parse(
+                                    model.loanAmountRepaid.toString()),
                             min: 0,
                             max: model.totalAmountToPay,
                             onChanged: (value) {}),

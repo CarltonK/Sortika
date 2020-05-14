@@ -5,26 +5,32 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
+//import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:wealth/main.dart';
+//import 'package:wealth/home_screens/home.dart';
+// import 'package:wealth/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  testWidgets('Quick action button pressed', (WidgetTester tester) async {
+  //   // Build our app and trigger a frame.
+  //   await tester.pumpWidget(Home());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  //   //Verify that FAB Click shows a cupertino action sheet
+  //   //Step 1 - Create Finders
+  //   final iconFinder = find.byWidget(FloatingActionButton(onPressed: null, child: IconButton(icon: null, onPressed: null),));
+  //   //Step 2 - Match the finders
+  //   expect(iconFinder, findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  //   // // Verify that our counter starts at 0.
+  //   // expect(find.text('0'), findsOneWidget);
+  //   // expect(find.text('1'), findsNothing);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  //   // // Tap the '+' icon and trigger a frame.
+  //   // await tester.tap(find.byIcon(Icons.add));
+  //   // await tester.pump();
+
+  //   // // Verify that our counter has incremented.
+  //   // expect(find.text('0'), findsNothing);
+  //   // expect(find.text('1'), findsOneWidget);
   });
 }

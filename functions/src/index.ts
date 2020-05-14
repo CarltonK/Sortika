@@ -223,12 +223,13 @@ NOTIFICATIONS
 export const promptLendRequest = functions.firestore
     .document('loans/{loan}')
     .onCreate(async snapshot => {
+        const token: string = snapshot.get('tokenInvitee')
+        const amount: number = snapshot.get('loanAmountTaken')
+        const interest: number = snapshot.get('loanInterest')
+        const invitees: string | Array<any> = snapshot.get('loanInvitees')
         //Retrieve the token (If exists)
-        if (snapshot.get('tokenInvitee') != null) {
+        if (token != null) {
             //Retrieve key info
-            const token: string = snapshot.get('tokenInvitee')
-            const amount: number = snapshot.get('loanAmountTaken')
-            const interest: number = snapshot.get('loanInterest')
             //Define the payload
             const payload = {
                 notification: {
@@ -237,8 +238,54 @@ export const promptLendRequest = functions.firestore
                     clickAction: 'FLUTTER_NOTIFICATION_CLICK'
                 }
             }
-            console.log(payload);
-            //Send to all tenants in the topic "landlord_code"
+            if (typeof invitees === "string") {
+                await db.collection('users').doc(invitees).collection('notifications').doc().set({
+                    'message': `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
+                    'time': superadmin.firestore.FieldValue.serverTimestamp()
+                })
+            }
+            else {
+                invitees.forEach(async (element) => {
+                    await db.collection('users').doc(element).collection('notifications').doc().set({
+                        'message': `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
+                        'time': superadmin.firestore.FieldValue.serverTimestamp()
+                    })
+                })
+            }
+            //console.log(payload);
+            return fcm.sendToDevice(token, payload)
+                .catch(error => {
+                console.error('promptLendRequest FCM Error',error)
+        })
+        }
+    })
+
+export const ackBorrowRequest = functions.firestore
+    .document('loans/{loan}')
+    .onCreate(async snapshot => {
+        //Retrieve the token (If exists)
+        const token: string = snapshot.get('tokenBorrower')
+        const amount: number = snapshot.get('loanAmountTaken')
+        const interest: number = snapshot.get('loanInterest')
+        const borrowerUid: string = snapshot.get('loanBorrower')
+
+        if (token != null) {
+            //Retrieve key info
+            //Define the payload
+            const payload = {
+                notification: {
+                    title: `Wasn't that easy ?`,
+                    body: `Your request for ${amount} KES at an interest rate of ${interest} % has been sent successfully`,
+                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+                }
+            }
+            //Create a notification for the borrower
+            //Store in notifications subcollection of user
+            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                'message': `Your request for ${amount} KES at an interest rate of ${interest} % has been sent successfully`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
+            //console.log(payload);
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
                 console.error('promptLendRequest FCM Error',error)
@@ -250,15 +297,15 @@ export const promptLendRequest = functions.firestore
 export const promptLoanAccepted = functions.firestore
     .document('loans/{loan}')
     .onWrite(async snapshot => {
+        const token: string = snapshot.after.get('tokenBorrower')
+            const amount: number = snapshot.after.get('loanAmountTaken')
+            const due: number = snapshot.after.get('totalAmountToPay')
+            const borrowerUid: string = snapshot.after.get('loanBorrower')
+            const time: FirebaseFirestore.Timestamp = snapshot.after.get('loanEndDate')
+            const date: Date = time.toDate()
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === true) {
             //Retrieve key info
-            const token: string = snapshot.after.get('tokenBorrower')
-            const amount: number = snapshot.after.get('loanAmountTaken')
-            const due: number = snapshot.after.get('totalAmountToPay')
-
-            const time: FirebaseFirestore.Timestamp = snapshot.after.get('loanEndDate')
-            const date: Date = time.toDate()
             //Define the payload
             const payload = {
                 notification: {
@@ -267,6 +314,12 @@ export const promptLoanAccepted = functions.firestore
                     clickAction: 'FLUTTER_NOTIFICATION_CLICK'
                 }
             }
+            //Create a notification for the borrower
+            //Store in notifications subcollection of user
+            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                'message': `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${date.toLocaleDateString()}`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
             console.log(payload);
             //Send to all tenants in the topic "landlord_code"
             return fcm.sendToDevice(token, payload)
@@ -276,17 +329,51 @@ export const promptLoanAccepted = functions.firestore
         }
     })
 
+export const promptAcceptLoan = functions.firestore
+    .document('loans/{loan}')
+    .onWrite(async snapshot => {
+            const token: string = snapshot.after.get('loanLenderToken')
+            const borrowerName: string = snapshot.after.get('borrowerName')
+            const amount: number = snapshot.after.get('loanAmountTaken')
+            const lenderUid: string = snapshot.after.get('loanLender')
+        //Retrieve the token (If exists)
+        if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === true) {
+            //Retrieve key info
+            //Define the payload
+            const payload = {
+                notification: {
+                    title: `${borrowerName} amesortika`,
+                    body: `We will deduct ${amount} KES from your wallet and send to ${borrowerName}`,
+                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+                }
+            }
+            //Create a notification for the borrower
+            //Store in notifications subcollection of user
+            await db.collection('users').doc(lenderUid).collection('notifications').doc().set({
+                'message': `We will deduct ${amount} KES from your wallet and send to ${borrowerName}`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
+            console.log(payload);
+            //Send to all tenants in the topic "landlord_code"
+            return fcm.sendToDevice(token, payload)
+                .catch(error => {
+                console.error('promptAcceptLoan FCM Error',error)
+        })
+        }
+    })
+
 export const promptLoanRevision = functions.firestore
     .document('loans/{loan}')
     .onWrite(async snapshot => {
+        const token: string = snapshot.before.get('tokenBorrower')
+        const amount: number = snapshot.after.get('loanAmountTaken')
+        const interest: number = snapshot.after.get('loanInterest')
+        const due: number = snapshot.after.get('totalAmountToPay')
+        const borrowerUid: string = snapshot.before.get('loanBorrower')
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === 'Revised') {
             //Retrieve key info
-            const token: string = snapshot.before.get('tokenBorrower')
-            const amount: number = snapshot.after.get('loanAmountTaken')
-            const interest: number = snapshot.after.get('loanInterest')
-            const due: number = snapshot.after.get('totalAmountToPay')
-
+        
             //Define the payload
             const payload = {
                 notification: {
@@ -296,24 +383,135 @@ export const promptLoanRevision = functions.firestore
                 }
             }
             console.log(payload);
+             //Create a notification for the borrower
+            //Store in notifications subcollection of user
+            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                'message': `Your loan submission has been revised. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. You will pay back ${due} KES`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
             //Send to all tenants in the topic "landlord_code"
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
                 console.error('promptLoanRevised FCM Error',error)
-        })
+            })
         }
     })
+
+    
+export const promptLoanNegotiation = functions.firestore
+    .document('loans/{loan}')
+    .onWrite(async snapshot => {
+        const token: string = snapshot.before.get('tokenBorrower')
+        const borrowerUid: string = snapshot.before.get('loanBorrower')
+        //Retrieve the token (If exists)
+        if (snapshot.before.get('loanStatus') === 'Revised' && snapshot.after.get('loanStatus') === 'Revised2') {
+            //Retrieve key info
+            //Define the payload
+            const payload = {
+                notification: {
+                    title: `Loan Revision`,
+                    body: `You have sent a revised loan request submission`,
+                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+            }
+        }
+        console.log(payload);
+         //Create a notification for the borrower
+        //Store in notifications subcollection of user
+        await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+            'message': `You have sent a revised loan request submission`,
+            'time': superadmin.firestore.FieldValue.serverTimestamp()
+        })
+        //Send to all tenants in the topic "landlord_code"
+        return fcm.sendToDevice(token, payload)
+            .catch(error => {
+            console.error('promptLoanRevised FCM Error',error)
+        })
+    }
+})
+
+export const promptReceiveNegotiation = functions.firestore
+    .document('loans/{loan}')
+    .onWrite(async snapshot => {
+        const token: string = snapshot.before.get('tokenInvitee')
+        const inviteeUid: string | Array<any> = snapshot.before.get('loanInvitees')
+        const amount: number = snapshot.after.get('loanAmountTaken')
+        const interest: number = snapshot.after.get('loanInterest')
+        const due: number = snapshot.after.get('totalAmountToPay')
+        //Retrieve the token (If exists)
+        if (snapshot.before.get('loanStatus') === 'Revised' && snapshot.after.get('loanStatus') === 'Revised2') {
+            //Retrieve key info
+            //Define the payload
+            const payload = {
+                notification: {
+                    title: `Loan Revision`,
+                    body: `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
+                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+            }
+        }
+        console.log(payload);
+        if (typeof inviteeUid == "string") {
+            await db.collection('users').doc(inviteeUid).collection('notifications').doc().set({
+                'message': `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
+            //Send to all tenants in the topic "landlord_code"
+            return fcm.sendToDevice(token, payload)
+                .catch(error => {
+                console.error('promptLoanRevised FCM Error',error)
+            }) 
+        }
+        else {
+            inviteeUid.forEach(async (element) => {
+                await db.collection('users').doc(element).collection('notifications').doc().set({
+                    'message': `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
+                    'time': superadmin.firestore.FieldValue.serverTimestamp()
+                })                
+            })
+            return null;
+        }
+    }
+})
+
+export const promptSubmitLoanRevision = functions.firestore
+    .document('loans/{loan}')
+    .onWrite(async snapshot => {
+        const token: string | Array<any> = snapshot.before.get('tokenInvitee')
+        //Retrieve the token (If exists)
+        if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === 'Revised') {
+            //Retrieve key info
+            //Define the payload
+            const payload = {
+                notification: {
+                    title: `Loan Revision`,
+                    body: `Your money, your terms`,
+                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+                }
+            }
+            console.log(payload);
+            if (typeof token === "string") {
+                return fcm.sendToDevice(token, payload)
+                .catch(error => {
+                console.error('promptLoanRevised FCM Error',error)
+            })
+            }
+            else {
+                return null;
+            }
+        }
+    })
+
+
 
 export const promptLoanRejected = functions.firestore
     .document('loans/{loan}')
     .onWrite(async snapshot => {
+        const token: string = snapshot.before.get('tokenBorrower')
+        const amount: number = snapshot.after.get('loanAmountTaken')
+        const interest: number = snapshot.after.get('loanInterest')
+        const borrowerUid: string = snapshot.before.get('loanBorrower')
         //Retrieve the token (If exists)
         if (snapshot.after.get('loanStatus') === 'Rejected') {
             //Retrieve key info
-            const token: string = snapshot.before.get('tokenBorrower')
-            const amount: number = snapshot.after.get('loanAmountTaken')
-            const interest: number = snapshot.after.get('loanInterest')
-
             //Define the payload
             const payload = {
                 notification: {
@@ -323,12 +521,61 @@ export const promptLoanRejected = functions.firestore
                 }
             }
             console.log(payload)
-
+            //Send a notification to a user
+            //Update notifications subcollection for user
+            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                'message': `Your loan request of ${amount} KES at ${interest} % has been rejected`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
             //Delete the Document
             await db.collection('loans').doc(snapshot.after.id).delete()
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
                 console.error('promptLoanRejected FCM Error',error)
+        })
+        }
+    })
+
+export const promptRejectLoan = functions.firestore
+    .document('loans/{loan}')
+    .onWrite(async snapshot => {
+        const token: string | Array<any> = snapshot.before.get('tokenInvitee')
+        const amount: number = snapshot.after.get('loanAmountTaken')
+        const interest: number = snapshot.after.get('loanInterest')
+        const loanInvitee: string | Array<any> = snapshot.before.get('loanInvitees')
+        //Retrieve the token (If exists)
+        if (snapshot.after.get('loanStatus') === 'Rejected') {
+            //Retrieve key info
+            //Define the payload
+            const payload = {
+                notification: {
+                    title: `Don't accept less than you deserve`,
+                    body: `You rejected a loan request of ${amount} KES at ${interest} %`,
+                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+                }
+            }
+            console.log(payload)
+            //Send a notification to a user
+            //Update notifications subcollection for user
+            if (typeof loanInvitee == "string") {
+                await db.collection('users').doc(loanInvitee).collection('notifications').doc().set({
+                    'message': `You rejected a loan request of ${amount} KES at ${interest} %`,
+                    'time': superadmin.firestore.FieldValue.serverTimestamp()
+                })
+            }
+            else {
+                loanInvitee.forEach(async (element) => {
+                    await db.collection('users').doc(element).collection('notifications').doc().set({
+                        'message': `You rejected a loan request of ${amount} KES at ${interest} %`,
+                        'time': superadmin.firestore.FieldValue.serverTimestamp()
+                    })
+                })
+            }
+            //Delete the Document
+            await db.collection('loans').doc(snapshot.after.id).delete()
+            return fcm.sendToDevice(token, payload)
+                .catch(error => {
+                console.error('promptRejectLoan FCM Error',error)
         })
         }
     })
