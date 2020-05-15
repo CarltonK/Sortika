@@ -1,14 +1,13 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/home_screens/autoCreate.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/borrow_page.dart';
 import 'package:wealth/widgets/group_savings.dart';
-import 'package:wealth/widgets/investment_goal.dart';
 import 'package:wealth/widgets/lend_page.dart';
 import 'package:wealth/widgets/savings_goal.dart';
 
@@ -19,7 +18,7 @@ class AchievePreference extends StatefulWidget {
 
 class _AchievePreferenceState extends State<AchievePreference> {
   //PageView Controller
-  final PageController _pageController = PageController(initialPage: 0);
+  PageController _pageController;
   //Define number of screens
   final int _numPages = 2;
   //Placeholder for current page
@@ -28,7 +27,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
   //Color Changer
   Color color = Colors.blue;
 
-  //UID Placeholder
+  //USER Placeholder
   static String uid;
   static String token;
   static String name;
@@ -158,13 +157,13 @@ class _AchievePreferenceState extends State<AchievePreference> {
                   color = Colors.brown;
                 }
                 if (value == 'Lend Money') {
-                  color = Color(0xFF73AEF5);
+                  color = Colors.red[600];
                 }
                 if (value == 'Save Money') {
                   color = Colors.green;
                 }
                 if (value == 'Invest Money') {
-                  color = Colors.red[600];
+                  color = Color(0xFF73AEF5);
                 }
                 if (value == 'Group Savings') {
                   color = Colors.purple;
@@ -193,7 +192,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
             : goal == 'Save Money'
                 ? SavingsGoal(uid: uid)
                 : goal == 'Invest Money'
-                    ? InvestmentGoal(uid: uid)
+                    ? AutoCreate(uid: uid)
                     : GroupSavings(uid: uid);
   }
 
@@ -212,7 +211,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
             ),
             message: Icon(
               Icons.warning,
-              size: 50,
+              size: 100,
               color: Colors.red,
             ),
             cancelButton: CupertinoActionSheetAction(
@@ -263,6 +262,18 @@ class _AchievePreferenceState extends State<AchievePreference> {
             ),
           );
         });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _pageController.dispose();
   }
 
   @override

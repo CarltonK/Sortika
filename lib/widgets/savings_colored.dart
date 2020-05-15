@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
@@ -28,6 +29,11 @@ class _SavingsColoredState extends State<SavingsColored> {
   String typeSavings;
   double targetAmount = 0;
   String goalName;
+
+  void _handleSubmittedAmount(String value) {
+    targetAmount = double.parse(value.trim());
+    print('Amount: ' + targetAmount.toString());
+  }
 
   //Set an average loan to be 30 days
   static DateTime rightNow = DateTime.now();
@@ -528,31 +534,44 @@ class _SavingsColoredState extends State<SavingsColored> {
   }
 
   Widget _targetAmountWidget() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Expanded(
-          flex: 3,
-          child: Slider.adaptive(
-              value: targetAmount,
-              inactiveColor: Colors.black26,
-              divisions: 10,
-              min: 0,
-              max: 100000,
-              label: targetAmount.toInt().toString(),
-              onChanged: (value) {
-                setState(() {
-                  targetAmount = value;
-                });
-              }),
+        SizedBox(
+          height: 10,
         ),
-        Expanded(
-            flex: 1,
-            child: Center(
-              child: Text(
-                '${targetAmount.toInt().toString()} KES',
-                textAlign: TextAlign.center,
-                style: labelStyleBlack,
-              ),
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.black,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            onChanged: _handleSubmittedAmount,
+            validator: (value) {
+              //Check if phone is available
+              if (value.isEmpty) {
+                return 'Amount is required';
+              }
+              return null;
+            },
+            autovalidate: true,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue)),
+              errorBorder:
+                  OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
+              border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue)),
+              prefixIcon: Icon(FontAwesome5.money_bill_alt, color: Colors.blue),
+              suffixText: 'KES',
+              suffixStyle: hintStyle,
             ))
       ],
     );

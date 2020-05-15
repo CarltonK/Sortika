@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
-import 'package:wealth/home_screens/autoCreate.dart';
+import 'package:wealth/home_screens/autoCreateHolder.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
@@ -2911,7 +2911,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => AutoCreate(
+                                  builder: (context) => AutoCreateHolder(
                                         uid: uid,
                                       )));
                         },

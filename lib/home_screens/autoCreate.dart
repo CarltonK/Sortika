@@ -427,101 +427,70 @@ class _AutoCreateState extends State<AutoCreate> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF73AEF5),
-        elevation: 0,
-        title: Text('Autocreate goals',
-            style: GoogleFonts.muli(textStyle: TextStyle())),
-        leading: IconButton(
-          icon: Icon(
-            CupertinoIcons.back,
-            color: Colors.white,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Stack(
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      width: MediaQuery.of(context).size.width,
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              backgroundWidget(),
-              Container(
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _targetAmount(),
-                        SizedBox(
-                          height: 30,
-                        ),
-                        Text(
-                          'Choose an End Date',
-                          style: labelStyle,
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        _investmentDurationWidget(),
-                        SizedBox(
-                          height: 30,
-                        ),
-                        Text(
-                          'Expected Return',
-                          style: labelStyle,
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        _investClassWidget(),
-                        currentRate == null
-                            ? Container()
-                            : SizedBox(
-                                height: 20,
-                              ),
-                        currentRate == null
-                            ? Container()
-                            : Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Risk Profile',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12)),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                        currentRate == 'low'
-                                            ? 'LOW'
-                                            : currentRate == 'med'
-                                                ? 'MEDIUM'
-                                                : 'HIGH',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20)))
-                                  ],
-                                ),
-                              ),
-                        _createGoalBtn()
-                      ],
+              _targetAmount(),
+              SizedBox(
+                height: 30,
+              ),
+              Text(
+                'Choose an End Date',
+                style: labelStyle,
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              _investmentDurationWidget(),
+              SizedBox(
+                height: 30,
+              ),
+              Text(
+                'Expected Return',
+                style: labelStyle,
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              _investClassWidget(),
+              currentRate == null
+                  ? Container()
+                  : SizedBox(
+                      height: 20,
                     ),
-                  ),
-                ),
-              )
+              currentRate == null
+                  ? Container()
+                  : Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Risk Profile',
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                                    color: Colors.white, fontSize: 12)),
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                              currentRate == 'low'
+                                  ? 'LOW'
+                                  : currentRate == 'med' ? 'MEDIUM' : 'HIGH',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      color: Colors.white, fontSize: 20)))
+                        ],
+                      ),
+                    ),
+              _createGoalBtn()
             ],
           ),
         ),

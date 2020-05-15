@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -435,6 +434,37 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     });
   }
 
+  Future showErrorSheet(String message) {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+            title: Text(
+              message,
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  FocusScope.of(context).unfocus();
+                },
+                child: Text(
+                  'CANCEL',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold)),
+                )));
+      },
+    );
+  }
+
   void _registerProcess() async {
     //Validate Fields
     final form = _formKey.currentState;
@@ -514,33 +544,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           FocusScope.of(context).unfocus();
 
           //Show an action sheet with result
-          showCupertinoModalPopup(
-            context: context,
-            builder: (BuildContext context) {
-              return CupertinoActionSheet(
-                  title: Text(
-                    '$result',
-                    style: GoogleFonts.quicksand(
-                        textStyle: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                      color: Colors.black,
-                    )),
-                  ),
-                  cancelButton: CupertinoActionSheetAction(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'CANCEL',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.red,
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold)),
-                      )));
-            },
-          );
+          showErrorSheet(result);
         }
       }).catchError((error) {
         // print('This is the error $error');
@@ -554,33 +558,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         FocusScope.of(context).unfocus();
 
         //Show an action sheet with error
-        showCupertinoModalPopup(
-          context: context,
-          builder: (BuildContext context) {
-            return CupertinoActionSheet(
-                title: Text(
-                  '$error',
-                  style: GoogleFonts.quicksand(
-                      textStyle: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                    color: Colors.black,
-                  )),
-                ),
-                cancelButton: CupertinoActionSheetAction(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      'CANCEL',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.red,
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold)),
-                    )));
-          },
-        );
+        showErrorSheet(error);
       });
     }
   }

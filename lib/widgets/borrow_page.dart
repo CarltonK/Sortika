@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
@@ -63,6 +64,12 @@ class _BorrowPageState extends State<BorrowPage> {
 
   String _phone;
   String _phoneRetrieved;
+
+  void _handleSubmittedAmount(String value) {
+    amountLoan = double.parse(value.trim());
+    print('Amount: ' + amountLoan.toString());
+  }
+
   void _handleSubmittedPhone(String value) {
     _phone = value.trim();
     print('Phone: ' + _phone);
@@ -167,31 +174,47 @@ class _BorrowPageState extends State<BorrowPage> {
   }
 
   Widget _loanAmountWidget() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Expanded(
-          flex: 3,
-          child: Slider.adaptive(
-              value: amountLoan,
-              inactiveColor: Colors.white,
-              divisions: 10,
-              min: 0,
-              max: 5000,
-              label: amountLoan.toInt().toString(),
-              onChanged: (value) {
-                setState(() {
-                  amountLoan = value;
-                });
-              }),
+        SizedBox(
+          height: 10,
         ),
-        Expanded(
-            flex: 1,
-            child: Center(
-              child: Text(
-                '${amountLoan.toInt().toString()} KES',
-                style: labelStyle,
-              ),
-            ))
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            onChanged: _handleSubmittedAmount,
+            validator: (value) {
+              //Check if phone is available
+              if (value.isEmpty) {
+                return 'Loan Amount is required';
+              }
+              return null;
+            },
+            autovalidate: true,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                prefixIcon:
+                    Icon(FontAwesome5.money_bill_alt, color: Colors.white),
+                suffixText: 'KES',
+                suffixStyle: hintStyle,
+                labelText: 'How much do you want to borrow?',
+                labelStyle: hintStyle))
       ],
     );
   }
@@ -644,11 +667,8 @@ class _BorrowPageState extends State<BorrowPage> {
               children: <Widget>[
                 Icon(
                   Icons.done,
-                  size: 50,
+                  size: 100,
                   color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'Your loan application has been received',
@@ -749,15 +769,16 @@ class _BorrowPageState extends State<BorrowPage> {
       _applyForALoan(loanModel).whenComplete(() {
         //Pop that dialog
         //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => _promptUserSuccess());
-
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 5), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 3), () => _promptUserSuccess());
       }).catchError((error) {
-        _promptUser(error);
+        //Show a success message for two seconds
+        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
+
+        //Show an erroe message
+        Timer(Duration(seconds: 2), () => _promptUser(error));
       });
     }
   }

@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:wealth/widgets/networkSensitive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   //Form Key
   final _formKey = GlobalKey<FormState>();
 
+  //Firestore
   Firestore _firestore = Firestore.instance;
 
   //FocusNodes
@@ -358,6 +359,61 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future showErrorSheet(String message) {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+            title: Text(
+              message,
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  FocusScope.of(context).unfocus();
+                },
+                child: Text(
+                  'CANCEL',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold)),
+                )));
+      },
+    );
+  }
+
+  Future showSuccessSheet() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+          title: Text(
+            'Welcome',
+            style: GoogleFonts.quicksand(
+                textStyle: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              color: Colors.black,
+            )),
+          ),
+          message: Center(
+            child: LinearProgressIndicator(
+              backgroundColor: Colors.white,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _loginProcess() async {
     //Validate Fields
     final form = _formKey.currentState;
@@ -381,62 +437,49 @@ class _LoginScreenState extends State<LoginScreen> {
           FocusScope.of(context).unfocus();
 
           //print('Successful response ${result}');
-          showCupertinoModalPopup(
-            context: context,
-            builder: (BuildContext context) {
-              return CupertinoActionSheet(
-                title: Text(
-                  'Welcome',
-                  style: GoogleFonts.quicksand(
-                      textStyle: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                    color: Colors.black,
-                  )),
-                ),
-                message: Center(
-                  child: LinearProgressIndicator(
-                    backgroundColor: Colors.white,
-                  ),
-                ),
-              );
-            },
-          );
+          showSuccessSheet();
 
           //Retrieve
           final String uid = result.uid;
 
           //Retrieve USER DOC
-          DocumentSnapshot userDoc =
-              await _firestore.collection("users").document(uid).get();
-          User user = User.fromJson(userDoc.data);
+          await _firestore
+              .collection("users")
+              .document(uid)
+              .get()
+              .then((value) async {
+            User user = User.fromJson(value.data);
 
-          if (user.designation == 'Admin') {
-            Timer(Duration(seconds: 2), () {
-              Navigator.of(context).pop();
-            });
+            if (user.designation == 'Admin') {
+              Timer(Duration(seconds: 1), () {
+                Navigator.of(context).pop();
+              });
 
-            Timer(Duration(milliseconds: 2200), () {
-              Navigator.of(context)
-                  .pushReplacementNamed('/admin', arguments: user);
-            });
-          } else {
-            //Try save credentials using shared preferences
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            prefs.setString('uid', user.uid);
+              Timer(Duration(milliseconds: 1200), () {
+                Navigator.of(context)
+                    .pushReplacementNamed('/admin', arguments: user);
+              });
+            } else {
+              //Try save credentials using shared preferences
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              prefs.setString('uid', user.uid);
 
-            Timer(Duration(seconds: 2), () {
-              Navigator.of(context).pop();
-            });
+              Timer(Duration(seconds: 1), () {
+                Navigator.of(context).pop();
+              });
 
-            Timer(Duration(milliseconds: 2200), () {
-              Navigator.of(context)
-                  .pushReplacementNamed('/home', arguments: user);
-            });
-          }
+              Timer(Duration(milliseconds: 1200), () {
+                Navigator.of(context)
+                    .pushReplacementNamed('/home', arguments: user);
+              });
+            }
+          }).catchError((error) {
+            print('This is the error $error');
+            //Show an action sheet with error
+            showErrorSheet(error);
+          });
         } else {
           //print('Failed response: ${result}');
-
           //Disable the circular progress dialog
           setState(() {
             isLoading = false;
@@ -446,34 +489,7 @@ class _LoginScreenState extends State<LoginScreen> {
           FocusScope.of(context).unfocus();
 
           //Show an action sheet with result
-          showCupertinoModalPopup(
-            context: context,
-            builder: (BuildContext context) {
-              return CupertinoActionSheet(
-                  title: Text(
-                    '$result',
-                    style: GoogleFonts.quicksand(
-                        textStyle: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                      color: Colors.black,
-                    )),
-                  ),
-                  cancelButton: CupertinoActionSheetAction(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        FocusScope.of(context).unfocus();
-                      },
-                      child: Text(
-                        'CANCEL',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.red,
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold)),
-                      )));
-            },
-          );
+          showErrorSheet(result);
         }
       }).catchError((error) {
         print('This is the error $error');
@@ -486,34 +502,7 @@ class _LoginScreenState extends State<LoginScreen> {
         FocusScope.of(context).unfocus();
 
         //Show an action sheet with error
-        showCupertinoModalPopup(
-          context: context,
-          builder: (BuildContext context) {
-            return CupertinoActionSheet(
-                title: Text(
-                  '$error',
-                  style: GoogleFonts.quicksand(
-                      textStyle: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                    color: Colors.black,
-                  )),
-                ),
-                cancelButton: CupertinoActionSheetAction(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      FocusScope.of(context).unfocus();
-                    },
-                    child: Text(
-                      'CANCEL',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.red,
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold)),
-                    )));
-          },
-        );
+        showErrorSheet(error);
       });
     }
   }
@@ -526,38 +515,40 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Stack(
           children: <Widget>[
             _backgroundColor(),
-            Container(
-              height: double.infinity,
-              child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 100),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        'Welcome',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _emailTF(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _passwordTF(),
-                      _forgotPasswordBtn(),
-                      _loginBtn(),
-                      _signInWith(),
-                      _buildSocialBtnRow(),
-                      _buildSignupBtn(),
-                    ],
+            NetworkSensor(
+              child: Container(
+                height: double.infinity,
+                child: SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 100),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          'Welcome',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _emailTF(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _passwordTF(),
+                        _forgotPasswordBtn(),
+                        _loginBtn(),
+                        _signInWith(),
+                        _buildSocialBtnRow(),
+                        _buildSignupBtn(),
+                      ],
+                    ),
                   ),
                 ),
               ),

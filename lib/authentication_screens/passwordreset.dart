@@ -23,8 +23,8 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   bool callResponse = false;
   AuthService authService = AuthService();
 
-  //Handle Phone Input
-  void _handleSubmittedPhone(String value) {
+  //Handle Email Input
+  void _handleSubmittedEmail(String value) {
     _email = value.trim();
     print('Email: ' + _email);
   }
@@ -69,7 +69,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
 
               return null;
             },
-            onSaved: _handleSubmittedPhone,
+            onSaved: _handleSubmittedEmail,
             decoration: InputDecoration(
                 enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
@@ -100,6 +100,37 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
       callResponse = true;
       return true;
     }
+  }
+
+  Future showErrorSheet(String message) {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+            title: Text(
+              message,
+              style: GoogleFonts.quicksand(
+                  textStyle: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                color: Colors.black,
+              )),
+            ),
+            cancelButton: CupertinoActionSheetAction(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  FocusScope.of(context).unfocus();
+                },
+                child: Text(
+                  'CANCEL',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold)),
+                )));
+      },
+    );
   }
 
   void _resetProcess() {
@@ -166,34 +197,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
             isLoading = false;
           });
           //Show an action sheet with result
-          showCupertinoModalPopup(
-            context: context,
-            builder: (BuildContext context) {
-              return CupertinoActionSheet(
-                  title: Text(
-                    '$result',
-                    style: GoogleFonts.quicksand(
-                        textStyle: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                      color: Colors.black,
-                    )),
-                  ),
-                  cancelButton: CupertinoActionSheetAction(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        FocusScope.of(context).unfocus();
-                      },
-                      child: Text(
-                        'CANCEL',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.red,
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold)),
-                      )));
-            },
-          );
+          showErrorSheet(result);
         }
       }).catchError((error) {
         print('This is the error $error');
@@ -204,32 +208,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         });
 
         //Show an action sheet with error
-        showCupertinoModalPopup(
-          context: context,
-          builder: (BuildContext context) {
-            return CupertinoActionSheet(
-                title: Text(
-                  '$error',
-                  style: GoogleFonts.quicksand(
-                      textStyle: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                    color: Colors.black,
-                  )),
-                ),
-                cancelButton: CupertinoActionSheetAction(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      FocusScope.of(context).unfocus();
-                    },
-                    child: Text(
-                      'CANCEL',
-                      style: GoogleFonts.muli(
-                          textStyle:
-                              TextStyle(color: Colors.red, fontSize: 25)),
-                    )));
-          },
-        );
+        showErrorSheet(error);
       });
     }
   }

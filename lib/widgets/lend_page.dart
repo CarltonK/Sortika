@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
@@ -24,6 +25,11 @@ class _LendPageState extends State<LendPage> {
 
   //Placeholder of amount
   double targetAmount = 0;
+
+  void _handleSubmittedAmount(String value) {
+    targetAmount = double.parse(value.trim());
+    print('Amount: ' + targetAmount.toString());
+  }
 
   //Set an average loan to be 30 days
   static DateTime rightNow = DateTime.now();
@@ -152,11 +158,8 @@ class _LendPageState extends State<LendPage> {
               children: <Widget>[
                 Icon(
                   Icons.done,
-                  size: 50,
+                  size: 100,
                   color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'Your lending application has been received',
@@ -231,15 +234,16 @@ class _LendPageState extends State<LendPage> {
       _lendLoan(loanModel).whenComplete(() {
         //Pop that dialog
         //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => _promptUserSuccess());
-
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 5), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 3), () => _promptUserSuccess());
       }).catchError((error) {
-        _promptUser(error);
+        //Show a success message for two seconds
+        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
+
+        //Show a success message for two seconds
+        Timer(Duration(seconds: 3), () => _promptUser(error));
       });
     }
   }
@@ -268,34 +272,51 @@ class _LendPageState extends State<LendPage> {
   }
 
   Widget _lendAmountWidget() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Expanded(
-          flex: 3,
-          child: Slider.adaptive(
-              value: targetAmount,
-              inactiveColor: Colors.white,
-              divisions: 20,
-              min: 0,
-              max: 100000,
-              label: targetAmount.toInt().toString(),
-              onChanged: (value) {
-                setState(() {
-                  targetAmount = value;
-                });
-              }),
+        SizedBox(
+          height: 10,
         ),
-        Expanded(
-            flex: 1,
-            child: Center(
-              child: Text(
-                '${targetAmount.toInt().toString()} KES',
-                textAlign: TextAlign.center,
-                style: labelStyle,
-              ),
-            ))
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            onChanged: _handleSubmittedAmount,
+            validator: (value) {
+              //Check if phone is available
+              if (value.isEmpty) {
+                return 'Amount is required';
+              }
+              return null;
+            },
+            autovalidate: true,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black)),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                prefixIcon:
+                    Icon(FontAwesome5.money_bill_alt, color: Colors.white),
+                suffixText: 'KES',
+                errorStyle: hintStyleBlack,
+                suffixStyle: hintStyle,
+                labelText: '',
+                labelStyle: hintStyle))
       ],
     );
+    ;
   }
 
   @override

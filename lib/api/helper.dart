@@ -1,8 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
+import 'package:wealth/models/goalmodel.dart';
 
 class Helper {
   //create instance of Firestore
   final Firestore _firestore = Firestore.instance;
+  //Instance of authentication
+  AuthService authService = new AuthService();
 
   //Initialize class
   Helper() {
