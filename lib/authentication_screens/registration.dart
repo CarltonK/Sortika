@@ -55,7 +55,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     print('Phone: ' + _phone);
   }
 
-  //Handle Phone Input
+  //Handle Email Input
   void _handleSubmittedEmail(String value) {
     _email = value.trim();
     print('Email: ' + _email);
@@ -496,6 +496,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       });
 
       serverCall(user).whenComplete(() {
+        //Disable the circular progress dialog
+          setState(() {
+            isLoading = false;
+          });
+
+          //Disable the keyboard from showing again
+          FocusScope.of(context).unfocus();
         if (callResponse) {
           // print('Successful response $result');
           //Show a welcome message
@@ -516,14 +523,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             },
           );
 
-          //Disable the circular progress dialog
-          setState(() {
-            isLoading = false;
-          });
-
-          //Disable the keyboard from showing again
-          FocusScope.of(context).unfocus();
-
           //Timed Function
           Timer(Duration(seconds: 2), () {
             Navigator.of(context).pop();
@@ -535,15 +534,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           });
         } else {
           // print('Failed response: $result');
-
-          //Disable the circular progress dialog
-          setState(() {
-            isLoading = false;
-          });
-
-          //Disable the keyboard from showing again
-          FocusScope.of(context).unfocus();
-
           //Show an action sheet with result
           showErrorSheet(result);
         }
@@ -566,7 +556,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   //Register Button
   Widget _registerBtn() {
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(seconds: 1),
       padding: EdgeInsets.symmetric(vertical: 20),
       width: double.infinity,
       child: isLoading

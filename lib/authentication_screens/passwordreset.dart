@@ -149,8 +149,12 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
       });
 
       serverCall(user).whenComplete(() {
-        if (callResponse) {
+          //Disable the circular progress dialog
+          setState(() {
+            isLoading = false;
+          });
           FocusScope.of(context).unfocus();
+        if (callResponse) {
           print('Successful response $result');
 
           showCupertinoModalPopup(
@@ -178,24 +182,15 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
               );
             },
           );
-          //Disable the circular progress dialog
-          setState(() {
-            isLoading = false;
-          });
           //Timed Function
+          Timer(Duration(seconds: 1), () {
+            Navigator.of(context).pop();
+          });
           Timer(Duration(seconds: 2), () {
             Navigator.of(context).pop();
           });
-          Timer(Duration(seconds: 3), () {
-            Navigator.of(context).pop();
-          });
         } else {
-          FocusScope.of(context).unfocus();
           print('Failed response: $result');
-          //Disable the circular progress dialog
-          setState(() {
-            isLoading = false;
-          });
           //Show an action sheet with result
           showErrorSheet(result);
         }
@@ -215,7 +210,8 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
 
   //Reset Button
   Widget _resetBtn() {
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(seconds: 1),
       padding: EdgeInsets.symmetric(vertical: 20),
       width: double.infinity,
       child: isLoading

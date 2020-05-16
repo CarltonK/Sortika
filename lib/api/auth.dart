@@ -118,23 +118,18 @@ class AuthService {
       var response;
       if (e.toString().contains("ERROR_WRONG_PASSWORD")) {
         response = 'Invalid credentials. Please try again';
-        //print('Negative Response: $response');
       }
       if (e.toString().contains("ERROR_INVALID_EMAIL")) {
         response = 'The email format entered is invalid';
-        //print('Negative Response: $response');
       }
       if (e.toString().contains("ERROR_USER_NOT_FOUND")) {
         response = 'Please register first';
-        //print('Negative Response: $response');
       }
       if (e.toString().contains("ERROR_USER_DISABLED")) {
         response = 'Your account has been disabled';
-        //print('Negative Response: $response');
       }
       if (e.toString().contains("ERROR_TOO_MANY_REQUESTS")) {
         response = 'Too many requests. Please try again in 2 minutes';
-        //print('Negative Response: $response');
       }
       return response;
     }

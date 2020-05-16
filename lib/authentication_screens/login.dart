@@ -173,7 +173,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   //LOGIN Button
   Widget _loginBtn() {
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(seconds: 1),
       padding: EdgeInsets.symmetric(vertical: 20),
       width: double.infinity,
       child: isLoading
@@ -416,7 +417,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _loginProcess() async {
     //Validate Fields
-    final form = _formKey.currentState;
+    final FormState form = _formKey.currentState;
     if (form.validate()) {
       form.save();
 
@@ -427,19 +428,18 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       serverCall(user).whenComplete(() async {
+        //Disable the circular progress dialog
+        setState(() {
+          isLoading = false;
+        });
+
+        //Disable the keyboard from showing again
+        FocusScope.of(context).unfocus();
         if (callResponse) {
-          //Disable the circular progress dialog
-          setState(() {
-            isLoading = false;
-          });
-
-          //Disable the keyboard from showing again
-          FocusScope.of(context).unfocus();
-
           //print('Successful response ${result}');
           showSuccessSheet();
 
-          //Retrieve
+          //Retrieve UID
           final String uid = result.uid;
 
           //Retrieve USER DOC
@@ -480,14 +480,6 @@ class _LoginScreenState extends State<LoginScreen> {
           });
         } else {
           //print('Failed response: ${result}');
-          //Disable the circular progress dialog
-          setState(() {
-            isLoading = false;
-          });
-
-          //Disable the keyboard from showing again
-          FocusScope.of(context).unfocus();
-
           //Show an action sheet with result
           showErrorSheet(result);
         }
