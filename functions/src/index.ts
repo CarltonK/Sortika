@@ -580,6 +580,59 @@ export const promptRejectLoan = functions.firestore
         }
     })
 
+//Self Loan
+export const selfLoan = functions.firestore
+    .document('loans/{loan}')
+    .onCreate(async snapshot => {
+        const lender: string = snapshot.get('loanLender')
+        const amount: number = snapshot.get('loanAmountTaken')
+        const token: string = snapshot.get('loanLenderToken')
+        if (lender != null) {
+            //Check if user has enough amount in Loan Fund Goal
+            await db.collection('users').doc(lender).collection('goals')
+                .where('goalCategory', '==', 'Loan Fund')
+                .limit(1)
+                .get().then((queries) => {
+                    queries.forEach(async (element) => {
+                        const limit: number = element.get('goalAmountSaved')
+                        if (amount > limit) {
+                            await db.collection('loans').doc(snapshot.id).update({
+                            'loanStatus': 'Rejected'
+                            })
+                            const payload = {
+                                notification: {
+                                    title: `Bad News`,
+                                    body: `Insufficient funds in your Loan Fund Goal. Top up to get a higher loan limit`,
+                                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+                                }
+                            }
+                            return fcm.sendToDevice(token, payload)
+                                .catch(error => {
+                                    console.error('selfLoanReject FCM Error',error)
+                                })
+                        }
+                        else {
+                            await db.collection('loans').doc(snapshot.id).update({
+                                'loanStatus': true
+                            })
+                            const payload = {
+                                notification: {
+                                    title: `Good News`,
+                                    body: `You have successfully borrowed ${amount} KES from your loan Fund Goal`,
+                                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+                                }
+                            }
+                            return fcm.sendToDevice(token, payload)
+                                .catch(error => {
+                                    console.error('selfLoanReject FCM Error',error)
+                                })
+                        }
+                    })
+                })
+        }
+    })
+
+
 export const goalAutoCreate = functions.firestore
     .document('autocreates/{autocreate}')
     .onCreate(async snapshot => {

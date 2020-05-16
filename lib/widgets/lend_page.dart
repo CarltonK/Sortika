@@ -13,7 +13,9 @@ import 'package:wealth/utilities/styles.dart';
 
 class LendPage extends StatefulWidget {
   final String uid;
-  LendPage({Key key, @required this.uid}) : super(key: key);
+  final String token;
+  LendPage({Key key, @required this.uid, @required this.token})
+      : super(key: key);
 
   @override
   _LendPageState createState() => _LendPageState();
@@ -218,6 +220,7 @@ class _LendPageState extends State<LendPage> {
       LoanModel loanModel = new LoanModel(
         loanLender: widget.uid,
         loanEndDate: Timestamp.fromDate(_date),
+        loanLenderToken: widget.token,
         loanAmountTaken: targetAmount,
       );
 

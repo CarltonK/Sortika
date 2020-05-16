@@ -10,6 +10,7 @@ import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/utilities/styles.dart';
+import 'package:wealth/widgets/networkSensitive.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -669,47 +670,49 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         child: Stack(
           children: <Widget>[
             _background(),
-            Container(
-              height: double.infinity,
-              child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 100),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        'Create Account',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold)),
-                      ),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _namesTF(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _phoneTF(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _emailTF(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _passwordTF(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _confirmPasswordTF(),
-                      _registerBtn(),
-                      _buildSignInBtn()
-                    ],
+            NetworkSensor(
+              child: Container(
+                height: double.infinity,
+                child: SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 100),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(
+                          'Create Account',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _namesTF(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _phoneTF(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _emailTF(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _passwordTF(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _confirmPasswordTF(),
+                        _registerBtn(),
+                        _buildSignInBtn()
+                      ],
+                    ),
                   ),
                 ),
               ),

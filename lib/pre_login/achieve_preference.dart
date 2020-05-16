@@ -188,7 +188,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
             name: name,
           )
         : goal == 'Lend Money'
-            ? LendPage(uid: uid)
+            ? LendPage(uid: uid, token: token)
             : goal == 'Save Money'
                 ? SavingsGoal(uid: uid)
                 : goal == 'Invest Money'

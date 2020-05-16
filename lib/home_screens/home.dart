@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,6 +29,7 @@ import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
 import 'package:wealth/widgets/portfolio.dart';
 import 'package:wealth/widgets/savings_colored.dart';
+import 'package:wealth/widgets/networkSensitive.dart';
 
 final menuLabelStyle = GoogleFonts.muli(
     textStyle: TextStyle(
@@ -2835,9 +2835,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ])),
                 ),
               ),
-              _menu(context),
+              NetworkSensor(child: _menu(context)),
               _pageSelection == 'main'
-                  ? _goalsPage(context)
+                  ? NetworkSensor(child: _goalsPage(context))
                   : _pageSelection == 'invest'
                       ? _investmentPage(context)
                       : _pageSelection == 'save'

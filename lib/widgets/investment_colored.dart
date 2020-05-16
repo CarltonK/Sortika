@@ -118,6 +118,7 @@ class _InvestmentColoredState extends State<InvestmentColored> {
                 onChanged: (value) async {
                   setState(() {
                     classInvestment = value;
+
                     //print(classInvestment);
                   });
                 },
