@@ -30,7 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
   //Authentication
   bool isLoading = false;
   dynamic result;
-  bool callResponse = false;
   AuthService authService = AuthService();
 
   //Handle Phone Input
@@ -173,8 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   //LOGIN Button
   Widget _loginBtn() {
-    return AnimatedContainer(
-      duration: Duration(seconds: 1),
+    return Container(
       padding: EdgeInsets.symmetric(vertical: 20),
       width: double.infinity,
       child: isLoading
@@ -304,8 +302,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     // Dispose FocusNodes
-    super.dispose();
     focusPassword.dispose();
+    super.dispose();
   }
 
   Widget _backgroundColor() {
@@ -336,26 +334,19 @@ class _LoginScreenState extends State<LoginScreen> {
     print('This is the result: $result');
 
     if (result == 'Invalid credentials. Please try again') {
-      callResponse = false;
       return false;
     } else if (result == "The email format entered is invalid") {
-      callResponse = false;
       return false;
     } else if (result == "Please register first") {
-      callResponse = false;
       return false;
     } else if (result == "Your account has been disabled") {
-      callResponse = false;
       return false;
-    } else if (result == "Too many requests. Try again in 2 minutes") {
-      callResponse = false;
+    } else if (result == "Too many requests. Please try again in 2 minutes") {
       return false;
     } else if (result ==
         "Please verify your email before signing in. We sent you an email earlier") {
-      callResponse = false;
       return false;
     } else {
-      callResponse = true;
       return true;
     }
   }
@@ -427,7 +418,8 @@ class _LoginScreenState extends State<LoginScreen> {
         isLoading = true;
       });
 
-      serverCall(user).whenComplete(() async {
+      serverCall(user).then((value) async {
+        print('Server Call Response: $value');
         //Disable the circular progress dialog
         setState(() {
           isLoading = false;
@@ -435,7 +427,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         //Disable the keyboard from showing again
         FocusScope.of(context).unfocus();
-        if (callResponse) {
+        if (value) {
           //print('Successful response ${result}');
           showSuccessSheet();
 
@@ -447,8 +439,8 @@ class _LoginScreenState extends State<LoginScreen> {
               .collection("users")
               .document(uid)
               .get()
-              .then((value) async {
-            User user = User.fromJson(value.data);
+              .then((document) async {
+            User user = User.fromJson(document.data);
 
             if (user.designation == 'Admin') {
               Timer(Duration(seconds: 1), () {
@@ -494,7 +486,7 @@ class _LoginScreenState extends State<LoginScreen> {
         FocusScope.of(context).unfocus();
 
         //Show an action sheet with error
-        showErrorSheet(error);
+        showErrorSheet(error.toString());
       });
     }
   }

@@ -20,7 +20,6 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   //Authentication
   bool isLoading = false;
   dynamic result;
-  bool callResponse = false;
   AuthService authService = AuthService();
 
   //Handle Email Input
@@ -91,13 +90,9 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
     print('This is the result: $result');
 
     if (result == "Please register first") {
-      callResponse = false;
       return false;
     } else if (result == "Invalid Email. Please enter the correct email") {
-      callResponse = false;
-      return false;
     } else {
-      callResponse = true;
       return true;
     }
   }
@@ -148,13 +143,13 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         isLoading = true;
       });
 
-      serverCall(user).whenComplete(() {
-          //Disable the circular progress dialog
-          setState(() {
-            isLoading = false;
-          });
-          FocusScope.of(context).unfocus();
-        if (callResponse) {
+      serverCall(user).then((value) {
+        //Disable the circular progress dialog
+        setState(() {
+          isLoading = false;
+        });
+        FocusScope.of(context).unfocus();
+        if (value) {
           print('Successful response $result');
 
           showCupertinoModalPopup(
@@ -183,10 +178,10 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
             },
           );
           //Timed Function
-          Timer(Duration(seconds: 1), () {
+          Timer(Duration(seconds: 2), () {
             Navigator.of(context).pop();
           });
-          Timer(Duration(seconds: 2), () {
+          Timer(Duration(seconds: 3), () {
             Navigator.of(context).pop();
           });
         } else {

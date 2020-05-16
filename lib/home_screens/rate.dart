@@ -97,9 +97,9 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
         backgroundColor: Color(0xFF73AEF5),
         elevation: 0,
         title: Text(
-          'Leave a review',
+          'How was your experience on Sortika ?',
           style: GoogleFonts.muli(
-              textStyle: TextStyle(color: Colors.white, fontSize: 20)),
+              textStyle: TextStyle(color: Colors.white, fontSize: 16)),
         ),
       ),
       body: Container(
@@ -109,12 +109,6 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
         child: Column(children: [
           SizedBox(
             height: 20,
-          ),
-          Text(
-            'How was your experience on Sortika ?',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold)),
           ),
           SizedBox(
             height: 20,

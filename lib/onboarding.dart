@@ -24,20 +24,16 @@ class _OnBoardingState extends State<OnBoarding> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool _seen = (prefs.getBool('seen') ?? false);
     if (_seen) {
-      // Navigator.of(context).pushReplacementNamed('/login');
-      if (_seen) {
-        checkLoginStatus().then((value) async {
-          if (value == null) {
-            Navigator.of(context).pushReplacementNamed('/login');
-          } else {
-            DocumentSnapshot doc =
-                await _firestore.collection("users").document(value).get();
-            User user = User.fromJson(doc.data);
-            Navigator.of(context)
-                .pushReplacementNamed('/home', arguments: user);
-          }
-        });
-      }
+      checkLoginStatus().then((value) async {
+        if (value == null) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        } else {
+          DocumentSnapshot doc =
+              await _firestore.collection("users").document(value).get();
+          User user = User.fromJson(doc.data);
+          Navigator.of(context).pushReplacementNamed('/home', arguments: user);
+        }
+      });
     } else {
       await prefs.setBool('seen', true);
     }
@@ -52,7 +48,10 @@ class _OnBoardingState extends State<OnBoarding> {
   TextStyle _titleStyle() {
     return GoogleFonts.muli(
         textStyle: TextStyle(
-            color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold));
+            color: Colors.white,
+            fontSize: 24,
+            letterSpacing: 0.5,
+            fontWeight: FontWeight.bold));
   }
 
   TextStyle _subtitleStyle() {
@@ -81,10 +80,49 @@ class _OnBoardingState extends State<OnBoarding> {
     );
   }
 
+  Widget singlePage(AssetImage asset, String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          child: Image(
+            fit: BoxFit.fitHeight,
+            image: asset,
+          ),
+        ),
+        SizedBox(
+          height: 5,
+        ),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: _titleStyle(),
+        ),
+        SizedBox(
+          height: 15,
+        ),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: _subtitleStyle(),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     checkFirstSeen();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -144,131 +182,22 @@ class _OnBoardingState extends State<OnBoarding> {
                     });
                   },
                   children: <Widget>[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Expanded(
-                          child: Image(
-                            fit: BoxFit.fitHeight,
-                            image: AssetImage('assets/images/borrow.png'),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        Text(
-                          'You can Borrow from as low as 1%',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.muli(
-                              textStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  letterSpacing: 0.5,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                        SizedBox(
-                          height: 15,
-                        ),
-                        Text(
-                          'Place and price your loan request to thousands of lenders on Sortika and get an instant reply',
-                          textAlign: TextAlign.center,
-                          style: _subtitleStyle(),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Expanded(
-                          child: Image(
-                            fit: BoxFit.fitHeight,
-                            image: AssetImage('assets/images/invest.png'),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        Text(
-                          'Invest in tens of investment asset classes',
-                          textAlign: TextAlign.center,
-                          style: _titleStyle(),
-                        ),
-                        SizedBox(
-                          height: 15,
-                        ),
-                        Text(
-                          'Create an investment portfolio that meets your return expectation and risk profile',
-                          textAlign: TextAlign.center,
-                          style: _subtitleStyle(),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        )
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Expanded(
-                          child: Image(
-                            fit: BoxFit.fitHeight,
-                            image: AssetImage('assets/images/save.png'),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        Text(
-                          'You can create customized savings goals',
-                          textAlign: TextAlign.center,
-                          style: _titleStyle(),
-                        ),
-                        SizedBox(
-                          height: 15,
-                        ),
-                        Text(
-                          'Create your financial goals and we ensure you meet each and every one of them',
-                          textAlign: TextAlign.center,
-                          style: _subtitleStyle(),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        )
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        Expanded(
-                          child: Image(
-                            fit: BoxFit.fitHeight,
-                            image: AssetImage('assets/images/group.png'),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 5,
-                        ),
-                        Text(
-                          'Create a savings group and invite friends to contribute',
-                          textAlign: TextAlign.center,
-                          style: _titleStyle(),
-                        ),
-                        SizedBox(
-                          height: 15,
-                        ),
-                        Text(
-                          'Your chama can now save remotely and ensure that members meet their targets',
-                          textAlign: TextAlign.center,
-                          style: _subtitleStyle(),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        )
-                      ],
-                    )
+                    singlePage(
+                        AssetImage('assets/images/borrow.png'),
+                        'You can Borrow from as low as 1%',
+                        'Place and price your loan request to thousands of lenders on Sortika and get an instant reply'),
+                    singlePage(
+                        AssetImage('assets/images/invest.png'),
+                        'Invest in tens of investment asset classes',
+                        'Create an investment portfolio that meets your return expectation and risk profile'),
+                    singlePage(
+                        AssetImage('assets/images/save.png'),
+                        'You can create customized savings goals',
+                        'Create your financial goals and we ensure you meet each and every one of them'),
+                    singlePage(
+                        AssetImage('assets/images/group.png'),
+                        'Create a savings group and invite friends to contribute',
+                        'Your chama can now save remotely and ensure that members meet their targets')
                   ],
                 ),
               ),

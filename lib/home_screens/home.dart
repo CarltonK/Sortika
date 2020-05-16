@@ -171,7 +171,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 25,
+              top: 30,
             ),
             child: SingleChildScrollView(
               physics: AlwaysScrollableScrollPhysics(),
@@ -876,7 +876,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 25,
+              top: 30,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -938,7 +938,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             child: Container(
               height: MediaQuery.of(context).size.height,
               padding: EdgeInsets.only(
-                top: 25,
+                top: 30,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1958,7 +1958,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             color: Colors.white,
             child: Container(
               padding: EdgeInsets.only(
-                top: 25,
+                top: 30,
               ),
               child: SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
@@ -2024,7 +2024,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             color: Colors.white,
             child: Container(
               padding: EdgeInsets.only(
-                top: 25,
+                top: 30,
               ),
               height: MediaQuery.of(context).size.height,
               child: Column(
@@ -2092,7 +2092,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 25,
+              top: 30,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2157,7 +2157,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 25,
+              top: 30,
             ),
             height: MediaQuery.of(context).size.height,
             child: Column(
@@ -2217,7 +2217,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           color: Colors.white,
           child: Container(
             padding: EdgeInsets.only(
-              top: 25,
+              top: 30,
             ),
             height: MediaQuery.of(context).size.height,
             child: Column(
@@ -2874,9 +2874,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             'phone': userData.phone
                           };
                           //Pop the dialog first then open page
-                          Navigator.of(context).pop();
                           Navigator.of(context)
-                              .pushNamed('/borrow', arguments: data);
+                              .popAndPushNamed('/borrow', arguments: data);
                         },
                         child: Text(
                           'Borrow',
@@ -2885,8 +2884,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     CupertinoActionSheetAction(
                         onPressed: () {
                           //Pop the dialog first then open page
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pushNamed('/deposit');
+                          Navigator.of(context).popAndPushNamed('/deposit');
                         },
                         child: Text(
                           'Deposit',
@@ -2895,9 +2893,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     CupertinoActionSheetAction(
                         onPressed: () {
                           //Pop the dialog first then open page
-                          Navigator.of(context).pop();
                           Navigator.of(context)
-                              .pushNamed('/create-goal', arguments: uid);
+                              .popAndPushNamed('/create-goal', arguments: uid);
                         },
                         child: Text(
                           'Create a goal',

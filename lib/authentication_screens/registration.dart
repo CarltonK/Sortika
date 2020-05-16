@@ -40,7 +40,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   //Authentication
   bool isLoading = false;
   dynamic result;
-  bool callResponse = false;
   AuthService authService = AuthService();
 
   //Handle Name Input
@@ -370,20 +369,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     print('This is the result: $result');
 
     if (result == 'Your password is weak. Please choose another') {
-      callResponse = false;
       return false;
     } else if (result == "The email format entered is invalid") {
-      callResponse = false;
       return false;
     } else if (result == "An account with the same email exists") {
-      callResponse = false;
       return false;
     } else if (result == null) {
       result = "Please check your internet connection";
-      callResponse = false;
       return false;
     } else {
-      callResponse = true;
       return true;
     }
   }
@@ -495,15 +489,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         isLoading = true;
       });
 
-      serverCall(user).whenComplete(() {
+      serverCall(user).then((value) {
         //Disable the circular progress dialog
-          setState(() {
-            isLoading = false;
-          });
+        setState(() {
+          isLoading = false;
+        });
 
-          //Disable the keyboard from showing again
-          FocusScope.of(context).unfocus();
-        if (callResponse) {
+        //Disable the keyboard from showing again
+        FocusScope.of(context).unfocus();
+        if (value) {
           // print('Successful response $result');
           //Show a welcome message
           showCupertinoModalPopup(
