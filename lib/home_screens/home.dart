@@ -2531,6 +2531,241 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+  Widget midfieldMenuItems() {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Card(
+            color: Colors.transparent,
+            elevation: 0,
+            child: InkWell(
+              splashColor: Colors.blueGrey,
+              onTap: () {
+                setState(() {
+                  _pageSelection = 'main';
+                  if (isCollapsed) {
+                    _controller.forward();
+                  } else {
+                    _controller.reverse();
+                  }
+                  isCollapsed = !isCollapsed;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                color: Colors.transparent,
+                child: Text(
+                  'Home',
+                  style: menuLabelStyle,
+                ),
+              ),
+            ),
+          ),
+          Card(
+            color: Colors.transparent,
+            elevation: 0,
+            child: InkWell(
+              splashColor: Colors.blueGrey,
+              onTap: () {
+                setState(() {
+                  _pageSelection = 'invest';
+                  if (isCollapsed) {
+                    _controller.forward();
+                  } else {
+                    _controller.reverse();
+                  }
+                  isCollapsed = !isCollapsed;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                color: Colors.transparent,
+                child: Text(
+                  'Investments',
+                  style: menuLabelStyle,
+                ),
+              ),
+            ),
+          ),
+          Card(
+            color: Colors.transparent,
+            elevation: 0,
+            child: InkWell(
+              splashColor: Colors.blueGrey,
+              onTap: () {
+                setState(() {
+                  _pageSelection = 'save';
+                  if (isCollapsed) {
+                    _controller.forward();
+                  } else {
+                    _controller.reverse();
+                  }
+                  isCollapsed = !isCollapsed;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                color: Colors.transparent,
+                child: Text(
+                  'Savings',
+                  style: menuLabelStyle,
+                ),
+              ),
+            ),
+          ),
+          //Groups Menu Item
+          Card(
+            color: Colors.transparent,
+            elevation: 0,
+            child: InkWell(
+              splashColor: Colors.blueGrey,
+              onTap: () {
+                setState(() {
+                  _pageSelection = 'group';
+                  if (isCollapsed) {
+                    _controller.forward();
+                  } else {
+                    _controller.reverse();
+                  }
+                  isCollapsed = !isCollapsed;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                color: Colors.transparent,
+                child: Text(
+                  'Groups',
+                  style: menuLabelStyle,
+                ),
+              ),
+            ),
+          ),
+
+          //Loans Menu Item
+          Card(
+            color: Colors.transparent,
+            elevation: 0,
+            child: InkWell(
+              splashColor: Colors.blueGrey,
+              onTap: () {
+                setState(() {
+                  _pageSelection = 'loan';
+                  if (isCollapsed) {
+                    _controller.forward();
+                  } else {
+                    _controller.reverse();
+                  }
+                  isCollapsed = !isCollapsed;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                color: Colors.transparent,
+                child: Text(
+                  'Loans',
+                  style: menuLabelStyle,
+                ),
+              ),
+            ),
+          ),
+
+          //Wallet Menu Item
+          Card(
+            color: Colors.transparent,
+            elevation: 0,
+            child: InkWell(
+              splashColor: Colors.blueGrey,
+              onTap: () {
+                setState(() {
+                  _pageSelection = 'wallet';
+                  if (isCollapsed) {
+                    _controller.forward();
+                  } else {
+                    _controller.reverse();
+                  }
+                  isCollapsed = !isCollapsed;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                color: Colors.transparent,
+                child: Text(
+                  'Wallet',
+                  style: menuLabelStyle,
+                ),
+              ),
+            ),
+          ),
+
+          //Planner Menu Item
+          Card(
+            color: Colors.transparent,
+            elevation: 0,
+            child: InkWell(
+              splashColor: Colors.blueGrey,
+              onTap: () {
+                setState(() {
+                  _pageSelection = 'plan';
+                  if (isCollapsed) {
+                    _controller.forward();
+                  } else {
+                    _controller.reverse();
+                  }
+                  isCollapsed = !isCollapsed;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                color: Colors.transparent,
+                child: Text(
+                  'Planner',
+                  style: menuLabelStyle,
+                ),
+              ),
+            ),
+          ),
+
+          //Promotions and Incentives Menu Item
+          Card(
+            color: Colors.transparent,
+            elevation: 0,
+            child: InkWell(
+              splashColor: Colors.blueGrey,
+              onTap: () {
+                setState(() {
+                  _pageSelection = 'promo';
+                  if (isCollapsed) {
+                    _controller.forward();
+                  } else {
+                    _controller.reverse();
+                  }
+                  isCollapsed = !isCollapsed;
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+                color: Colors.transparent,
+                child: Text(
+                  'Promotions',
+                  style: menuLabelStyle,
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   //Menu Items
   Widget _menu(context) {
     return SlideTransition(
@@ -2540,247 +2775,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         child: Align(
           alignment: Alignment.centerLeft,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _menuHeader(),
-              Expanded(child: Container()),
-
-              //Home Menu Item
-              Card(
-                color: Colors.transparent,
-                elevation: 0,
-                child: InkWell(
-                  splashColor: Colors.blueGrey,
-                  onTap: () {
-                    setState(() {
-                      _pageSelection = 'main';
-                      if (isCollapsed) {
-                        _controller.forward();
-                      } else {
-                        _controller.reverse();
-                      }
-                      isCollapsed = !isCollapsed;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                    color: Colors.transparent,
-                    child: Text(
-                      'Home',
-                      style: menuLabelStyle,
-                    ),
-                  ),
-                ),
-              ),
-
-              //Investments Menu Item
-              Card(
-                color: Colors.transparent,
-                elevation: 0,
-                child: InkWell(
-                  splashColor: Colors.blueGrey,
-                  onTap: () {
-                    setState(() {
-                      _pageSelection = 'invest';
-                      if (isCollapsed) {
-                        _controller.forward();
-                      } else {
-                        _controller.reverse();
-                      }
-                      isCollapsed = !isCollapsed;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                    color: Colors.transparent,
-                    child: Text(
-                      'Investments',
-                      style: menuLabelStyle,
-                    ),
-                  ),
-                ),
-              ),
-
-              //Savings Menu Item
-              Card(
-                color: Colors.transparent,
-                elevation: 0,
-                child: InkWell(
-                  splashColor: Colors.blueGrey,
-                  onTap: () {
-                    setState(() {
-                      _pageSelection = 'save';
-                      if (isCollapsed) {
-                        _controller.forward();
-                      } else {
-                        _controller.reverse();
-                      }
-                      isCollapsed = !isCollapsed;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                    color: Colors.transparent,
-                    child: Text(
-                      'Savings',
-                      style: menuLabelStyle,
-                    ),
-                  ),
-                ),
-              ),
-
-              //Groups Menu Item
-              Card(
-                color: Colors.transparent,
-                elevation: 0,
-                child: InkWell(
-                  splashColor: Colors.blueGrey,
-                  onTap: () {
-                    setState(() {
-                      _pageSelection = 'group';
-                      if (isCollapsed) {
-                        _controller.forward();
-                      } else {
-                        _controller.reverse();
-                      }
-                      isCollapsed = !isCollapsed;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                    color: Colors.transparent,
-                    child: Text(
-                      'Groups',
-                      style: menuLabelStyle,
-                    ),
-                  ),
-                ),
-              ),
-
-              //Loans Menu Item
-              Card(
-                color: Colors.transparent,
-                elevation: 0,
-                child: InkWell(
-                  splashColor: Colors.blueGrey,
-                  onTap: () {
-                    setState(() {
-                      _pageSelection = 'loan';
-                      if (isCollapsed) {
-                        _controller.forward();
-                      } else {
-                        _controller.reverse();
-                      }
-                      isCollapsed = !isCollapsed;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                    color: Colors.transparent,
-                    child: Text(
-                      'Loans',
-                      style: menuLabelStyle,
-                    ),
-                  ),
-                ),
-              ),
-
-              //Wallet Menu Item
-              Card(
-                color: Colors.transparent,
-                elevation: 0,
-                child: InkWell(
-                  splashColor: Colors.blueGrey,
-                  onTap: () {
-                    setState(() {
-                      _pageSelection = 'wallet';
-                      if (isCollapsed) {
-                        _controller.forward();
-                      } else {
-                        _controller.reverse();
-                      }
-                      isCollapsed = !isCollapsed;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                    color: Colors.transparent,
-                    child: Text(
-                      'Wallet',
-                      style: menuLabelStyle,
-                    ),
-                  ),
-                ),
-              ),
-
-              //Planner Menu Item
-              Card(
-                color: Colors.transparent,
-                elevation: 0,
-                child: InkWell(
-                  splashColor: Colors.blueGrey,
-                  onTap: () {
-                    setState(() {
-                      _pageSelection = 'plan';
-                      if (isCollapsed) {
-                        _controller.forward();
-                      } else {
-                        _controller.reverse();
-                      }
-                      isCollapsed = !isCollapsed;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                    color: Colors.transparent,
-                    child: Text(
-                      'Planner',
-                      style: menuLabelStyle,
-                    ),
-                  ),
-                ),
-              ),
-
-              //Promotions and Incentives Menu Item
-              Card(
-                color: Colors.transparent,
-                elevation: 0,
-                child: InkWell(
-                  splashColor: Colors.blueGrey,
-                  onTap: () {
-                    setState(() {
-                      _pageSelection = 'promo';
-                      if (isCollapsed) {
-                        _controller.forward();
-                      } else {
-                        _controller.reverse();
-                      }
-                      isCollapsed = !isCollapsed;
-                    });
-                  },
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                    color: Colors.transparent,
-                    child: Text(
-                      'Promotions',
-                      style: menuLabelStyle,
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(child: Container()),
-              _menuFooter()
-            ],
+            mainAxisSize: MainAxisSize.max,
+            children: [_menuHeader(), midfieldMenuItems(), _menuFooter()],
           ),
         ),
       ),

@@ -21,6 +21,7 @@ class _MyGroupsState extends State<MyGroups> {
 
   Firestore _firestore = Firestore.instance;
   String relevantDocId;
+  DocumentSnapshot retrievedDocument;
 
   String _code;
   void _handleSubmittedCode(String value) {
@@ -290,9 +291,6 @@ class _MyGroupsState extends State<MyGroups> {
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(
-                  height: 10,
-                ),
                 SpinKitDualRing(
                   color: Colors.greenAccent[700],
                   size: 100,
@@ -317,11 +315,8 @@ class _MyGroupsState extends State<MyGroups> {
               children: <Widget>[
                 Icon(
                   Icons.sentiment_very_dissatisfied,
-                  size: 50,
+                  size: 100,
                   color: Colors.red,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'The code does not match any group',
@@ -349,11 +344,8 @@ class _MyGroupsState extends State<MyGroups> {
               children: <Widget>[
                 Icon(
                   Icons.sentiment_neutral,
-                  size: 50,
+                  size: 100,
                   color: Colors.blue,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'You are a member of the group',
@@ -381,11 +373,8 @@ class _MyGroupsState extends State<MyGroups> {
               children: <Widget>[
                 Icon(
                   Icons.sentiment_satisfied,
-                  size: 50,
+                  size: 100,
                   color: Colors.blue,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'You have joined $name',
@@ -407,7 +396,8 @@ class _MyGroupsState extends State<MyGroups> {
     //Check if one result was returned
     if (querySnapshot.documents.length > 0) {
       //Join group
-      relevantDocId = querySnapshot.documents[0].documentID;
+      relevantDocId = querySnapshot.documents.first.documentID;
+      retrievedDocument = querySnapshot.documents.first;
       return true;
     } else {
       return false;
@@ -420,16 +410,96 @@ class _MyGroupsState extends State<MyGroups> {
     //Get members array
     List members = doc.data["members"];
     if (members.contains(widget.uid)) {
-      return false;
-    } else {
       return true;
+    } else {
+      return false;
     }
+  }
+
+  Future _showGroupPreview() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        //Convert documentsnapshot to group model
+        GroupModel meinGruppe = GroupModel.fromJson(retrievedDocument.data);
+        print(meinGruppe.goalCategory);
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Center(
+            child: Text(
+              meinGruppe.goalName,
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
+            ),
+          ),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Group Objective',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(color: Colors.black.withOpacity(0.6))),
+              ),
+              Text(
+                meinGruppe.groupObjective,
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+              ),
+              SizedBox(height: 5),
+              Text(
+                'Individual Contribution',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(color: Colors.black.withOpacity(0.6))),
+              ),
+              Text(
+                '${meinGruppe.targetAmountPerp.toString()} KES',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+              ),
+            ],
+          ),
+          actions: [
+            FlatButton(
+                onPressed: () {
+                  //Dismiss first dialog
+                  Navigator.of(context).pop();
+                  _addToGroup().then((value) {
+                    _promptGroupJoinSuccess(value);
+                  });
+                },
+                child: Text(
+                  'JOIN',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18)),
+                )),
+            FlatButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'CANCEL',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18)),
+                ))
+          ],
+        );
+      },
+    );
   }
 
   Future<String> _addToGroup() async {
     //Add to group
-    DocumentSnapshot doc =
-        await _firestore.collection("groups").document(relevantDocId).get();
+    DocumentSnapshot doc = retrievedDocument;
     List members = doc.data["members"];
     members.add(widget.uid);
     await _firestore
@@ -460,24 +530,17 @@ class _MyGroupsState extends State<MyGroups> {
       _showUserProgress();
       //Check code
       _verifyCode().then((value) {
+        Navigator.of(context).pop();
         if (value) {
           //Check if user is already a member
           _isMemberIn().then((value) {
             if (value) {
-              _addToGroup().then((value) {
-                //Pop the dialog
-                Navigator.of(context).pop();
-                _promptGroupJoinSuccess(value);
-              });
-            } else {
-              //Pop the dialog
-              Navigator.of(context).pop();
               _promptGroupAlreadyIn();
+            } else {
+              _showGroupPreview();
             }
           });
         } else {
-          //Pop the dialog
-          Navigator.of(context).pop();
           _promptGroup404();
         }
       });
@@ -511,6 +574,16 @@ class _MyGroupsState extends State<MyGroups> {
                             color: Colors.blue,
                             fontWeight: FontWeight.bold,
                             fontSize: 18)),
+                  )),
+              FlatButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'CANCEL',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18)),
                   ))
             ],
           );
@@ -528,16 +601,8 @@ class _MyGroupsState extends State<MyGroups> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(
-                'My Groups',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold)),
-              ),
               IconButton(
                 tooltip: 'Join Group',
                 icon: Icon(

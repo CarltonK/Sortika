@@ -44,7 +44,6 @@ exports.allocationsCalculatorV1 = functions.firestore
         const uid = snapshot.get('uid')
         const docs = await db.collection('users').doc(uid).collection('goals').get()
         const allDocs: Array<DocumentSnapshot> = docs.docs
-        //Periods placeholder
         const periods: Array<number> = []
         const amounts: Array<number> = []
         const adjustedAmounts: Array<number> = []
@@ -79,9 +78,9 @@ exports.allocationsCalculatorV1 = functions.firestore
         console.log(`Amounts: ${amounts}`)
         console.log(`Document Ids: ${documentIds}`)
         //Keep a total adjusted amount counter
-        var totalAdjusted: number = 0
+        let totalAdjusted: number = 0
         for (let index = 0; index < amounts.length; index ++) {
-            var adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
+            let adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
             adjustedAmounts.push(adjusted)
             totalAdjusted = totalAdjusted + adjusted
         }
@@ -91,15 +90,17 @@ exports.allocationsCalculatorV1 = functions.firestore
         console.log(`Total Adjusted Value: ${totalAdjusted}`)
         //Get allocation percentages
         for (let index = 0; index < adjustedAmounts.length; index ++) {
-            var percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
+            let percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
             allocationpercents.push(percent)
         }
         //Show percents
         console.log(`Allocation Percents: ${allocationpercents}`)
         //Update each document with new allocations
         for (let index = 0; index < documentIds.length; index ++) {
+            let documentId: string = documentIds[index]
+            let allocatedPercent: number = allocationpercents[index]
             await db.collection('users').doc(uid)
-                .collection('goals').doc(documentIds[index]).update({'goalAllocation':allocationpercents[index]})
+                .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
         }
         //Update User Targets
         const dailyTarget: number = (totalAdjusted / leastDays)
@@ -125,13 +126,14 @@ exports.allocationsCalculatorV2 = functions.firestore
             const investmentDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
                 .where('goalCategory', '==', 'Investment').get()
             console.log(`How many investment goals? ${investmentDocuments.docs.length}`)
+            const averageAmount: number = (goalAmount / investmentDocuments.docs.length)
             for (let index = 0; index < investmentDocuments.docs.length; index ++) {
-                var currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
-                const averageAmount: number = (goalAmount / investmentDocuments.docs.length)
+                let currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
                 currentAmount = currentAmount + averageAmount
             
+                let documentId: string = investmentDocuments.docs[index].id
                 await db.collection('users').doc(uid)
-                .collection('goals').doc(investmentDocuments.docs[index].id).update({'goalAmount': currentAmount})
+                .collection('goals').doc(documentId).update({'goalAmount': currentAmount})
             }
         }
         if (snapshot.get('goalCategory') === 'Saving') {
@@ -146,7 +148,6 @@ exports.allocationsCalculatorV2 = functions.firestore
         }
         const docs = await db.collection('users').doc(uid).collection('goals').get()
         const allDocs: Array<DocumentSnapshot> = docs.docs
-        //Periods placeholder
         const periods: Array<number> = []
         const amounts: Array<number> = []
         const adjustedAmounts: Array<number> = []
@@ -183,7 +184,7 @@ exports.allocationsCalculatorV2 = functions.firestore
         //Keep a total adjusted amount counter
         var totalAdjusted: number = 0
         for (let index = 0; index < amounts.length; index ++) {
-            var adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
+            let adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
             adjustedAmounts.push(adjusted)
             totalAdjusted = totalAdjusted + adjusted
         }
@@ -193,19 +194,21 @@ exports.allocationsCalculatorV2 = functions.firestore
         console.log(`Total Adjusted Value: ${totalAdjusted}`)
         //Get allocation percentages
         for (let index = 0; index < adjustedAmounts.length; index ++) {
-            var percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
+            let percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
             allocationpercents.push(percent)
         }
         //Show percents
         console.log(`Allocation Percents: ${allocationpercents}`)
         //Update each document with new allocations
         for (let index = 0; index < documentIds.length; index ++) {
+            let documentId: string = documentIds[index]
+            let allocatedPercent: number = allocationpercents[index]
             await db.collection('users').doc(uid)
-                .collection('goals').doc(documentIds[index]).update(
-                    {'goalAllocation':allocationpercents[index]})
+                .collection('goals').doc(documentId).update(
+                    {'goalAllocation':allocatedPercent})
         }
         //Update User Targets
-        const dailyTarget: number = (totalAdjusted / 365)
+        const dailyTarget: number = (totalAdjusted / leastDays)
         const weeklyTarget: number = (dailyTarget * 7)
         const monthlyTarget: number = (dailyTarget * 30)
         //Update USERS Collection
@@ -874,10 +877,13 @@ export const groupMembers = functions.firestore
         //const admin: string = snapshot.before.get('groupAdmin')
         const membersBefore: Array<string> = snapshot.before.get('members')
         const membersAfter: Array<string> = snapshot.after.get('members');
+        console.log(`Members Before: ${membersBefore}`)
+        console.log(`Members After: ${membersAfter}`)
+
 
         if (!snapshot.before.exists) {
             membersAfter.forEach(async (element) => {
-                const user: DocumentSnapshot = await db.collection('users').doc(element).get()
+                let user: DocumentSnapshot = await db.collection('users').doc(element).get()
                 console.log(`Requesting USER: ${user.get('uid')}`)
                 await db.collection('groups').doc(snapshot.after.id).collection('members').doc(element).set({
                     "fullName": user.get('fullName'),
@@ -893,13 +899,13 @@ export const groupMembers = functions.firestore
             if (membersAfter.length > membersBefore.length && (snapshot.before.exists)) {
                 const diff: number = membersAfter.length - membersBefore.length
                 await db.collection('groups').doc(snapshot.after.id).update({
-                    'groupMembers': FirebaseFirestore.FieldValue.increment(diff)
+                    'groupMembers': superadmin.firestore.FieldValue.increment(diff)
                 });
             }
             if (membersBefore.length > membersAfter.length) {
                 const diff: number = membersBefore.length - membersAfter.length
                 await db.collection('groups').doc(snapshot.after.id).update({
-                    'groupMembers': FirebaseFirestore.FieldValue.increment(-diff)
+                    'groupMembers': superadmin.firestore.FieldValue.increment(-diff)
                 });
             }
 
@@ -908,7 +914,7 @@ export const groupMembers = functions.firestore
                     continue
                 }
                 else {
-                    const user: DocumentSnapshot = await db.collection('users').doc(membersAfter[index]).get()
+                    let user: DocumentSnapshot = await db.collection('users').doc(membersAfter[index]).get()
                     console.log(`Requesting USER: ${user.get('uid')}`)
                     await db.collection('groups').doc(snapshot.after.id).collection('members').doc(membersAfter[index]).set({
                         "fullName": user.get('fullName'),

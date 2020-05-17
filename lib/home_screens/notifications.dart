@@ -34,6 +34,27 @@ class _NotificationsState extends State<NotificationsPage> {
                 future: _helper.getUserNotification(widget.uid),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
+                    if (snapshot.data.documents.length == 0) {
+                      return Center(
+                          child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.sentiment_neutral,
+                            size: 100,
+                            color: commonColor,
+                          ),
+                          Text(
+                            'You have not received any notifications',
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                                    fontWeight: FontWeight.w700, fontSize: 16)),
+                          ),
+                        ],
+                      ));
+                    }
                     return ListView.builder(
                       itemCount: snapshot.data.documents.length,
                       itemBuilder: (context, index) {

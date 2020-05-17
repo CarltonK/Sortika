@@ -356,10 +356,11 @@ class _AutoCreateState extends State<AutoCreate> {
                   onPressed: () async {
                     //Delete the document after dismissing the dialog
                     Navigator.of(context).pop();
-                    await _firestore
-                        .collection('autocreates')
-                        .document(docID)
-                        .delete();
+                    //Use a cron job to delete all documents in autocreates collections at Midnight everyday
+                    // await _firestore
+                    //     .collection('autocreates')
+                    //     .document(docID)
+                    //     .delete();
                   },
                   child: Text(
                     'OKAY',

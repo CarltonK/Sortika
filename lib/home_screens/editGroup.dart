@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/models/usermodel.dart';
@@ -25,7 +26,7 @@ class _EditGroupState extends State<EditGroup> {
   List<Map> users = [];
   Helper _helper = new Helper();
 
-  Future<bool> _leaveGroup() async {
+  Future _leaveGroup() async {
     if (data["groupAdmin"] == data["uid"]) {
       await _firestore.collection("groups").document(data["docId"]).delete();
 
@@ -38,7 +39,7 @@ class _EditGroupState extends State<EditGroup> {
           .limit(1)
           .getDocuments();
 
-      String docId = snapshot.documents[0].documentID;
+      String docId = snapshot.documents.first.documentID;
       print(docId);
 
       await _firestore
@@ -63,6 +64,15 @@ class _EditGroupState extends State<EditGroup> {
             .updateData({"members": members});
       });
 
+      //Delete User Document from members subcollection
+      //DocumentID is userID
+      await _firestore
+          .collection('groups')
+          .document(data["docId"])
+          .collection('members')
+          .document(data["uid"])
+          .delete();
+
       //Delete the goal
       QuerySnapshot snapshot = await _firestore
           .collection("users")
@@ -72,7 +82,7 @@ class _EditGroupState extends State<EditGroup> {
           .limit(1)
           .getDocuments();
 
-      String docId = snapshot.documents[0].documentID;
+      String docId = snapshot.documents.first.documentID;
       print(docId);
 
       await _firestore
@@ -82,8 +92,6 @@ class _EditGroupState extends State<EditGroup> {
           .document(docId)
           .delete();
     }
-
-    return true;
   }
 
   Future _showUserProgress() {
@@ -131,7 +139,7 @@ class _EditGroupState extends State<EditGroup> {
               children: <Widget>[
                 Icon(
                   Icons.sentiment_dissatisfied,
-                  size: 50,
+                  size: 100,
                   color: Colors.red,
                 ),
                 Text(
@@ -139,9 +147,6 @@ class _EditGroupState extends State<EditGroup> {
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
                   textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
               ],
             ),
@@ -168,16 +173,8 @@ class _EditGroupState extends State<EditGroup> {
                   onPressed: () {
                     //Pop initial doalog
                     Navigator.of(context).pop();
-                    _showUserProgress();
-                    Navigator.of(context).pop();
-                    _leaveGroup().then((value) {
-                      if (value) {
-                        _showleftGroup();
-                        Timer(Duration(seconds: 3),
-                            () => Navigator.of(context).pop());
-                      }
-                      Timer(Duration(milliseconds: 3500),
-                          () => Navigator.of(context).pop());
+                    _leaveGroup().whenComplete(() {
+                      _showleftGroup();
                     });
                   },
                   child: Text(
@@ -223,7 +220,7 @@ class _EditGroupState extends State<EditGroup> {
                     GoogleFonts.muli(textStyle: TextStyle(color: Colors.white)),
               ),
               SizedBox(
-                height: 10,
+                height: 5,
               ),
               Text(
                 '$targetAmountString',
@@ -252,7 +249,7 @@ class _EditGroupState extends State<EditGroup> {
                     GoogleFonts.muli(textStyle: TextStyle(color: Colors.white)),
               ),
               SizedBox(
-                height: 10,
+                height: 5,
               ),
               Text(
                 '$savedAmountString',
@@ -289,6 +286,40 @@ class _EditGroupState extends State<EditGroup> {
               padding: EdgeInsets.all(16),
               width: MediaQuery.of(context).size.width,
               child: Text('${data["groupObjective"]}',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(fontWeight: FontWeight.normal))),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _endDateWidget() {
+    //Date Parsing and Formatting
+    Timestamp dateRetrieved = data['goalEndDate'];
+    var formatter = new DateFormat('d MMM y');
+    String date = formatter.format(dateRetrieved.toDate());
+
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('End Date',
+              style: GoogleFonts.muli(
+                  textStyle:
+                      TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+          SizedBox(
+            height: 5,
+          ),
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 3,
+            child: Container(
+              padding: EdgeInsets.all(16),
+              width: MediaQuery.of(context).size.width,
+              child: Text(date,
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(fontWeight: FontWeight.normal))),
             ),
@@ -573,7 +604,13 @@ class _EditGroupState extends State<EditGroup> {
                     SizedBox(
                       height: 30,
                     ),
-                    _groupMembers(),
+                    _endDateWidget(),
+                    SizedBox(
+                      height: 30,
+                    ),
+                    data['groupAdmin'] == data['uid']
+                        ? _groupMembers()
+                        : Container(),
                     //_updateBtn()
                   ],
                 ),
