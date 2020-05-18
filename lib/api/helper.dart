@@ -93,4 +93,36 @@ class Helper {
       return null;
     }
   }
+
+  //Get Loan + IC
+  Future getLoanInterestCover(String uid, double loanAmount) async {
+    //Retrieve all goals
+    QuerySnapshot queries = await _firestore
+        .collection('users')
+        .document(uid)
+        .collection('goals')
+        .getDocuments();
+    //Keep a count of all amount
+    double totalAmount = 0;
+    //Iterate through the goals and convert to a Goal Model
+    queries.documents.forEach((element) {
+      GoalModel goal = GoalModel.fromJson(element.data);
+      if (goal.goalCategory == 'Saving' || goal.goalCategory == 'Investment') {
+        totalAmount += goal.goalAmountSaved;
+      }
+    });
+    double cover = ((totalAmount / loanAmount) * 100);
+    return cover;
+  }
+
+  //Get Loan Limits
+  Future getLoanLimit(String uid) async {
+    QuerySnapshot query = await _firestore
+        .collection("users")
+        .document(uid)
+        .collection("goals")
+        .where("goalCategory", isEqualTo: "Loan Fund")
+        .getDocuments();
+    return query.documents.first;
+  }
 }

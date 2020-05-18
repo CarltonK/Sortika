@@ -229,7 +229,7 @@ export const promptLendRequest = functions.firestore
         const token: string = snapshot.get('tokenInvitee')
         const amount: number = snapshot.get('loanAmountTaken')
         const interest: number = snapshot.get('loanInterest')
-        const invitees: string | Array<any> = snapshot.get('loanInvitees')
+        //const invitees: string | Array<any> = snapshot.get('loanInvitees')
         //Retrieve the token (If exists)
         if (token != null) {
             //Retrieve key info
@@ -241,20 +241,20 @@ export const promptLendRequest = functions.firestore
                     clickAction: 'FLUTTER_NOTIFICATION_CLICK'
                 }
             }
-            if (typeof invitees === "string") {
-                await db.collection('users').doc(invitees).collection('notifications').doc().set({
-                    'message': `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
-                    'time': superadmin.firestore.FieldValue.serverTimestamp()
-                })
-            }
-            else {
-                invitees.forEach(async (element) => {
-                    await db.collection('users').doc(element).collection('notifications').doc().set({
-                        'message': `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
-                        'time': superadmin.firestore.FieldValue.serverTimestamp()
-                    })
-                })
-            }
+            // if (typeof invitees === "string") {
+            //     await db.collection('users').doc(invitees).collection('notifications').doc().set({
+            //         'message': `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
+            //         'time': superadmin.firestore.FieldValue.serverTimestamp()
+            //     })
+            // }
+            // else {
+            //     invitees.forEach(async (element) => {
+            //         await db.collection('users').doc(element).collection('notifications').doc().set({
+            //             'message': `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
+            //             'time': superadmin.firestore.FieldValue.serverTimestamp()
+            //         })
+            //     })
+            // }
             //console.log(payload);
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
@@ -270,7 +270,7 @@ export const ackBorrowRequest = functions.firestore
         const token: string = snapshot.get('tokenBorrower')
         const amount: number = snapshot.get('loanAmountTaken')
         const interest: number = snapshot.get('loanInterest')
-        const borrowerUid: string = snapshot.get('loanBorrower')
+        //const borrowerUid: string = snapshot.get('loanBorrower')
 
         if (token != null) {
             //Retrieve key info
@@ -284,10 +284,10 @@ export const ackBorrowRequest = functions.firestore
             }
             //Create a notification for the borrower
             //Store in notifications subcollection of user
-            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-                'message': `Your request for ${amount} KES at an interest rate of ${interest} % has been sent successfully`,
-                'time': superadmin.firestore.FieldValue.serverTimestamp()
-            })
+            // await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+            //     'message': `Your request for ${amount} KES at an interest rate of ${interest} % has been sent successfully`,
+            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
+            // })
             //console.log(payload);
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
@@ -303,9 +303,8 @@ export const promptLoanAccepted = functions.firestore
         const token: string = snapshot.after.get('tokenBorrower')
             const amount: number = snapshot.after.get('loanAmountTaken')
             const due: number = snapshot.after.get('totalAmountToPay')
-            const borrowerUid: string = snapshot.after.get('loanBorrower')
+            //const borrowerUid: string = snapshot.after.get('loanBorrower')
             const time: FirebaseFirestore.Timestamp = snapshot.after.get('loanEndDate')
-            const date: Date = time.toDate()
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === true) {
             //Retrieve key info
@@ -313,22 +312,22 @@ export const promptLoanAccepted = functions.firestore
             const payload = {
                 notification: {
                     title: `Good News`,
-                    body: `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${date.toLocaleDateString()}`,
+                    body: `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${time.toDate().toString()}`,
                     clickAction: 'FLUTTER_NOTIFICATION_CLICK'
                 }
             }
             //Create a notification for the borrower
             //Store in notifications subcollection of user
-            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-                'message': `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${date.toLocaleDateString()}`,
-                'time': superadmin.firestore.FieldValue.serverTimestamp()
-            })
+            // await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+            //     'message': `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${date.toLocaleDateString()}`,
+            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
+            // })
             console.log(payload);
             //Send to all tenants in the topic "landlord_code"
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
                 console.error('promptLoanAccepted FCM Error',error)
-        })
+            })
         }
     })
 
@@ -338,7 +337,7 @@ export const promptAcceptLoan = functions.firestore
             const token: string = snapshot.after.get('loanLenderToken')
             const borrowerName: string = snapshot.after.get('borrowerName')
             const amount: number = snapshot.after.get('loanAmountTaken')
-            const lenderUid: string = snapshot.after.get('loanLender')
+            //const lenderUid: string = snapshot.after.get('loanLender')
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === true) {
             //Retrieve key info
@@ -352,10 +351,10 @@ export const promptAcceptLoan = functions.firestore
             }
             //Create a notification for the borrower
             //Store in notifications subcollection of user
-            await db.collection('users').doc(lenderUid).collection('notifications').doc().set({
-                'message': `We will deduct ${amount} KES from your wallet and send to ${borrowerName}`,
-                'time': superadmin.firestore.FieldValue.serverTimestamp()
-            })
+            // await db.collection('users').doc(lenderUid).collection('notifications').doc().set({
+            //     'message': `We will deduct ${amount} KES from your wallet and send to ${borrowerName}`,
+            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
+            // })
             console.log(payload);
             //Send to all tenants in the topic "landlord_code"
             return fcm.sendToDevice(token, payload)
@@ -405,7 +404,7 @@ export const promptLoanNegotiation = functions.firestore
     .document('loans/{loan}')
     .onWrite(async snapshot => {
         const token: string = snapshot.before.get('tokenBorrower')
-        const borrowerUid: string = snapshot.before.get('loanBorrower')
+        //const borrowerUid: string = snapshot.before.get('loanBorrower')
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === 'Revised' && snapshot.after.get('loanStatus') === 'Revised2') {
             //Retrieve key info
@@ -420,10 +419,10 @@ export const promptLoanNegotiation = functions.firestore
         console.log(payload);
          //Create a notification for the borrower
         //Store in notifications subcollection of user
-        await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-            'message': `You have sent a revised loan request submission`,
-            'time': superadmin.firestore.FieldValue.serverTimestamp()
-        })
+        // await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+        //     'message': `You have sent a revised loan request submission`,
+        //     'time': superadmin.firestore.FieldValue.serverTimestamp()
+        // })
         //Send to all tenants in the topic "landlord_code"
         return fcm.sendToDevice(token, payload)
             .catch(error => {
@@ -545,7 +544,7 @@ export const promptRejectLoan = functions.firestore
         const token: string | Array<any> = snapshot.before.get('tokenInvitee')
         const amount: number = snapshot.after.get('loanAmountTaken')
         const interest: number = snapshot.after.get('loanInterest')
-        const loanInvitee: string | Array<any> = snapshot.before.get('loanInvitees')
+        //const loanInvitee: string | Array<any> = snapshot.before.get('loanInvitees')
         //Retrieve the token (If exists)
         if (snapshot.after.get('loanStatus') === 'Rejected') {
             //Retrieve key info
@@ -560,20 +559,20 @@ export const promptRejectLoan = functions.firestore
             console.log(payload)
             //Send a notification to a user
             //Update notifications subcollection for user
-            if (typeof loanInvitee == "string") {
-                await db.collection('users').doc(loanInvitee).collection('notifications').doc().set({
-                    'message': `You rejected a loan request of ${amount} KES at ${interest} %`,
-                    'time': superadmin.firestore.FieldValue.serverTimestamp()
-                })
-            }
-            else {
-                loanInvitee.forEach(async (element) => {
-                    await db.collection('users').doc(element).collection('notifications').doc().set({
-                        'message': `You rejected a loan request of ${amount} KES at ${interest} %`,
-                        'time': superadmin.firestore.FieldValue.serverTimestamp()
-                    })
-                })
-            }
+            // if (typeof loanInvitee == "string") {
+            //     await db.collection('users').doc(loanInvitee).collection('notifications').doc().set({
+            //         'message': `You rejected a loan request of ${amount} KES at ${interest} %`,
+            //         'time': superadmin.firestore.FieldValue.serverTimestamp()
+            //     })
+            // }
+            // else {
+            //     loanInvitee.forEach(async (element) => {
+            //         await db.collection('users').doc(element).collection('notifications').doc().set({
+            //             'message': `You rejected a loan request of ${amount} KES at ${interest} %`,
+            //             'time': superadmin.firestore.FieldValue.serverTimestamp()
+            //         })
+            //     })
+            // }
             //Delete the Document
             await db.collection('loans').doc(snapshot.after.id).delete()
             return fcm.sendToDevice(token, payload)
@@ -589,7 +588,7 @@ export const selfLoan = functions.firestore
     .onCreate(async snapshot => {
         const lender: string = snapshot.get('loanLender')
         const amount: number = snapshot.get('loanAmountTaken')
-        const token: string = snapshot.get('loanLenderToken')
+        const token: string = snapshot.get('tokenBorrower')
         if (lender != null) {
             //Check if user has enough amount in Loan Fund Goal
             await db.collection('users').doc(lender).collection('goals')
@@ -599,6 +598,9 @@ export const selfLoan = functions.firestore
                     queries.forEach(async (element) => {
                         const limit: number = element.get('goalAmountSaved')
                         if (amount > limit) {
+                            await db.collection('loans').doc(snapshot.id).update({
+                                'tokenInvitee': token,
+                            })
                             await db.collection('loans').doc(snapshot.id).update({
                             'loanStatus': 'Rejected'
                             })
@@ -616,6 +618,7 @@ export const selfLoan = functions.firestore
                         }
                         else {
                             await db.collection('loans').doc(snapshot.id).update({
+                                'loanLenderToken': token,
                                 'loanStatus': true
                             })
                             const payload = {
@@ -627,7 +630,7 @@ export const selfLoan = functions.firestore
                             }
                             return fcm.sendToDevice(token, payload)
                                 .catch(error => {
-                                    console.error('selfLoanReject FCM Error',error)
+                                    console.error('selfLoanAccept FCM Error',error)
                                 })
                         }
                     })
@@ -936,22 +939,3 @@ export const deleteGroup = functions.firestore
         })
     })
 
-export const lendMoneyGoalFund  = functions.firestore
-    .document('loans/{loan}')
-    .onCreate(async snapshot => {
-        const uid: string =  snapshot.get('loanLender')
-        const amount: number = snapshot.get('loanAmountTaken')
-        const invitee: string = snapshot.get('loanInvitees')
-        if (invitee == null) {
-            //Update Loan Fund Goal
-            const doc: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid)
-                .collection('goals').where('goalCategory', '==', 'Loan Fund').limit(1).get()
-            console.log(`Document ID: ${doc.docs[0].id}`)
-            doc.docs.forEach(async (element) => {
-                const docId: string = element.id
-                await db.collection('users').doc(uid).collection('goals').doc(docId).update({
-                    'goalAmount': amount
-                })
-            })
-        }
-    })

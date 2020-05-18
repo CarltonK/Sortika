@@ -1076,16 +1076,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         duration: duration);
   }
 
-  Future _getLoanLimit() async {
-    QuerySnapshot query = await _firestore
-        .collection("users")
-        .document(userData.uid)
-        .collection("goals")
-        .where("goalCategory", isEqualTo: "Loan Fund")
-        .getDocuments();
-    return query.documents[0];
-  }
-
   Widget _loanLimits() {
     return Card(
       elevation: 10,
@@ -1096,12 +1086,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       child: Container(
         padding: EdgeInsets.all(8),
         child: FutureBuilder(
-          future: _getLoanLimit(),
+          future: helper.getLoanLimit(userData.uid),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               //Convert Data to a Goal Model
               GoalModel mods = GoalModel.fromJson(snapshot.data.data);
               double borrowAmount = (mods.goalAmountSaved * (75 / 100));
+
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -1449,10 +1440,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               Icon(
                 EvilIcons.check,
                 color: Colors.greenAccent[700],
-                size: 50,
-              ),
-              SizedBox(
-                height: 10,
+                size: 100,
               ),
               Text(
                   'We will send ${data['loanAmountTaken'].toString()} KES to ${data['borrowerName']}',
@@ -1482,10 +1470,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               Icon(
                 EvilIcons.check,
                 color: Colors.greenAccent[700],
-                size: 50,
-              ),
-              SizedBox(
-                height: 10,
+                size: 100,
               ),
               Text(
                   'You have rejected a loan request from ${data['borrowerName']}',
@@ -2271,7 +2256,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _fcm.configure(
       onMessage: (Map<String, dynamic> message) async {
         print('onMessage: $message');
-        notificationPopup(message);
+        //notificationPopup(message);
       },
       onLaunch: (Map<String, dynamic> message) async {
         print("onLaunch: $message");

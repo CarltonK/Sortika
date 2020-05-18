@@ -301,9 +301,6 @@ class _UpdateLoanState extends State<UpdateLoan> {
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(
-                  height: 10,
-                ),
                 SpinKitDualRing(
                   color: Colors.greenAccent[700],
                   size: 100,
@@ -328,11 +325,8 @@ class _UpdateLoanState extends State<UpdateLoan> {
               children: <Widget>[
                 Icon(
                   Icons.done,
-                  size: 50,
+                  size: 100,
                   color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'Your loan revision has been sent successfully',
@@ -377,15 +371,12 @@ class _UpdateLoanState extends State<UpdateLoan> {
           .updateLoanDoc(loanData['docId'], _amount, _interest)
           .whenComplete(() {
         //Pop that dialog
+        Navigator.of(context).pop();
         //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
-
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => _promptUserSuccess());
+        _promptUserSuccess();
       }).catchError((error) {
         _promptUser(error);
       });
-      ;
     }
   }
 
@@ -416,7 +407,7 @@ class _UpdateLoanState extends State<UpdateLoan> {
   Widget build(BuildContext context) {
     loanData = ModalRoute.of(context).settings.arguments;
     loan = LoanModel.fromJson(loanData);
-    print(loanData);
+    //print(loanData);
 
     return Scaffold(
       appBar: AppBar(

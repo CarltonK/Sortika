@@ -8,9 +8,9 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/loanModel.dart';
-import 'package:wealth/services/permissions.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class BorrowPage extends StatefulWidget {
@@ -32,8 +32,6 @@ class BorrowPage extends StatefulWidget {
 }
 
 class _BorrowPageState extends State<BorrowPage> {
-  final PermissionService _service = PermissionService();
-
   final styleLabel =
       GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 15));
 
@@ -59,6 +57,7 @@ class _BorrowPageState extends State<BorrowPage> {
 
   Firestore _firestore = Firestore.instance;
   AuthService authService = new AuthService();
+  Helper _helper = new Helper();
 
   final _formPhone = GlobalKey<FormState>();
 
@@ -104,10 +103,6 @@ class _BorrowPageState extends State<BorrowPage> {
   double interestLoan = 1;
   //L+IC placeholder
   double interestCoverLoan = 0;
-  /*
-  Loan + IC = (Loan Amount/Total Investments) * 100
-  In the initial stage, it is 0%
-  */
 
   //Define Dropdown Menu Items
   List<DropdownMenuItem> items = [
@@ -213,7 +208,7 @@ class _BorrowPageState extends State<BorrowPage> {
                     Icon(FontAwesome5.money_bill_alt, color: Colors.white),
                 suffixText: 'KES',
                 suffixStyle: hintStyle,
-                labelText: 'How much do you want to borrow?',
+                labelText: 'Enter loan amount',
                 labelStyle: hintStyle))
       ],
     );
@@ -340,38 +335,6 @@ class _BorrowPageState extends State<BorrowPage> {
       ],
     );
   }
-//
-//  Future _showContactList(Iterable<Contact> contacts) {
-//    return showCupertinoModalPopup(
-//        context: context,
-//        builder: (BuildContext context) {
-//          return AlertDialog(
-//            content: Container(
-//              height: MediaQuery.of(context).size.height * 0.75,
-//              width: MediaQuery.of(context).size.width,
-//              child: ListView(
-//                children: contacts.map((map) {
-//                  return Container(
-//                    child: ListTile(
-//                      leading: Icon(Icons.person),
-//                      title: Text(
-//                        '${map.displayName}',
-//                        style: GoogleFonts.muli(),
-//                      ),
-//                      subtitle: Text(
-//                        map.phones.length == 0
-//                            ? ''
-//                            : '${map.phones.first.value}',
-//                        style: GoogleFonts.muli(),
-//                      ),
-//                    ),
-//                  );
-//                }).toList(),
-//              ),
-//            ),
-//          );
-//        });
-//  }
 
   Future _specificBtnPressed() async {
     return showCupertinoModalPopup(
@@ -418,17 +381,16 @@ class _BorrowPageState extends State<BorrowPage> {
                     textInputAction: TextInputAction.done,
                     onSaved: _handleSubmittedPhone,
                     decoration: InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        errorBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.red)),
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black)),
-                        prefixIcon: Icon(Icons.phone, color: Colors.black),
-                        labelText: '',
-                        labelStyle: hintStyleBlack))),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red)),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      prefixIcon: Icon(Icons.phone, color: Colors.black),
+                    ))),
             actions: [
               FlatButton(
                   onPressed: _checkValidity,
@@ -450,14 +412,14 @@ class _BorrowPageState extends State<BorrowPage> {
         .getDocuments();
     int numDocs = query.documents.length;
     if (numDocs > 0) {
-      DocumentSnapshot doc = query.documents[0];
+      DocumentSnapshot doc = query.documents.first;
       _phoneRetrieved = doc.data["phone"];
       _loanInviteeName = doc.data["fullName"].split(' ')[0];
       _loanInviteetoken = doc.data["token"];
       _idInvitee = doc.data['uid'];
-      print(_loanInviteeName);
-      print(_loanInviteetoken);
-      print(_phoneRetrieved);
+      // print(_loanInviteeName);
+      // print(_loanInviteetoken);
+      // print(_phoneRetrieved);
       return true;
     } else {
       return false;
@@ -472,14 +434,17 @@ class _BorrowPageState extends State<BorrowPage> {
     if (form.validate()) {
       form.save();
       //Check if phone number exists in backend
-      //Dismiss the form dialog
+
+      //Dismiss the form dialog first
       Navigator.of(context).pop();
-      //Show a dialog
+
+      //Show a progress dialog
       _showUserProgress();
+
       _checkPhoneNumber().then((value) {
+        //Pop the initial dialog
+        Navigator.of(context).pop();
         if (value) {
-          //Pop the initial dialog
-          Navigator.of(context).pop();
           //Show the new dialog
           _promptLenderFound();
           if (_phoneRetrieved == widget.phone) {
@@ -497,17 +462,12 @@ class _BorrowPageState extends State<BorrowPage> {
             lender = null;
             lenderName = null;
             lenderToken = null;
-            print(takeLoanFrom);
+            //print(takeLoanFrom);
           }
         } else {
-          //Pop the initial dialog
-          Navigator.of(context).pop();
           //Show the new dialog
           _promptLenderNotFound();
           takeLoanFrom = null;
-          //Pop after a while and return the form
-          Timer(Duration(seconds: 4), () => Navigator.pop(context));
-          Timer(Duration(seconds: 5), () => _specificBtnPressed());
         }
       });
     }
@@ -527,11 +487,8 @@ class _BorrowPageState extends State<BorrowPage> {
               children: <Widget>[
                 Icon(
                   Icons.sentiment_satisfied,
-                  size: 50,
+                  size: 100,
                   color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'Your request will be sent to $_loanInviteeName',
@@ -559,11 +516,8 @@ class _BorrowPageState extends State<BorrowPage> {
               children: <Widget>[
                 Icon(
                   Icons.sentiment_satisfied,
-                  size: 50,
+                  size: 100,
                   color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'Your request will be sent to everyone on Sortika who can fulfill your request',
@@ -591,15 +545,11 @@ class _BorrowPageState extends State<BorrowPage> {
               children: <Widget>[
                 Icon(
                   Icons.sentiment_dissatisfied,
-                  size: 50,
+                  size: 100,
                   color: Colors.red,
                 ),
-                SizedBox(
-                  height: 10,
-                ),
                 Text(
-                  'The requested lender is not on Sortika or you tried to send a'
-                  ' loan request to yourself',
+                  'The requested lender is not on Sortikaf',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
                   textAlign: TextAlign.center,
@@ -736,6 +686,16 @@ class _BorrowPageState extends State<BorrowPage> {
     else if (_date.difference(rightNow).inDays < 1) {
       _promptUser('The goal end date is too soon');
     } else {
+      //Show a dialog
+      _showUserProgress();
+      //First get the L+1C
+      var cover = await _helper.getLoanInterestCover(widget.uid, amountLoan);
+      if (cover == 'Infinity') {
+        interestCoverLoan = 0;
+      } else {
+        interestCoverLoan = cover;
+      }
+      //print('L + IC = $interestCoverLoan %');
       //Create an instance of a Loan
       LoanModel loanModel = new LoanModel(
         loanLender: lender,
@@ -759,23 +719,19 @@ class _BorrowPageState extends State<BorrowPage> {
 
       //Create an activity
       ActivityModel borrowAct = new ActivityModel(
-          activity: 'You sent a borrow request',
+          activity: 'You sent a loan request to ${loanModel.loanInviteeName}',
           activityDate: Timestamp.fromDate(rightNow));
       await authService.postActivity(widget.uid, borrowAct);
 
-      //Show a dialog
-      _showUserProgress();
-
       _applyForALoan(loanModel).whenComplete(() {
         //Pop that dialog
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 1), () => Navigator.of(context).pop());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => _promptUserSuccess());
+        Timer(Duration(seconds: 2), () => _promptUserSuccess());
       }).catchError((error) {
         //Show a success message for two seconds
-        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
+        Timer(Duration(seconds: 1), () => Navigator.of(context).pop());
 
         //Show an erroe message
         Timer(Duration(seconds: 2), () => _promptUser(error));

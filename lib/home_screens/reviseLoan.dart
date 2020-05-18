@@ -297,11 +297,8 @@ class _ReviseLoanState extends State<ReviseLoan> {
               children: <Widget>[
                 Icon(
                   Icons.done,
-                  size: 50,
+                  size: 100,
                   color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'Your loan revision has been sent successfully',
@@ -346,11 +343,10 @@ class _ReviseLoanState extends State<ReviseLoan> {
           .reviseLoanDoc(loanData['docId'], _amount, _interest)
           .whenComplete(() {
         //Pop that dialog
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
+        Navigator.of(context).pop();
 
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => _promptUserSuccess());
+        //Show a success message
+        _promptUserSuccess();
       }).catchError((error) {
         _promptUser(error);
       });
@@ -385,7 +381,7 @@ class _ReviseLoanState extends State<ReviseLoan> {
   Widget build(BuildContext context) {
     loanData = ModalRoute.of(context).settings.arguments;
     loan = LoanModel.fromJson(loanData);
-    print(loanData);
+    //print(loanData);
 
     return Scaffold(
       appBar: AppBar(
