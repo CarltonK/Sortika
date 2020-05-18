@@ -13,6 +13,7 @@ import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/home_screens/autoCreateHolder.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
+import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
 import 'package:wealth/home_screens/notifications.dart';
@@ -2867,7 +2868,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     CupertinoActionSheetAction(
                         onPressed: () {
                           //Pop the dialog first then open page
-                          Navigator.of(context).popAndPushNamed('/deposit');
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Deposit(
+                                        uid: uid,
+                                      )));
                         },
                         child: Text(
                           'Deposit',

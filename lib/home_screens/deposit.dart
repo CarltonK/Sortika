@@ -10,6 +10,10 @@ import 'package:wealth/models/depositmethods.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class Deposit extends StatefulWidget {
+  final String uid;
+
+  Deposit({this.uid});
+
   @override
   _DepositState createState() => _DepositState();
 }
@@ -21,6 +25,7 @@ class _DepositState extends State<Deposit> {
   // Identifiers
   int _currentPage = 0;
   String _destination;
+  String _method = 'M-PESA';
 
   @override
   void initState() {
@@ -116,6 +121,39 @@ class _DepositState extends State<Deposit> {
     );
   }
 
+  Future showGoalsPopup() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Container(
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: ListView(
+                children: [
+                  Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    color: Colors.grey[200],
+                    child: ListTile(
+                      title: Text('Buy a house',
+                          style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.black),
+                          )),
+                      subtitle: Text('Current: 20,000 KES',
+                          style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.black),
+                          )),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
   Widget _depositDestination() {
     return Container(
       alignment: Alignment.centerLeft,
@@ -137,14 +175,6 @@ class _DepositState extends State<Deposit> {
           color: Colors.transparent,
         ),
         value: _destination,
-        hint: Text(
-          '',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600)),
-        ),
         icon: Icon(
           CupertinoIcons.down_arrow,
           color: Colors.black,
@@ -154,40 +184,9 @@ class _DepositState extends State<Deposit> {
           setState(() {
             _destination = value;
 
-            if (value == 'wallet') {}
-            if (value == 'general') {}
             if (value == 'specific') {
               //Show a list of all goals
-              showCupertinoModalPopup(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      content: Container(
-                        height: MediaQuery.of(context).size.height * 0.5,
-                        child: ListView(
-                          children: [
-                            Card(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              color: Colors.grey[200],
-                              child: ListTile(
-                                title: Text('Buy a house',
-                                    style: GoogleFonts.muli(
-                                      textStyle: TextStyle(color: Colors.black),
-                                    )),
-                                subtitle: Text('Current: 20,000 KES',
-                                    style: GoogleFonts.muli(
-                                      textStyle: TextStyle(color: Colors.black),
-                                    )),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    );
-                  });
+              showGoalsPopup();
             }
           });
         },
@@ -204,7 +203,9 @@ class _DepositState extends State<Deposit> {
         onPageChanged: (value) {
           setState(() {
             _currentPage = value;
-            _controllerPages.animateToPage(value,
+            _method = methods[_currentPage].title;
+            //print(_method);
+            _controllerPages.animateToPage(_currentPage,
                 duration: Duration(milliseconds: 100), curve: Curves.ease);
           });
         },
@@ -287,55 +288,58 @@ class _DepositState extends State<Deposit> {
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
-        child: Stack(
-          children: [
-            backgroundWidget(),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-              child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _depositInfo(),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Text('Where do you want to deposit?',
-                        style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.white),
-                        )),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    _depositDestination(),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    Text('How do you want to deposit?',
-                        style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.white),
-                        )),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    _depositMethodWidget(),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    LimitedBox(
-                      maxHeight: double.maxFinite,
-                      child: PageView(
-                          controller: _controllerPages,
-                          physics: NeverScrollableScrollPhysics(),
-                          onPageChanged: (value) {},
-                          children: _pages),
-                    )
-                  ],
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Stack(
+            children: [
+              backgroundWidget(),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                child: SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // _depositInfo(),
+                      // SizedBox(
+                      //   height: 20,
+                      // ),
+                      Text('Where do you want to deposit?',
+                          style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.white),
+                          )),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      _depositDestination(),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Text('How do you want to deposit?',
+                          style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.white),
+                          )),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      _depositMethodWidget(),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      LimitedBox(
+                        maxHeight: double.maxFinite,
+                        child: PageView(
+                            controller: _controllerPages,
+                            physics: NeverScrollableScrollPhysics(),
+                            onPageChanged: (value) {},
+                            children: _pages),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );

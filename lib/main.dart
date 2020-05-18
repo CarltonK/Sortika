@@ -8,7 +8,6 @@ import 'package:wealth/authentication_screens/passwordreset.dart';
 import 'package:wealth/authentication_screens/registration.dart';
 import 'package:wealth/home_screens/borrowAll.dart';
 import 'package:wealth/home_screens/create_goal.dart';
-import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/home_screens/editGoal.dart';
 import 'package:wealth/home_screens/editGroup.dart';
 import 'package:wealth/home_screens/help.dart';
@@ -65,7 +64,6 @@ class MyApp extends StatelessWidget {
           '/home': (context) => Home(),
           '/profile': (context) => ProfilePage(),
           '/create-goal': (context) => CreateGoal(),
-          '/deposit': (context) => Deposit(),
           '/rate': (context) => Rate(),
           '/help': (context) => Help(),
           '/settings': (context) => Settings(),

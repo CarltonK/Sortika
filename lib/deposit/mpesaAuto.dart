@@ -7,7 +7,7 @@ class MpesaAuto extends StatelessWidget {
   //Identifiers
   String _phone, _amount;
 
-  FocusNode focusAmount = FocusNode();
+  final FocusNode focusAmount = FocusNode();
 
   //Handle Phone Input
   void _handleSubmittedPhone(String value) {
@@ -42,6 +42,7 @@ class MpesaAuto extends StatelessWidget {
             onFieldSubmitted: (value) {
               FocusScope.of(context).requestFocus(focusAmount);
             },
+            autovalidate: true,
             validator: (value) {
               //Check if phone is available
               if (value.isEmpty) {
@@ -87,10 +88,11 @@ class MpesaAuto extends StatelessWidget {
           style: labelStyle,
         ),
         SizedBox(
-          height: 5,
+          height: 10,
         ),
         TextFormField(
             autofocus: false,
+            autovalidate: true,
             keyboardType: TextInputType.number,
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
