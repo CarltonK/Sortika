@@ -219,12 +219,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold)),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.filter_list),
-                          onPressed: () {
-                            _filterActivity();
-                          },
-                        )
+                        // IconButton(
+                        //   icon: Icon(Icons.filter_list),
+                        //   onPressed: () {
+                        //     _filterActivity();
+                        //   },
+                        // )
                       ],
                     ),
                   ),
@@ -1996,31 +1996,45 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   children: [
                     //App Bar
                     _appBar('Wallet'),
-                    Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Balance',
-                              style: GoogleFonts.muli(
-                                  textStyle: TextStyle(
-                                      color: Colors.black, fontSize: 15)),
-                            ),
-                            SizedBox(
-                              height: 5,
-                            ),
-                            Text(
-                              '1,200 KES',
-                              style: GoogleFonts.muli(
-                                  textStyle: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700)),
+                    StreamBuilder<DocumentSnapshot>(
+                      stream: helper.getWalletBalance(uid),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          var amount = snapshot.data.data['amount'];
+
+                          return Container(
+                            padding:
+                                EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Balance',
+                                  style: GoogleFonts.muli(
+                                      textStyle: TextStyle(
+                                          color: Colors.black, fontSize: 15)),
+                                ),
+                                SizedBox(
+                                  height: 5,
+                                ),
+                                Text(
+                                  '$amount KES',
+                                  style: GoogleFonts.muli(
+                                      textStyle: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700)),
+                                )
+                              ],
                             )
-                          ],
-                        )),
+                        );
+                      }
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: LinearProgressIndicator(),
+                        );
+                      }
+                    ),
                     walletHeader('Earnings', Colors.green),
                     walletHeader('Withdrawals', Colors.red),
                     walletHeader('Deposits', Colors.green),
@@ -2911,12 +2925,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     CupertinoActionSheetAction(
                         onPressed: () {
                           //Pop the dialog first then open page
+                          Navigator.of(context).pop();
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => Deposit(
-                                        uid: uid,
-                                      )));
+                                builder: (context) => Deposit(
+                                  uid: uid,
+                                ),
+                              ));
                         },
                         child: Text(
                           'Deposit',

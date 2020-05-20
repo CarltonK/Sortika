@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wealth/api/auth.dart';
-import 'package:wealth/models/activityModel.dart';
+import 'package:wealth/models/depositModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 
 class Helper {
@@ -12,6 +12,16 @@ class Helper {
   //Initialize class
   Helper() {
     print("An instance of Database Helper has started");
+  }
+
+  //Retrieve all user goals
+  Future<QuerySnapshot> getAllGoals(String uid) async {
+    QuerySnapshot queries = await _firestore
+        .collection('users')
+        .document(uid)
+        .collection('goals')
+        .getDocuments();
+    return queries;
   }
 
   //Retrieve Investment data to populate graph
@@ -124,5 +134,19 @@ class Helper {
         .where("goalCategory", isEqualTo: "Loan Fund")
         .getDocuments();
     return query.documents.first;
+  }
+
+  //Deposit Money
+  Future depositMoney(String uid, DepositModel model) async {
+    await _firestore
+        .collection('deposits')
+        .document(uid)
+        .setData(model.toJson());
+  }
+
+  //Get Wallet Balance
+  Stream<DocumentSnapshot> getWalletBalance(String uid)  {
+    Stream<DocumentSnapshot> doc =  _firestore.collection('users').document(uid).collection('wallet').document(uid).snapshots();
+    return doc;
   }
 }

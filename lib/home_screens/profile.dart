@@ -234,6 +234,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     labelStyle: hintStyle))
             : TextFormField(
                 enabled: false,
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                  color: Colors.white,
+                )),
                 decoration: InputDecoration(
                     enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.white)),
@@ -343,6 +347,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             labelStyle: hintStyle))
                     : TextFormField(
                         enabled: false,
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                          color: Colors.white,
+                        )),
                         decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.white)),
@@ -415,6 +423,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       labelStyle: hintStyle))
               : TextFormField(
                   enabled: false,
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                    color: Colors.white,
+                  )),
                   decoration: InputDecoration(
                       enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.white)),
@@ -485,6 +497,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       labelStyle: hintStyle))
               : TextFormField(
                   enabled: false,
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                    color: Colors.white,
+                  )),
                   decoration: InputDecoration(
                       enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.white)),
@@ -647,11 +663,8 @@ class _ProfilePageState extends State<ProfilePage> {
               children: <Widget>[
                 Icon(
                   Icons.done,
-                  size: 50,
+                  size: 100,
                   color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   '$message',
@@ -681,9 +694,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   '$message...',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 SpinKitDualRing(
                   color: Colors.greenAccent[700],
@@ -990,7 +1000,7 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _kinImageFile = value;
         });
-        _setKraDocPic();
+        _setKinImagePic();
       }
     });
   }
@@ -1001,7 +1011,7 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _kinIDFile = value;
         });
-        _setKraDocPic();
+        _setKinIdFile();
       }
     });
   }
@@ -1012,7 +1022,7 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _kinKraFile = value;
         });
-        _setKraDocPic();
+        _setKinKraFile();
       }
     });
   }
@@ -1855,7 +1865,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           borderRadius: BorderRadius.circular(12)),
                       width: MediaQuery.of(context).size.width * 0.4,
                       height: 150,
-                      child: user.natIDURL == null
+                      child: user.kinNatIdURL == null
                           ? Center(
                               child: IconButton(
                                 icon: Icon(Icons.add_a_photo,
@@ -1866,7 +1876,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           : ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: Image.network(
-                                user.natIDURL,
+                                user.kinNatIdURL,
                                 fit: BoxFit.fill,
                               )),
                     )
@@ -1894,7 +1904,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           borderRadius: BorderRadius.circular(12)),
                       width: MediaQuery.of(context).size.width * 0.4,
                       height: 150,
-                      child: user.kraURL == null
+                      child: user.kinKraUrl == null
                           ? Center(
                               child: IconButton(
                                 icon: Icon(Icons.add_a_photo,
@@ -1905,7 +1915,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           : ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child: Image.network(
-                                user.kraURL,
+                                user.kinKraUrl,
                                 fit: BoxFit.fill,
                               )),
                     )

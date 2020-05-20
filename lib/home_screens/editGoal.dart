@@ -73,9 +73,6 @@ class _EditGoalState extends State<EditGoal> {
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(
-                  height: 10,
-                ),
                 SpinKitDualRing(
                   color: Colors.greenAccent[700],
                   size: 100,
@@ -100,11 +97,8 @@ class _EditGoalState extends State<EditGoal> {
               children: <Widget>[
                 Icon(
                   Icons.done,
-                  size: 50,
+                  size: 100,
                   color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Text(
                   'Your goal has been deleted',
@@ -383,31 +377,6 @@ class _EditGoalState extends State<EditGoal> {
       ),
     );
   }
-
-  // //Define Dropdown Menu Items
-  // List<DropdownMenuItem> itemsAsset = [
-  //   DropdownMenuItem(
-  //     value: 'investment',
-  //     child: Text(
-  //       'Investment Goal',
-  //       style: GoogleFonts.muli(
-  //           textStyle:
-  //               TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-  //     ),
-  //   ),
-  // ];
-
-  // List<DropdownMenuItem> itemsGoals = [
-  //   DropdownMenuItem(
-  //     value: 'mmf',
-  //     child: Text(
-  //       'Money Market Fund',
-  //       style: GoogleFonts.muli(
-  //           textStyle:
-  //               TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-  //     ),
-  //   ),
-  // ];
 
   Widget _amountWidget() {
     //Check if the goal is a group
@@ -721,7 +690,7 @@ class _EditGoalState extends State<EditGoal> {
   Widget build(BuildContext context) {
     //Retrieve the data
     data = ModalRoute.of(context).settings.arguments;
-    print('EDIT GOAL PAGE DATA: $data');
+    //print('EDIT GOAL PAGE DATA: $data');
 
     return Scaffold(
       appBar: AppBar(

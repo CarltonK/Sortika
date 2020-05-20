@@ -357,7 +357,10 @@ class _AutoCreateState extends State<AutoCreate> {
                     //Delete the document after dismissing the dialog
                     Navigator.of(context).pop();
                     //Use a cron job to delete all documents (if user does not press okay) in autocreates collections at Midnight everyday
-                    await _firestore.collection('autocreates').document(docID).delete();
+                    await _firestore
+                        .collection('autocreates')
+                        .document(docID)
+                        .delete();
                   },
                   child: Text(
                     'OKAY',

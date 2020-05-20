@@ -1,18 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/helper.dart';
 import 'package:wealth/deposit/bankcard.dart';
 import 'package:wealth/deposit/mpesaAuto.dart';
 import 'package:wealth/deposit/mpesaManual.dart';
 import 'package:wealth/models/depositmethods.dart';
+import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class Deposit extends StatefulWidget {
   final String uid;
 
-  Deposit({this.uid});
+  Deposit({Key key, this.uid}) : super(key: key);
 
   @override
   _DepositState createState() => _DepositState();
@@ -24,21 +28,43 @@ class _DepositState extends State<Deposit> {
 
   // Identifiers
   int _currentPage = 0;
-  String _destination;
-  String _method = 'M-PESA';
+  static String _destination = 'wallet';
+  static String _method = 'M-PESA';
+  static String userId;
+  static String goalName;
+  List<Widget> _pages = [
+    DepositAncestor(
+      userId,
+      _destination,
+      _method,
+      goalName,
+      child: MpesaAuto(),
+    ),
+    MpesaManual(),
+    DepositAncestor(
+      userId,
+      _destination,
+      _method,
+      goalName,
+      child: MpesaAuto(),
+    ),
+    BankCard()
+  ];
+  Helper _helper = new Helper();
 
   @override
   void initState() {
     super.initState();
     _controller = PageController(viewportFraction: 0.85);
     _controllerPages = PageController(viewportFraction: 1);
+    userId = widget.uid;
   }
 
   @override
   void dispose() {
-    super.dispose();
     _controller.dispose();
     _controllerPages.dispose();
+    super.dispose();
   }
 
   //Define Dropdown Menu Items
@@ -121,6 +147,37 @@ class _DepositState extends State<Deposit> {
     );
   }
 
+  Widget _singleGoal(DocumentSnapshot document) {
+    GoalModel model = GoalModel.fromJson(document.data);
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.grey[100],
+      child: ListTile(
+        onTap: () {
+          setState(() {
+            model.goalName == null
+                ? goalName = model.goalCategory
+                : goalName = model.goalName;
+            print(goalName);
+            Navigator.of(context).pop();
+          });
+        },
+        title: Text(
+            model.goalName == null
+                ? '${model.goalCategory}'
+                : '${model.goalName}',
+            style: GoogleFonts.muli(
+              textStyle: TextStyle(color: Colors.black),
+            )),
+        subtitle: Text('Current: ${model.goalAmountSaved} KES',
+            style: GoogleFonts.muli(
+              textStyle: TextStyle(color: Colors.black),
+            )),
+      ),
+    );
+  }
+
   Future showGoalsPopup() {
     return showCupertinoModalPopup(
         context: context,
@@ -130,25 +187,22 @@ class _DepositState extends State<Deposit> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             content: Container(
               height: MediaQuery.of(context).size.height * 0.5,
-              child: ListView(
-                children: [
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    color: Colors.grey[200],
-                    child: ListTile(
-                      title: Text('Buy a house',
-                          style: GoogleFonts.muli(
-                            textStyle: TextStyle(color: Colors.black),
-                          )),
-                      subtitle: Text('Current: 20,000 KES',
-                          style: GoogleFonts.muli(
-                            textStyle: TextStyle(color: Colors.black),
-                          )),
-                    ),
-                  )
-                ],
-              ),
+              width: MediaQuery.of(context).size.width,
+              child: FutureBuilder<QuerySnapshot>(
+                  future: _helper.getAllGoals(widget.uid),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return ListView(
+                        children: snapshot.data.documents
+                            .map((map) => _singleGoal(map))
+                            .toList(),
+                      );
+                    }
+                    return SpinKitDoubleBounce(
+                      color: Colors.greenAccent[700],
+                      size: MediaQuery.of(context).size.height * 0.3,
+                    );
+                  }),
             ),
           );
         });
@@ -270,9 +324,6 @@ class _DepositState extends State<Deposit> {
       ),
     );
   }
-
-  //List of pages
-  List<Widget> _pages = [MpesaAuto(), MpesaManual(), MpesaAuto(), BankCard()];
 
   @override
   Widget build(BuildContext context) {

@@ -84,6 +84,13 @@ class AuthService {
     try {
       await _firestore.collection("users").document(uid).setData(user.toJson());
       print("The user was successfully saved");
+      //Create a wallet
+      await _firestore
+          .collection('users')
+          .document(uid)
+          .collection('wallet')
+          .document(uid)
+          .setData({'amount': 0});
       //Create an activity model
       ActivityModel signUpAct = new ActivityModel(
           activity: 'Welcome to Sortika',

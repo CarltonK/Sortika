@@ -1,24 +1,39 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/helper.dart';
+import 'package:wealth/models/depositModel.dart';
 import 'package:wealth/utilities/styles.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/errorMessage.dart';
 
-class MpesaAuto extends StatelessWidget {
+class MpesaAuto extends StatefulWidget {
   //Identifiers
-  String _phone, _amount;
+  @override
+  _MpesaAutoState createState() => _MpesaAutoState();
+}
+
+class _MpesaAutoState extends State<MpesaAuto> {
+  String _phone;
+  double _amount;
+
+  final Helper _helper = new Helper();
+
+  final _formKey = GlobalKey<FormState>();
 
   final FocusNode focusAmount = FocusNode();
 
-  //Handle Phone Input
   void _handleSubmittedPhone(String value) {
     _phone = value;
     print('Phone: ' + _phone);
   }
 
-  //Handle Password Input
   void _handleSubmittedAmount(String value) {
-    _amount = value;
-    print('Amount: ' + _amount);
+    _amount = double.parse(value.trim());
+    print('Amount: ' + _amount.toString());
   }
 
   Widget _depositPhone(BuildContext context) {
@@ -120,6 +135,8 @@ class MpesaAuto extends StatelessWidget {
                     borderSide: BorderSide(color: Colors.red)),
                 border: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
+                suffixText: 'KES',
+                suffixStyle: hintStyle,
                 prefixIcon:
                     Icon(FontAwesome5.money_bill_alt, color: Colors.white),
                 labelText: 'Enter the amount',
@@ -128,13 +145,66 @@ class MpesaAuto extends StatelessWidget {
     );
   }
 
+  void _mpesaAutoBtnPressed() async {
+    final FormState form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      //Dismiss the keyboard
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+      //Show a Progress Dialog
+      showCupertinoModalPopup(
+          context: context,
+          builder: (BuildContext context) {
+            return CustomProgressDialog(
+              message: 'Processing your deposit request',
+            );
+          });
+
+      //Deposit Model PlaceHolder
+      DepositModel depositModel = new DepositModel(
+          amount: _amount,
+          destination: DepositAncestor.of(context).destination,
+          goalName: DepositAncestor.of(context).goalName,
+          method: DepositAncestor.of(context).method,
+          phone: _phone);
+      //print(depositModel.toJson());
+      _helper
+          .depositMoney(DepositAncestor.of(context).uid, depositModel)
+          .catchError((error) {
+        //Dismiss the dialog
+        Navigator.of(context).pop();
+
+        //Show the success message
+        showCupertinoModalPopup(
+            context: context,
+            builder: (BuildContext context) {
+              return ErrorMessage(
+                message: error,
+              );
+            });
+      }).whenComplete(() {
+        //Dismiss the dialog
+        Navigator.of(context).pop();
+
+        //Show the success message
+        showCupertinoModalPopup(
+            context: context,
+            builder: (BuildContext context) {
+              return SuccessMessage(
+                message: 'Your deposit has been received successfully',
+              );
+            });
+      });
+    }
+  }
+
   Widget _btnMpesaAuto() {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 20),
       width: double.infinity,
       child: RaisedButton(
         elevation: 3,
-        onPressed: () {},
+        onPressed: _mpesaAutoBtnPressed,
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         color: Colors.white,
@@ -154,17 +224,43 @@ class MpesaAuto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _depositPhone(context),
-          SizedBox(
-            height: 20,
-          ),
-          _depositAmount(context),
-          _btnMpesaAuto()
-        ],
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _depositPhone(context),
+            SizedBox(
+              height: 20,
+            ),
+            _depositAmount(context),
+            _btnMpesaAuto()
+          ],
+        ),
       ),
     );
+  }
+}
+
+//Inherited Widget
+class DepositAncestor extends InheritedWidget {
+  //Fields
+  final String uid;
+  final String destination;
+  final String method;
+  final String goalName;
+
+  DepositAncestor(this.uid, this.destination, this.method, this.goalName,
+      {Widget child})
+      : super(child: child);
+
+  static DepositAncestor of(BuildContext context) =>
+      context.inheritFromWidgetOfExactType(DepositAncestor) as DepositAncestor;
+
+  @override
+  bool updateShouldNotify(DepositAncestor oldWidget) {
+    return destination != oldWidget.destination ||
+        method != oldWidget.method ||
+        goalName != oldWidget.goalName;
   }
 }

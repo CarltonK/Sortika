@@ -28,6 +28,7 @@ import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
 ALLOCATIONS CALCULATOR
 Version 1: onCreate
 Version 2: onDelete
+Version 3: onWrite - Midnight Cron Job
 
 * use onWrite for debugging purposes *
 */
@@ -118,6 +119,124 @@ Any change to goal amount saved
 //New goal amount = goal amount - amount saved
 //Run a task every night midnight. GoalCreateDate update to current date, then recalculate dialy, weekly, monthly targets
 */
+
+exports.allocationsCalculatorV3 = functions.firestore
+    .document('/users/{user}/goals/{goal}')
+    .onWrite(async snapshot => {
+        //Check if the goalCreateDate has changed
+        const timeBefore: FirebaseFirestore.Timestamp = snapshot.before.get('goalCreateDate')
+        const timeAfter: FirebaseFirestore.Timestamp = snapshot.after.get('goalCreateDate')
+        if (!timeAfter.isEqual(timeBefore)) {
+        
+            //Retrieve user id
+        const uid = snapshot.before.get('uid')
+        const docs = await db.collection('users').doc(uid).collection('goals').get()
+        const allDocs: Array<DocumentSnapshot> = docs.docs
+        const periods: Array<number> = []
+        const amounts: Array<number> = []
+        const adjustedAmounts: Array<number> = []
+        const documentIds: Array<string> = []
+        const allocationpercents: Array<number> = []
+        allDocs.forEach(element => {
+            //Document Snapshot
+            /*
+            Timestamp is returned from Firebase.
+            Convert to Date then get differences in days
+            */
+            const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
+            const dateStart: Date = timeStart.toDate()
+
+            const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
+            const dateEnd = timeEnd.toDate()
+
+            const differenceSeconds = dateEnd.getTime() - dateStart.getTime()
+            const differenceDays = differenceSeconds / (1000*60*60*24)
+
+            //Save the difference in a list
+            periods.push(Math.ceil(differenceDays))
+            //Retrieve target amount and save in amounts
+            amounts.push(element.get('goalAmount'))
+            documentIds.push(element.id)
+        });
+        //Sort from smallest to largest
+        periods.sort()
+        const leastDays = periods[0]
+        //Show arrays
+        console.log(`Periods: ${periods}`)
+        console.log(`Amounts: ${amounts}`)
+        console.log(`Document Ids: ${documentIds}`)
+        //Keep a total adjusted amount counter
+        let totalAdjusted: number = 0
+        for (let index = 0; index < amounts.length; index ++) {
+            let adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
+            adjustedAmounts.push(adjusted)
+            totalAdjusted = totalAdjusted + adjusted
+        }
+        //Show adjusted amounts
+        console.log(`Adjusted Amounts: ${adjustedAmounts}`)
+        //Show the total adjusted number
+        console.log(`Total Adjusted Value: ${totalAdjusted}`)
+        //Get allocation percentages
+        for (let index = 0; index < adjustedAmounts.length; index ++) {
+            let percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
+            allocationpercents.push(percent)
+        }
+        //Show percents
+        console.log(`Allocation Percents: ${allocationpercents}`)
+        //Update each document with new allocations
+        for (let index = 0; index < documentIds.length; index ++) {
+            let documentId: string = documentIds[index]
+            let allocatedPercent: number = allocationpercents[index]
+            await db.collection('users').doc(uid)
+                .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
+        }
+        //Update User Targets
+        const dailyTarget: number = (totalAdjusted / leastDays)
+        const weeklyTarget: number = (dailyTarget * 7)
+        const monthlyTarget: number = (dailyTarget * 30)
+        //Update USERS Collection
+        await db.collection('users').doc(uid).update({
+            'dailyTarget': dailyTarget,
+            'weeklyTarget': weeklyTarget,
+            'monthlyTarget': monthlyTarget
+        })
+        }
+    })
+
+
+export const scheduledFunction = functions.pubsub.schedule(`every day 00:00`)
+    .onRun(async (context: functions.EventContext) => {
+        //every day 00:00
+        console.log(`This will every day at 00:00`)
+        //Retrieve all user documets
+        const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
+        const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
+
+        //Placeholder for UIDs
+        const uidList: Array<string> = []
+        userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
+            uidList.push(document.get('uid'))
+        })
+        console.log(`List of User IDs: ${uidList}`)
+
+        //Iterate through list of USER IDs
+        for (let index: number = 0; index < uidList.length; index ++) {
+            //Retrieve all user goals documents
+            const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
+            const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
+
+            for (let i: number = 0; i<userGoalsDocuments.length; i++) {
+                console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
+                await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
+                    'goalCreateDate': superadmin.firestore.Timestamp.now()
+                })
+            }
+
+        }
+        console.log(`Finished updating`)
+        return null;
+    });
+
 
 
 exports.allocationsCalculatorV2 = functions.firestore
@@ -1028,4 +1147,41 @@ export const loanLimitCalculator = functions.firestore
                 .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
             }
         }
+    })
+
+
+//Deposit
+export const handleDeposit = functions.firestore
+    .document('deposits/{deposit}')
+    .onCreate(async snapshot => {
+        const uid: string = snapshot.id
+        const amount: number = snapshot.get('amount')
+        const destination: string = snapshot.get('destination')
+        const method: string = snapshot.get('method')
+        const phone: string = snapshot.get('phone')
+
+        //Deposit in the wallet
+        if (destination === 'wallet') {
+            //Have they used M-PESA
+            if (method === 'M-PESA') {
+                //Have they supplied a phone number
+                if (phone !== null) {
+                    const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('wallet').doc(uid);
+                    db.runTransaction(async transaction => {
+                        return transaction.get(docRef)
+                            .then(doc => {
+                                transaction.update(docRef, {amount: superadmin.firestore.FieldValue.increment(amount)})
+                        });
+                    })
+                    .then(result => {
+                        console.log('Transaction success!')
+                    })
+                    .catch(err => {
+                        console.log('Transaction failure:', err)
+                    })
+                }
+            }     
+        }
+        //Delete the deposit document
+        await db.collection('deposits').doc(uid).delete()
     })
