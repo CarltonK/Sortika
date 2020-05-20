@@ -30,6 +30,7 @@ class User {
   var weeklyTarget;
   var monthlyTarget;
   var dailySavingsTarget;
+  var loanLimitRatio;
   //Kin
   String kinName;
   String kinPhone;
@@ -60,6 +61,7 @@ class User {
       this.dailySavingsTarget,
       this.kinName,
       this.kinPhone,
+      this.loanLimitRatio,
       this.kinID,
       this.kinPhotoURL,
       this.kinKraUrl,
@@ -90,7 +92,8 @@ class User {
       kinKraUrl: json["kinKraUrl"],
       kinNatIdURL: json["kinNatIdURL"],
       kinPhotoURL: json["kinPhotoURL"],
-      dailySavingsTarget: json["dailySavingsTarget"]);
+      dailySavingsTarget: json["dailySavingsTarget"],
+      loanLimitRatio: json['loanLimitRatio']);
 
   //Convert Dart object to JSON
   Map<String, dynamic> toJson() => {
@@ -118,6 +121,7 @@ class User {
         "kinKraUrl": kinKraUrl,
         "kinNatIdURL": kinNatIdURL,
         "kinPhotoURL": kinPhotoURL,
-        "dailySavingsTarget": dailySavingsTarget
+        "dailySavingsTarget": dailySavingsTarget,
+        "loanLimitRatio": loanLimitRatio
       };
 }

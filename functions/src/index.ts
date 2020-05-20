@@ -25,7 +25,7 @@ import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
 // app.post('/users', auth.createUser)
 
 /*
-DATABASE
+ALLOCATIONS CALCULATOR
 Version 1: onCreate
 Version 2: onDelete
 
@@ -34,8 +34,7 @@ Version 2: onDelete
 //Calculate goal allocations
 superadmin.initializeApp();
 const db = superadmin.firestore();
-const fcm = superadmin.messaging() 
-
+const fcm = superadmin.messaging()
 
 exports.allocationsCalculatorV1 = functions.firestore
     .document('/users/{user}/goals/{goal}')
@@ -65,7 +64,7 @@ exports.allocationsCalculatorV1 = functions.firestore
             const differenceDays = differenceSeconds / (1000*60*60*24)
 
             //Save the difference in a list
-            periods.push(Math.floor(differenceDays))
+            periods.push(Math.ceil(differenceDays))
             //Retrieve target amount and save in amounts
             amounts.push(element.get('goalAmount'))
             documentIds.push(element.id)
@@ -114,12 +113,19 @@ exports.allocationsCalculatorV1 = functions.firestore
         })
     })
 
+/*
+Any change to goal amount saved
+//New goal amount = goal amount - amount saved
+//Run a task every night midnight. GoalCreateDate update to current date, then recalculate dialy, weekly, monthly targets
+*/
+
 
 exports.allocationsCalculatorV2 = functions.firestore
     .document('/users/{user}/goals/{goal}')
     .onDelete(async snapshot => {
         //Redistribute the goal amount
         const goalAmount: number = snapshot.get('goalAmount')
+        const goalAmountSaved: number = snapshot.get('goalAmountSaved')
         //Retrieve user id
         const uid = snapshot.get('uid')
         if (snapshot.get('goalCategory') === 'Investment') {
@@ -139,12 +145,18 @@ exports.allocationsCalculatorV2 = functions.firestore
         if (snapshot.get('goalCategory') === 'Saving') {
             const lFDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid)
                 .collection('goals').where('goalCategory', '==', 'Loan Fund').limit(1).get()
-            lFDocuments.docs.forEach(async (element) => {
-                // var amountCurrent = element.get('loanAmount')
-                // amountCurrent = amountCurrent + goalAmount
-                await db.collection('users').doc(uid)
-                .collection('goals').doc(element.id).update({'goalAmount': superadmin.firestore.FieldValue.increment(goalAmount)})
-            })
+                if (goalAmountSaved === 0) {
+                    console.log(`The goal amount saved is 0`)
+                }
+                else {
+                    lFDocuments.docs.forEach(async (element) => {
+                        // var amountCurrent = element.get('loanAmount')
+                        // amountCurrent = amountCurrent + goalAmount
+                        await db.collection('users').doc(uid)
+                        .collection('goals').doc(element.id).update({
+                            'goalAmountSaved': superadmin.firestore.FieldValue.increment(goalAmountSaved)})
+                    })
+                }
         }
         const docs = await db.collection('users').doc(uid).collection('goals').get()
         const allDocs: Array<DocumentSnapshot> = docs.docs
@@ -165,11 +177,11 @@ exports.allocationsCalculatorV2 = functions.firestore
             const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
             const dateEnd = timeEnd.toDate()
 
-            const differenceSeconds = dateEnd.getTime() - dateStart.getTime()
-            const differenceDays = differenceSeconds / (1000*60*60*24)
+            const differenceMilliSeconds = dateEnd.getTime() - dateStart.getTime()
+            const differenceDays = differenceMilliSeconds / (1000*60*60*24)
 
             //Save the difference in a list
-            periods.push(Math.floor(differenceDays))
+            periods.push(Math.ceil(differenceDays))
             //Retrieve target amount and save in amounts
             amounts.push(element.get('goalAmount'))
             documentIds.push(element.id)
@@ -219,10 +231,21 @@ exports.allocationsCalculatorV2 = functions.firestore
         })
     })
 
+
 /*
 NOTIFICATIONS
-1) Send notification to a Sortika user who has received a lend request
+1) Send notification to a Sortika user who has received a lend request - promptLendRequest
+2) Send notification to the borrower - ackBorrowRequest
+3) Send a notification to borrower when loan has been accepted - promptLoanAccepted
+4) Send a notification to the lender when they accept the loan request - promptLoanAccept
+5) Send a notification to a borrower when the lender revises a loan request - promptLoanRevision
+6) Send a notification to the lender when the borrower negotiates - promptLoanNegotiation
+7) Send a notification to lender when they receive a negotiation request - promptReceiveNegotiation
+8) Send a notification to a lender who has sent the loan back for revision - promptSubmitLoanRevision
+9) Send a notification to a borrower when loan request has been rejected - promptLoanRejected
+10) Send a notification to a lender who has rejected a loan request - promptRejectLoan
 */
+
 export const promptLendRequest = functions.firestore
     .document('loans/{loan}')
     .onCreate(async snapshot => {
@@ -231,7 +254,7 @@ export const promptLendRequest = functions.firestore
         const interest: number = snapshot.get('loanInterest')
         //const invitees: string | Array<any> = snapshot.get('loanInvitees')
         //Retrieve the token (If exists)
-        if (token != null) {
+        if (token !== null) {
             //Retrieve key info
             //Define the payload
             const payload = {
@@ -272,7 +295,7 @@ export const ackBorrowRequest = functions.firestore
         const interest: number = snapshot.get('loanInterest')
         //const borrowerUid: string = snapshot.get('loanBorrower')
 
-        if (token != null) {
+        if (token !== null) {
             //Retrieve key info
             //Define the payload
             const payload = {
@@ -451,11 +474,11 @@ export const promptReceiveNegotiation = functions.firestore
             }
         }
         console.log(payload);
-        if (typeof inviteeUid == "string") {
-            await db.collection('users').doc(inviteeUid).collection('notifications').doc().set({
-                'message': `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
-                'time': superadmin.firestore.FieldValue.serverTimestamp()
-            })
+        if (typeof inviteeUid === "string") {
+            // await db.collection('users').doc(inviteeUid).collection('notifications').doc().set({
+            //     'message': `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
+            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
+            // })
             //Send to all tenants in the topic "landlord_code"
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
@@ -463,12 +486,12 @@ export const promptReceiveNegotiation = functions.firestore
             }) 
         }
         else {
-            inviteeUid.forEach(async (element) => {
-                await db.collection('users').doc(element).collection('notifications').doc().set({
-                    'message': `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
-                    'time': superadmin.firestore.FieldValue.serverTimestamp()
-                })                
-            })
+            // inviteeUid.forEach(async (element) => {
+            //     await db.collection('users').doc(element).collection('notifications').doc().set({
+            //         'message': `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
+            //         'time': superadmin.firestore.FieldValue.serverTimestamp()
+            //     })                
+            // })
             return null;
         }
     }
@@ -510,7 +533,7 @@ export const promptLoanRejected = functions.firestore
         const token: string = snapshot.before.get('tokenBorrower')
         const amount: number = snapshot.after.get('loanAmountTaken')
         const interest: number = snapshot.after.get('loanInterest')
-        const borrowerUid: string = snapshot.before.get('loanBorrower')
+        //const borrowerUid: string = snapshot.before.get('loanBorrower')
         //Retrieve the token (If exists)
         if (snapshot.after.get('loanStatus') === 'Rejected') {
             //Retrieve key info
@@ -525,10 +548,10 @@ export const promptLoanRejected = functions.firestore
             console.log(payload)
             //Send a notification to a user
             //Update notifications subcollection for user
-            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-                'message': `Your loan request of ${amount} KES at ${interest} % has been rejected`,
-                'time': superadmin.firestore.FieldValue.serverTimestamp()
-            })
+            // await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+            //     'message': `Your loan request of ${amount} KES at ${interest} % has been rejected`,
+            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
+            // })
             //Delete the Document
             await db.collection('loans').doc(snapshot.after.id).delete()
             return fcm.sendToDevice(token, payload)
@@ -589,7 +612,7 @@ export const selfLoan = functions.firestore
         const lender: string = snapshot.get('loanLender')
         const amount: number = snapshot.get('loanAmountTaken')
         const token: string = snapshot.get('tokenBorrower')
-        if (lender != null) {
+        if (lender !== null) {
             //Check if user has enough amount in Loan Fund Goal
             await db.collection('users').doc(lender).collection('goals')
                 .where('goalCategory', '==', 'Loan Fund')
@@ -639,7 +662,7 @@ export const selfLoan = functions.firestore
     })
 
 
-export const goalAutoCreate = functions.firestore
+    export const goalAutoCreate = functions.firestore
     .document('autocreates/{autocreate}')
     .onCreate(async snapshot => {
         //Retrieve data from user
@@ -666,17 +689,17 @@ export const goalAutoCreate = functions.firestore
             for (let i = 0; i < lowerDocsArray.length; i ++) {
                 var map = new Map()
                 map.set(`${currentDocId}`, lowerDocsArray[i].get('name'))
-                if (rate == 'low') {
-                    if (lowerDocsArray[i].get('return') < 10.5) {
+                if (rate === 'low') {
+                    if (lowerDocsArray[i].get('return') <= 10.5) {
                         chosenInvestments.push(map)
                     }
                 } 
-                if (rate == 'med') {
-                    if (lowerDocsArray[i].get('return') < 18) {
+                if (rate === 'med') {
+                    if (lowerDocsArray[i].get('return') > 10.5 && lowerDocsArray[i].get('return') <= 18) {
                         chosenInvestments.push(map)
                     }
                 }
-                if (rate == 'high') {
+                if (rate === 'high') {
                     if (lowerDocsArray[i].get('return') >= 18) {
                         chosenInvestments.push(map)
                     }
@@ -690,7 +713,7 @@ export const goalAutoCreate = functions.firestore
         // This is based on user selected return rate
         var deviation: number
         const deviationList: Array<number> = []
-        if (rate == 'low') {
+        if (rate === 'low') {
             const staticFigure: number = 10.5
             //Cycle through the investments
             for (let index = 0; index < allInvestments.length; index ++) {
@@ -698,7 +721,7 @@ export const goalAutoCreate = functions.firestore
                 deviationList.push(deviation)
             }
         }
-        else if (rate == 'med') {
+        else if (rate === 'med') {
             const staticFigure: number = 14.25
             //Cycle through the investments
             for (let index = 0; index < allInvestments.length; index ++) {
@@ -742,19 +765,19 @@ export const goalAutoCreate = functions.firestore
         for (let index = 0; index < weightEstimates.length; index ++) {
             //convert weight estimate to 0 if it is greater that 1 - Low and Medium
             //convert weight estimate to 0 if it is less than 1 - High
-            if (rate == 'high') {
+            if (rate === 'high') {
                 if (weightEstimates[index] < 1) {
                     weightEstimates[index] = 0
                     //allInvestmentDocIds[index] = ''
                 }
             }
-            if (rate == 'low') {
+            if (rate === 'low') {
                 if (weightEstimates[index] > 1) {
                     weightEstimates[index] = 0
                     //allInvestmentDocIds[index] = ''
                 }
             }
-            if (rate == 'med') {
+            if (rate === 'med') {
                 if (weightEstimates[index] > 1) {
                     weightEstimates[index] = 0
                     //allInvestmentDocIds[index] = ''
@@ -913,7 +936,7 @@ export const groupMembers = functions.firestore
             }
 
             for (let index = 0; index < membersAfter.length; index ++) {
-                if (membersBefore[index] == membersAfter[index]) {
+                if (membersBefore[index] === membersAfter[index]) {
                     continue
                 }
                 else {
@@ -939,3 +962,70 @@ export const deleteGroup = functions.firestore
         })
     })
 
+
+
+/*
+NB
+//Loan Limit Ratio = ((interest amount / limit ratio) * 100)
+1) Loan Limit Ratio only changes when loan has been fully paid
+2) Recoup sortika revenue before anything
+3) Sortika revenue is 20% of total amount to be paid
+*/
+
+async function increaseLoanLimit(interest: number, uid: string) {
+    const rate: number = interest * 0.75
+    const doc: DocumentSnapshot = await db.collection('users').doc(uid).get()
+    const limit: number = doc.get('loanLimitRatio')
+    const newLimit: number = limit + rate
+    await db.collection('users').doc(uid).update({
+        'loanLimitRatio': newLimit
+    })
+}
+
+export const loanLimitCalculator = functions.firestore
+    .document('loans/{loan}')
+    .onWrite(async snapshot => {
+        //Check if the document exists
+        if (snapshot.before.exists || snapshot.after.exists) {
+            const totalAmountToPay: number = snapshot.after.get('totalAmountToPay')
+            const amountRepaid: number = snapshot.after.get('loanAmountRepaid')
+            const interest: number = snapshot.after.get('loanInterest')
+            const borrowerUid: string = snapshot.after.get('loanBorrower')
+            const lenderUid: string = snapshot.after.get('loanLender')
+
+            //Calculate sortika revenue
+            const sortikaRevenue: number = totalAmountToPay * 0.2
+            console.log(`Sortika Revenue ${sortikaRevenue}`)
+
+            //Check if amount paid is more than totaltoPay
+            if (amountRepaid > totalAmountToPay) {
+                //Get the difference and store in overpayments collection
+                const difference: number = amountRepaid - totalAmountToPay
+                //Change the loanAmountRepaid to TotalAmountToPay and mark loan as complete
+                await db.collection('loans').doc(snapshot.after.id).update({
+                    'loanAmountRepaid': totalAmountToPay,
+                    'loanStatus': 'Completed'
+                })
+                //Create an overpayment
+                await db.collection('overpayments').doc().set({
+                    'loanBorrower': borrowerUid,
+                    'loanLender': lenderUid,
+                    'overpayment': difference
+                })
+                //increase loan limit
+                increaseLoanLimit(interest, borrowerUid)
+                .then((value) => {console.log(value)})
+                .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
+            }
+            if (amountRepaid === totalAmountToPay) {
+                //Mark loan as completed
+                await db.collection('loans').doc(snapshot.after.id).update({
+                    'loanStatus': 'Completed'
+                })
+                //increase loan limit
+                increaseLoanLimit(interest, borrowerUid)
+                .then((value) => {console.log(value)})
+                .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
+            }
+        }
+    })

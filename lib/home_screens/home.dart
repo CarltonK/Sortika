@@ -1092,7 +1092,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             if (snapshot.hasData) {
               //Convert Data to a Goal Model
               GoalModel mods = GoalModel.fromJson(snapshot.data.data);
-              double borrowAmount = (mods.goalAmountSaved * (75 / 100));
+              //Retrieve Loan Limit Ratio
+              var ratio = userData.loanLimitRatio;
+              double borrowAmount = (mods.goalAmountSaved * (ratio / 100));
 
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1206,62 +1208,74 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               fontWeight: FontWeight.w600)),
                     ),
                   )
-                : model.loanStatus == 'Revised'
-                    ? GestureDetector(
-                        onTap: () => _lendingOptions(loanData),
-                        child: Container(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(20)),
-                              color: Colors.transparent),
-                          child: Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                          ),
+                : model.loanStatus == 'Completed'
+                    ? Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        child: Text(
+                          'Completed',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600)),
                         ),
                       )
-                    : model.loanStatus == 'Revised2'
-                        ? Padding(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 8),
-                            child: Text(
-                              'Revision',
-                              style: GoogleFonts.muli(
-                                  textStyle: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600)),
-                            ))
-                        : model.loanStatus
-                            ? GestureDetector(
-                                onTap: () => Navigator.of(context).pushNamed(
-                                    '/pay-loan',
-                                    arguments: loanData),
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 4),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                          bottomLeft: Radius.circular(20)),
-                                      color: Colors.transparent),
-                                  child: Icon(
-                                    Icons.edit,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              )
-                            : Padding(
-                                padding: const EdgeInsets.symmetric(
+                    : model.loanStatus == 'Revised'
+                        ? GestureDetector(
+                            onTap: () => _lendingOptions(loanData),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 4),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                      bottomLeft: Radius.circular(20)),
+                                  color: Colors.transparent),
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : model.loanStatus == 'Revised2'
+                            ? Padding(
+                                padding: EdgeInsets.symmetric(
                                     vertical: 8, horizontal: 8),
                                 child: Text(
-                                  'Pending',
+                                  'Revision',
                                   style: GoogleFonts.muli(
                                       textStyle: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w600)),
-                                ),
-                              ),
+                                ))
+                            : model.loanStatus
+                                ? GestureDetector(
+                                    onTap: () => Navigator.of(context)
+                                        .pushNamed('/pay-loan',
+                                            arguments: loanData),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 4),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.only(
+                                              bottomLeft: Radius.circular(20)),
+                                          color: Colors.transparent),
+                                      child: Icon(
+                                        Icons.edit,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 8),
+                                    child: Text(
+                                      'Pending',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600)),
+                                    ),
+                                  ),
           ),
           Align(
             alignment: Alignment.center,
@@ -1294,41 +1308,49 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16),
                                 ))
-                            : model.loanStatus
-                                ? RichText(
-                                    text: TextSpan(children: [
-                                    TextSpan(
-                                        text: 'You have repaid ',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.white))),
-                                    TextSpan(
-                                        text:
-                                            '${model.loanAmountRepaid.toInt().toString()}',
-                                        style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        )),
-                                  ]))
-                                : RichText(
-                                    text: TextSpan(children: [
-                                    TextSpan(
-                                        text: 'You have requested ',
-                                        style: GoogleFonts.muli(
-                                            textStyle: TextStyle(
-                                                color: Colors.white))),
-                                    TextSpan(
-                                        text:
-                                            '${model.loanAmountTaken.toInt().toString()}',
-                                        style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        )),
-                                  ])),
+                            : model.loanStatus == 'Completed'
+                                ? Text('This loan has been paid in full',
+                                    style: GoogleFonts.muli(
+                                      textStyle: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),
+                                    ))
+                                : model.loanStatus
+                                    ? RichText(
+                                        text: TextSpan(children: [
+                                        TextSpan(
+                                            text: 'You have repaid ',
+                                            style: GoogleFonts.muli(
+                                                textStyle: TextStyle(
+                                                    color: Colors.white))),
+                                        TextSpan(
+                                            text:
+                                                '${model.loanAmountRepaid.toInt().toString()}',
+                                            style: GoogleFonts.muli(
+                                              textStyle: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18),
+                                            )),
+                                      ]))
+                                    : RichText(
+                                        text: TextSpan(children: [
+                                        TextSpan(
+                                            text: 'You have requested ',
+                                            style: GoogleFonts.muli(
+                                                textStyle: TextStyle(
+                                                    color: Colors.white))),
+                                        TextSpan(
+                                            text:
+                                                '${model.loanAmountTaken.toInt().toString()}',
+                                            style: GoogleFonts.muli(
+                                              textStyle: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18),
+                                            )),
+                                      ])),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Row(
@@ -1686,23 +1708,35 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                   color: Colors.white)),
                         ),
                       )
-                    : GestureDetector(
-                        onTap: () {
-                          _lendingOptions(loanData);
-                        },
-                        child: Container(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(20)),
-                              color: Colors.transparent),
-                          child: Icon(
-                            Icons.edit,
-                            color: Colors.white,
+                    : model.loanStatus == 'Completed'
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 8),
+                            child: Text(
+                              'Completed',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600)),
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              _lendingOptions(loanData);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 4),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                      bottomLeft: Radius.circular(20)),
+                                  color: Colors.transparent),
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
           ),
           Align(
             alignment: Alignment.center,
@@ -1711,25 +1745,34 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                RichText(
-                    text: TextSpan(children: [
-                  TextSpan(
-                      text: model.loanStatus == true
-                          ? 'They have repaid '
-                          : 'They have requested ',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(color: Colors.white))),
-                  TextSpan(
-                      text: model.loanAmountRepaid == null
-                          ? 'Pending'
-                          : '${model.loanAmountTaken.toInt().toString()}',
-                      style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
-                      )),
-                ])),
+                model.loanStatus != 'Completed'
+                    ? RichText(
+                        text: TextSpan(children: [
+                        TextSpan(
+                            text: model.loanStatus == true
+                                ? 'They have repaid '
+                                : 'They have requested ',
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(color: Colors.white))),
+                        TextSpan(
+                            text: model.loanAmountRepaid == null
+                                ? 'Pending'
+                                : '${model.loanAmountTaken.toInt().toString()}',
+                            style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
+                            )),
+                      ]))
+                    : Text(
+                        'This loan has been paid in full',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold)),
+                      ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Row(
