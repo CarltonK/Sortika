@@ -18,7 +18,7 @@ class ErrorMessage extends StatelessWidget {
             Icon(
               Icons.sentiment_dissatisfied,
               size: 100,
-              color: Colors.greenAccent[700],
+              color: Colors.red,
             ),
             Text(
               message,

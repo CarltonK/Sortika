@@ -145,8 +145,13 @@ class Helper {
   }
 
   //Get Wallet Balance
-  Stream<DocumentSnapshot> getWalletBalance(String uid)  {
-    Stream<DocumentSnapshot> doc =  _firestore.collection('users').document(uid).collection('wallet').document(uid).snapshots();
+  Stream<DocumentSnapshot> getWalletBalance(String uid) {
+    Stream<DocumentSnapshot> doc = _firestore
+        .collection('users')
+        .document(uid)
+        .collection('wallet')
+        .document(uid)
+        .snapshots();
     return doc;
   }
 }

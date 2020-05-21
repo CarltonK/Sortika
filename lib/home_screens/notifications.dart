@@ -18,6 +18,27 @@ class NotificationsPage extends StatefulWidget {
 class _NotificationsState extends State<NotificationsPage> {
   Helper _helper = new Helper();
 
+  Widget noDocuments() {
+    return Center(
+        child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.sentiment_neutral,
+          size: 100,
+          color: commonColor,
+        ),
+        Text(
+          'You have not received any notifications',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        ),
+      ],
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,25 +56,7 @@ class _NotificationsState extends State<NotificationsPage> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     if (snapshot.data.documents.length == 0) {
-                      return Center(
-                          child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.sentiment_neutral,
-                            size: 100,
-                            color: commonColor,
-                          ),
-                          Text(
-                            'You have not received any notifications',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(
-                                    fontWeight: FontWeight.w700, fontSize: 16)),
-                          ),
-                        ],
-                      ));
+                      return noDocuments();
                     }
                     return ListView.builder(
                       itemCount: snapshot.data.documents.length,
@@ -88,6 +91,27 @@ class _NotificationsState extends State<NotificationsPage> {
                         );
                       },
                     );
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                        child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.sentiment_neutral,
+                          size: 100,
+                          color: commonColor,
+                        ),
+                        Text(
+                          'You have not received any notifications',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  fontWeight: FontWeight.w700, fontSize: 16)),
+                        ),
+                      ],
+                    ));
                   }
                   return SpinKitDoubleBounce(
                     color: commonColor,

@@ -741,7 +741,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             .collection("users")
             .document(uid)
             .collection("goals")
-            .orderBy("goalCreateDate")
+            .orderBy("goalAllocation", descending: true)
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasData) {
@@ -1997,44 +1997,43 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     //App Bar
                     _appBar('Wallet'),
                     StreamBuilder<DocumentSnapshot>(
-                      stream: helper.getWalletBalance(uid),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          var amount = snapshot.data.data['amount'];
+                        stream: helper.getWalletBalance(uid),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            var amount = snapshot.data.data['amount'];
 
-                          return Container(
-                            padding:
-                                EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Balance',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          color: Colors.black, fontSize: 15)),
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Text(
-                                  '$amount KES',
-                                  style: GoogleFonts.muli(
-                                      textStyle: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w700)),
-                                )
-                              ],
-                            )
-                        );
-                      }
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: LinearProgressIndicator(),
-                        );
-                      }
-                    ),
+                            return Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 10),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Balance',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 15)),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      '$amount KES',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700)),
+                                    )
+                                  ],
+                                ));
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: LinearProgressIndicator(),
+                          );
+                        }),
                     walletHeader('Earnings', Colors.green),
                     walletHeader('Withdrawals', Colors.red),
                     walletHeader('Deposits', Colors.green),
@@ -2931,6 +2930,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               MaterialPageRoute(
                                 builder: (context) => Deposit(
                                   uid: uid,
+                                  phone: userData.phone,
                                 ),
                               ));
                         },

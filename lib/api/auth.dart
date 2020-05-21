@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/autoCreateModel.dart';
+import 'package:wealth/models/notificationModel.dart';
 import 'package:wealth/models/usermodel.dart';
 
 class AuthService {
@@ -77,8 +78,7 @@ class AuthService {
   //Save the User as a document in the "users" collection
   Future saveUser(User user, String uid) async {
     //Remove password from user class and replace with 'XXXXX'
-    int passLength = user.password.length;
-    user.password = 'X' * passLength;
+    user.password = null;
     //Set uid to user model
     user.uid = uid;
     try {
@@ -91,11 +91,18 @@ class AuthService {
           .collection('wallet')
           .document(uid)
           .setData({'amount': 0});
+      print("The wallet has been created successfully");
+      //Create notifications
+      NotificationModel notificationModel = new NotificationModel(
+          message: 'We are glad to have you on board', time: Timestamp.now());
+      await postNotification(uid, notificationModel);
+      print("A notification has been created successfully");
       //Create an activity model
       ActivityModel signUpAct = new ActivityModel(
           activity: 'Welcome to Sortika',
           activityDate: Timestamp.fromDate(DateTime.now()));
       await postActivity(uid, signUpAct);
+      print("An activity has been created successfully");
     } catch (e) {
       print("The user was not successfully saved");
       print("This is the error ${e.toString()}");
@@ -171,6 +178,18 @@ class AuthService {
     //Activities will be posted in user subcollection
     final String collectionUpper = "users";
     final String collectionLower = "activity";
+    await _firestore
+        .collection(collectionUpper)
+        .document(uid)
+        .collection(collectionLower)
+        .document()
+        .setData(activity.toJson());
+  }
+
+  Future postNotification(String uid, NotificationModel activity) async {
+    //Activities will be posted in user subcollection
+    final String collectionUpper = "users";
+    final String collectionLower = "notifications";
     await _firestore
         .collection(collectionUpper)
         .document(uid)

@@ -6,6 +6,7 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/api/localPrefs.dart';
 import 'package:wealth/deposit/bankcard.dart';
 import 'package:wealth/deposit/mpesaAuto.dart';
 import 'package:wealth/deposit/mpesaManual.dart';
@@ -15,8 +16,9 @@ import 'package:wealth/utilities/styles.dart';
 
 class Deposit extends StatefulWidget {
   final String uid;
+  final String phone;
 
-  Deposit({Key key, this.uid}) : super(key: key);
+  Deposit({Key key, this.uid, this.phone}) : super(key: key);
 
   @override
   _DepositState createState() => _DepositState();
@@ -25,29 +27,23 @@ class Deposit extends StatefulWidget {
 class _DepositState extends State<Deposit> {
   PageController _controller;
   PageController _controllerPages;
+  LocalPrefs localPrefs = new LocalPrefs();
 
   // Identifiers
   int _currentPage = 0;
-  static String _destination = 'wallet';
-  static String _method = 'M-PESA';
+  String _destination;
+  String _method;
+  static String phone;
   static String userId;
-  static String goalName;
+  String goalName;
   List<Widget> _pages = [
-    DepositAncestor(
-      userId,
-      _destination,
-      _method,
-      goalName,
-      child: MpesaAuto(),
+    MpesaAuto(
+      method: 'M-PESA',
+      uid: userId,
+      phone: phone,
     ),
     MpesaManual(),
-    DepositAncestor(
-      userId,
-      _destination,
-      _method,
-      goalName,
-      child: MpesaAuto(),
-    ),
+    MpesaAuto(),
     BankCard()
   ];
   Helper _helper = new Helper();
@@ -58,6 +54,7 @@ class _DepositState extends State<Deposit> {
     _controller = PageController(viewportFraction: 0.85);
     _controllerPages = PageController(viewportFraction: 1);
     userId = widget.uid;
+    phone = widget.phone;
   }
 
   @override
@@ -152,7 +149,8 @@ class _DepositState extends State<Deposit> {
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.grey[100],
+      margin: EdgeInsets.all(2),
+      color: Colors.grey[50],
       child: ListTile(
         onTap: () {
           setState(() {
@@ -234,7 +232,7 @@ class _DepositState extends State<Deposit> {
           color: Colors.black,
         ),
         isExpanded: true,
-        onChanged: (value) {
+        onChanged: (value) async {
           setState(() {
             _destination = value;
 
@@ -243,6 +241,7 @@ class _DepositState extends State<Deposit> {
               showGoalsPopup();
             }
           });
+          await localPrefs.saveDepositDestination(_destination, goalName);
         },
       ),
     );
@@ -258,7 +257,7 @@ class _DepositState extends State<Deposit> {
           setState(() {
             _currentPage = value;
             _method = methods[_currentPage].title;
-            //print(_method);
+            print(_method);
             _controllerPages.animateToPage(_currentPage,
                 duration: Duration(milliseconds: 100), curve: Curves.ease);
           });
@@ -325,71 +324,79 @@ class _DepositState extends State<Deposit> {
     );
   }
 
+  Future<bool> _onWillPop() async {
+    await localPrefs.deleteDestination();
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color(0xFF73AEF5),
-        elevation: 0,
-        title: Text(
-          'Deposit',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(color: Colors.white, fontSize: 20)),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Color(0xFF73AEF5),
+          elevation: 0,
+          title: Text(
+            'Deposit',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(color: Colors.white, fontSize: 20)),
+          ),
         ),
-      ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Stack(
-            children: [
-              backgroundWidget(),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                child: SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // _depositInfo(),
-                      // SizedBox(
-                      //   height: 20,
-                      // ),
-                      Text('Where do you want to deposit?',
-                          style: GoogleFonts.muli(
-                            textStyle: TextStyle(color: Colors.white),
-                          )),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      _depositDestination(),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Text('How do you want to deposit?',
-                          style: GoogleFonts.muli(
-                            textStyle: TextStyle(color: Colors.white),
-                          )),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      _depositMethodWidget(),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      LimitedBox(
-                        maxHeight: double.maxFinite,
-                        child: PageView(
-                            controller: _controllerPages,
-                            physics: NeverScrollableScrollPhysics(),
-                            onPageChanged: (value) {},
-                            children: _pages),
-                      )
-                    ],
+        body: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.light,
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Stack(
+              children: [
+                backgroundWidget(),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                  child: SingleChildScrollView(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // _depositInfo(),
+                        // SizedBox(
+                        //   height: 20,
+                        // ),
+                        Text('Where do you want to deposit?',
+                            style: GoogleFonts.muli(
+                              textStyle: TextStyle(color: Colors.white),
+                            )),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        _depositDestination(),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Text('How do you want to deposit?',
+                            style: GoogleFonts.muli(
+                              textStyle: TextStyle(color: Colors.white),
+                            )),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        _depositMethodWidget(),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        LimitedBox(
+                          maxHeight: double.maxFinite,
+                          child: PageView(
+                              controller: _controllerPages,
+                              physics: NeverScrollableScrollPhysics(),
+                              onPageChanged: (value) {},
+                              children: _pages),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-              )
-            ],
+                )
+              ],
+            ),
           ),
         ),
       ),

@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/api/localPrefs.dart';
+import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/models/depositModel.dart';
 import 'package:wealth/utilities/styles.dart';
 import 'package:wealth/global/progressDialog.dart';
@@ -12,6 +14,12 @@ import 'package:wealth/global/errorMessage.dart';
 
 class MpesaAuto extends StatefulWidget {
   //Identifiers
+  final String method;
+  final String uid;
+  final String phone;
+
+  MpesaAuto({this.method, this.uid, this.phone});
+
   @override
   _MpesaAutoState createState() => _MpesaAutoState();
 }
@@ -19,17 +27,16 @@ class MpesaAuto extends StatefulWidget {
 class _MpesaAutoState extends State<MpesaAuto> {
   String _phone;
   double _amount;
+  bool _isRequestProcessing = false;
 
   final Helper _helper = new Helper();
+  LocalPrefs localPrefs = new LocalPrefs();
 
   final _formKey = GlobalKey<FormState>();
 
   final FocusNode focusAmount = FocusNode();
 
-  void _handleSubmittedPhone(String value) {
-    _phone = value;
-    print('Phone: ' + _phone);
-  }
+  Future prefs;
 
   void _handleSubmittedAmount(String value) {
     _amount = double.parse(value.trim());
@@ -49,35 +56,12 @@ class _MpesaAutoState extends State<MpesaAuto> {
         ),
         TextFormField(
             autofocus: false,
+            enabled: false,
             keyboardType: TextInputType.phone,
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
               color: Colors.white,
             )),
-            onFieldSubmitted: (value) {
-              FocusScope.of(context).requestFocus(focusAmount);
-            },
-            autovalidate: true,
-            validator: (value) {
-              //Check if phone is available
-              if (value.isEmpty) {
-                return 'Phone number is required';
-              }
-
-              //Check if phone number has 10 digits
-              if (value.length != 10) {
-                return 'Phone number should be 10 digits';
-              }
-
-              //Check if phone number starts with 07
-              if (!value.startsWith('07')) {
-                return 'Phone number should start with 07';
-              }
-
-              return null;
-            },
-            textInputAction: TextInputAction.next,
-            onSaved: _handleSubmittedPhone,
             decoration: InputDecoration(
                 enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
@@ -88,7 +72,7 @@ class _MpesaAutoState extends State<MpesaAuto> {
                 border: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
                 prefixIcon: Icon(Icons.phone, color: Colors.white),
-                labelText: 'Enter your Phone Number',
+                labelText: widget.phone,
                 labelStyle: hintStyle))
       ],
     );
@@ -160,17 +144,74 @@ class _MpesaAutoState extends State<MpesaAuto> {
             );
           });
 
-      //Deposit Model PlaceHolder
-      DepositModel depositModel = new DepositModel(
-          amount: _amount,
-          destination: DepositAncestor.of(context).destination,
-          goalName: DepositAncestor.of(context).goalName,
-          method: DepositAncestor.of(context).method,
-          phone: _phone);
-      //print(depositModel.toJson());
-      _helper
-          .depositMoney(DepositAncestor.of(context).uid, depositModel)
-          .catchError((error) {
+      setState(() {
+        _isRequestProcessing = true;
+      });
+
+      //Retrieve local prefs
+      prefs = localPrefs.retrieveDestination();
+      prefs.then((value) {
+        Map<String, dynamic> retrievedValues = value;
+        if (retrievedValues['destination'] != null) {
+          //Deposit Model PlaceHolder
+          String dest = retrievedValues['destination'];
+          String goal = retrievedValues['goal'];
+
+          DepositModel depositModel = new DepositModel(
+              amount: _amount,
+              destination: dest,
+              goalName: goal,
+              method: widget.method,
+              phone: widget.phone);
+          print(depositModel.toJson());
+          _helper.depositMoney(widget.uid, depositModel).catchError((error) {
+            //Dismiss the dialog
+            Navigator.of(context).pop();
+
+            //Show the success message
+            showCupertinoModalPopup(
+                context: context,
+                builder: (BuildContext context) {
+                  return ErrorMessage(
+                    message: error,
+                  );
+                });
+          }).whenComplete(() {
+            //Dismiss the dialog
+            Navigator.of(context).pop();
+
+            //Show the success message
+            showCupertinoModalPopup(
+                context: context,
+                builder: (BuildContext context) {
+                  return SuccessMessage(
+                    message:
+                        'Your deposit has been received successfully. Please wait for us to process your request',
+                  );
+                });
+
+            setState(() {
+              _isRequestProcessing = false;
+            });
+          });
+        } else {
+          //Dismiss the dialog
+          Navigator.of(context).pop();
+
+          //Show the success message
+          showCupertinoModalPopup(
+              context: context,
+              builder: (BuildContext context) {
+                return ErrorMessage(
+                  message: 'Please select where you want to deposit',
+                );
+              });
+
+          setState(() {
+            _isRequestProcessing = false;
+          });
+        }
+      }).catchError((error) {
         //Dismiss the dialog
         Navigator.of(context).pop();
 
@@ -180,18 +221,6 @@ class _MpesaAutoState extends State<MpesaAuto> {
             builder: (BuildContext context) {
               return ErrorMessage(
                 message: error,
-              );
-            });
-      }).whenComplete(() {
-        //Dismiss the dialog
-        Navigator.of(context).pop();
-
-        //Show the success message
-        showCupertinoModalPopup(
-            context: context,
-            builder: (BuildContext context) {
-              return SuccessMessage(
-                message: 'Your deposit has been received successfully',
               );
             });
       });
@@ -204,7 +233,7 @@ class _MpesaAutoState extends State<MpesaAuto> {
       width: double.infinity,
       child: RaisedButton(
         elevation: 3,
-        onPressed: _mpesaAutoBtnPressed,
+        onPressed: _isRequestProcessing ? null : _mpesaAutoBtnPressed,
         padding: EdgeInsets.all(15),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         color: Colors.white,
@@ -239,28 +268,5 @@ class _MpesaAutoState extends State<MpesaAuto> {
         ),
       ),
     );
-  }
-}
-
-//Inherited Widget
-class DepositAncestor extends InheritedWidget {
-  //Fields
-  final String uid;
-  final String destination;
-  final String method;
-  final String goalName;
-
-  DepositAncestor(this.uid, this.destination, this.method, this.goalName,
-      {Widget child})
-      : super(child: child);
-
-  static DepositAncestor of(BuildContext context) =>
-      context.inheritFromWidgetOfExactType(DepositAncestor) as DepositAncestor;
-
-  @override
-  bool updateShouldNotify(DepositAncestor oldWidget) {
-    return destination != oldWidget.destination ||
-        method != oldWidget.method ||
-        goalName != oldWidget.goalName;
   }
 }

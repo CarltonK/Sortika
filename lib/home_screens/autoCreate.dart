@@ -288,6 +288,37 @@ class _AutoCreateState extends State<AutoCreate> {
         });
   }
 
+  Future _showUserError(String error) {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.sentiment_dissatisfied,
+                  color: Colors.red,
+                  size: 100,
+                ),
+                Text(
+                  error,
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
   Future _showReturnRateAmount() async {
     return showCupertinoModalPopup(
         context: context,
@@ -357,10 +388,13 @@ class _AutoCreateState extends State<AutoCreate> {
                     //Delete the document after dismissing the dialog
                     Navigator.of(context).pop();
                     //Use a cron job to delete all documents (if user does not press okay) in autocreates collections at Midnight everyday
-                    await _firestore
-                        .collection('autocreates')
-                        .document(docID)
-                        .delete();
+                    //Using a timer also works well
+                    Timer(Duration(milliseconds: 1250), () async {
+                      await _firestore
+                          .collection('autocreates')
+                          .document(docID)
+                          .delete();
+                    });
                   },
                   child: Text(
                     'OKAY',
@@ -373,7 +407,9 @@ class _AutoCreateState extends State<AutoCreate> {
             ],
           );
         }).whenComplete(() async {
-      await _firestore.collection('autocreates').document(docID).delete();
+      Timer(Duration(milliseconds: 1250), () async {
+        await _firestore.collection('autocreates').document(docID).delete();
+      });
     });
   }
 

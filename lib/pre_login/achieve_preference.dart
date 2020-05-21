@@ -364,10 +364,11 @@ class _AchievePreferenceState extends State<AchievePreference> {
                                         SizedBox(
                                           width: 5,
                                         ),
-                                        Text('Perform another action',
+                                        Text('Other Options',
                                             style: GoogleFonts.muli(
                                                 textStyle: TextStyle(
                                                     color: Colors.white,
+                                                    fontSize: 20,
                                                     fontWeight:
                                                         FontWeight.w600))),
                                       ],
