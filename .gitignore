@@ -44,7 +44,9 @@ app.*.map.json
 
 #Python
 /python/
+/python/Lib/
+/python/Scripts/
 
-Node
+#Node
 /functions/node_modules/
 /functions/lib/

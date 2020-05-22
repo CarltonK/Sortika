@@ -15,16 +15,30 @@ service cloud.firestore {
     match /users/{user} {
     	allow write: if isSignedInOwner(user);
       allow read: if isUserAuthorised();
-      //GOALS Subcollection
+      //Goals subcollection
       match /goals/{goal} {
       	allow read, write: if isSignedInOwner(user);
       }
-      //Preferences Subcollection
+      //Preferences subcollection
       match /preferences/{pref} {
       	allow read, write: if isSignedInOwner(user);
       }
       //Activity subcollection
       match /activity/{act} {
+      	allow read, write: if isSignedInOwner(user);
+      }
+      //Wallet subcollection
+      match /wallet/{user} {
+      	allow create: if isSignedInOwner(user);
+        allow update: if isSignedInOwner(user);
+        allow read: if isUserAuthorised();
+      }
+      //Notifications subcollection
+      match /notifications/{notification} {
+      	allow read, write: if isSignedInOwner(user);
+      }
+      //Activity subcollection
+      match /activity/{activityDoc} {
       	allow read, write: if isSignedInOwner(user);
       }
     }
@@ -36,6 +50,21 @@ service cloud.firestore {
     
     //GROUPS Collection
     match /groups/{group} {
+    	allow read, write: if isUserAuthorised();
+    }
+    
+    //REEDEMABLES Collection
+    match /redeemables/{redeemable} {
+    	allow read, write: if isUserAuthorised();
+    }
+    
+    //DEPOSITS Collection
+    match /deposits/{deposit} {
+    	allow read, write: if isSignedInOwner(deposit);
+    }
+    
+    //AUTOCREATES Collection
+    match /autocreates/{autocreate} {
     	allow read, write: if isUserAuthorised();
     }
   }

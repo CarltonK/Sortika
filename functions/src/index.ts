@@ -32,6 +32,7 @@ Version 3: onWrite - Midnight Cron Job
 
 * use onWrite for debugging purposes *
 */
+
 //Calculate goal allocations
 superadmin.initializeApp();
 const db = superadmin.firestore();
@@ -210,38 +211,39 @@ exports.allocationsCalculatorV3 = functions.firestore
     })
 
 
-// export const scheduledFunction = functions.pubsub.schedule(`every day 00:00`)
-//     .onRun(async (context: functions.EventContext) => {
-//         //every day 00:00
-//         console.log(`This will run every day 00:00`)
-//         //Retrieve all user documets
-//         const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
-//         const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
+export const scheduledFunction = functions.pubsub.schedule(`every day 00:01`)
+    .timeZone('Africa/Nairobi')
+    .onRun(async (context: functions.EventContext) => {
+        //every day 00:01
+        console.log(`This will run every day 00:00`)
+        //Retrieve all user documets
+        const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
+        const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
 
-//         //Placeholder for UIDs
-//         const uidList: Array<string> = []
-//         userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
-//             uidList.push(document.get('uid'))
-//         })
-//         console.log(`List of User IDs: ${uidList}`)
+        //Placeholder for UIDs
+        const uidList: Array<string> = []
+        userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
+            uidList.push(document.get('uid'))
+        })
+        console.log(`List of User IDs: ${uidList}`)
 
-//         //Iterate through list of USER IDs
-//         for (let index: number = 0; index < uidList.length; index ++) {
-//             //Retrieve all user goals documents
-//             const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
-//             const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
+        //Iterate through list of USER IDs
+        for (let index: number = 0; index < uidList.length; index ++) {
+            //Retrieve all user goals documents
+            const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
+            const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
 
-//             for (let i: number = 0; i < userGoalsDocuments.length; i++) {
-//                 //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
-//                 await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
-//                     'goalCreateDate': superadmin.firestore.Timestamp.now()
-//                 })
-//             }
+            for (let i: number = 0; i < userGoalsDocuments.length; i++) {
+                //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
+                await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
+                    'goalCreateDate': superadmin.firestore.Timestamp.now()
+                })
+            }
 
-//         }
-//         console.log(`Finished updating`)
-//         return null;
-//     });
+        }
+        console.log(`Finished updating`)
+        return null;
+    });
 
 
 
@@ -1004,23 +1006,23 @@ export const selfLoan = functions.firestore
         
     })
 
-export const nudgeFriend = functions.firestore
-    .document('nudges/{nudge}')
-    .onCreate(async snapshot => {
-        const token: string = snapshot.get('token')
-        const payload = {
-            notification: {
-                title: `Nudge`,
-                body: `You received a nudge from a group member`,
-                clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-            }
-        }
-        await db.collection('nudges').doc(snapshot.id).delete()
-        return fcm.sendToDevice(token, payload)
-            .catch(error => {
-            console.error('Nudge FCM Error',error)
-        })
-    })
+// export const nudgeFriend = functions.firestore
+//     .document('nudges/{nudge}')
+//     .onCreate(async snapshot => {
+//         const token: string = snapshot.get('token')
+//         const payload = {
+//             notification: {
+//                 title: `Nudge`,
+//                 body: `You received a nudge from a group member`,
+//                 clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+//             }
+//         }
+//         await db.collection('nudges').doc(snapshot.id).delete()
+//         return fcm.sendToDevice(token, payload)
+//             .catch(error => {
+//             console.error('Nudge FCM Error',error)
+//         })
+//     })
 
 export const groupMembers = functions.firestore
     .document('groups/{group}')
@@ -1157,87 +1159,101 @@ export const loanLimitCalculator = functions.firestore
 
 
 //Deposit
-export const handleDeposit = functions.firestore
-    .document('deposits/{deposit}')
-    .onCreate(async snapshot => {
-        const uid: string = snapshot.id
-        const amount: number = snapshot.get('amount')
-        const destination: string = snapshot.get('destination')
-        const method: string = snapshot.get('method')
-        const phone: string = snapshot.get('phone')
+// export const handleDeposit = functions.firestore
+//     .document('deposits/{deposit}')
+//     .onCreate(async snapshot => {
+//         const uid: string = snapshot.id
+//         const amount: number = snapshot.get('amount')
+//         const destination: string = snapshot.get('destination')
+//         const method: string = snapshot.get('method')
+//         const phone: string = snapshot.get('phone')
+//         const goal: string = snapshot.get('goalName')
 
-        //Cycle through destinations
-        //1) Wallet
-        if (destination === 'wallet') {
-            //Have they used M-PESA
-            if (method === 'M-PESA') {
-                //Have they supplied a phone number
-                if (phone !== null) {
-                    const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('wallet').doc(uid);
-                    db.runTransaction(async transaction => {
-                        return transaction.get(docRef)
-                            .then(doc => {
-                                transaction.update(docRef, {amount: superadmin.firestore.FieldValue.increment(amount)})
-                        });
-                    })
-                    .then(result => {
-                        console.log('Transaction success!')
-                    })
-                    .catch(err => {
-                        console.log('Transaction failure:', err)
-                    })
-                }
-            }     
-        }
-        //2) General (Divide based on allocations)
-        if (destination === 'general') {
-            //Have they used M-PESA
-            if (method === 'M-PESA') {
-                //Have they supplied a phone number
-                if (phone != null) {
-                    const userGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(snapshot.id).collection('goals').get()
-                    const userGoalsDocs: Array<DocumentSnapshot> = userGoalsQueries.docs
-                    userGoalsDocs.forEach((element) => {
-                    const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(element.id);
-                        db.runTransaction(async transaction => {
-                            return transaction.get(docRef)
-                                .then(doc => {
-                                    const newIncrement: number = amount * doc.get('goalAllocation')
-                                    transaction.update(docRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(newIncrement)})
-                                })
-                        })
-                        .then(result => {
-                            console.log('Transaction success!')
-                        })
-                        .catch(err => {
-                            console.log('Transaction failure:', err)
-                        })
-                    })
-                }
-            } 
-        }
-        //Delete the deposit document
-        await db.collection('deposits').doc(uid).delete()
-    })
+//         //Cycle through destinations
+//         //1) Wallet
+//         if (destination === 'wallet') {
+//             //Have they used M-PESA
+//             if (method === 'M-PESA') {
+//                 //Have they supplied a phone number
+//                 if (phone !== null) {
+//                     const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('wallet').doc(uid);
+//                     db.runTransaction(async transaction => {
+//                         return transaction.get(docRef)
+//                             .then(doc => {
+//                                 transaction.update(docRef, {amount: superadmin.firestore.FieldValue.increment(amount)})
+//                         });
+//                     })
+//                     .then(result => {
+//                         console.log('Transaction success!')
+//                     })
+//                     .catch(err => {
+//                         console.log('Transaction failure:', err)
+//                     })
+//                 }
+//             }     
+//         }
+
+//         //2) General (Divide based on allocations)
+//         if (destination === 'general') {
+//             //Have they used M-PESA
+//             if (method === 'M-PESA') {
+//                 //Have they supplied a phone number
+//                 if (phone !== null) {
+//                     const userGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(snapshot.id).collection('goals').get()
+//                     const userGoalsDocs: Array<DocumentSnapshot> = userGoalsQueries.docs
+//                     userGoalsDocs.forEach((element) => {
+//                     const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(element.id);
+//                         db.runTransaction(async transaction => {
+//                             return transaction.get(docRef)
+//                                 .then(doc => {
+//                                     const newIncrement: number = (amount * doc.get('goalAllocation')) / 100
+//                                     transaction.update(docRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(newIncrement)})
+//                                 })
+//                         })
+//                         .then(result => {
+//                             console.log('Transaction success!')
+//                         })
+//                         .catch(err => {
+//                             console.log('Transaction failure:', err)
+//                         })
+//                     })
+//                 }
+//             } 
+//         }
+
+//         //3) Specific goal
+//         if (destination === 'specific' && goal !== null) {
+//             //Have they used M-PESA
+//             if (method === 'M-PESA') {
+//                 //Have they supplied a phone number
+//                 if (phone !== null) {
+
+//                 }
+//             }
+//         }
+
+//         //Delete the deposit document
+//         await db.collection('deposits').doc(uid).delete()
+//     })
 
 
 // //Welcome a user
-export const welcomeUser = functions.firestore
-    .document('users/{user}')
-    .onCreate(async snapshot => {
-        //Send the user a welcome notification
-        const token: string = snapshot.get('token')
-        const fullName: string = snapshot.get('fullName')
-        const fname: string = fullName.split(' ')[0]
-        const payload = {
-            notification: {
-                title: `It\'s time to Sortika`,
-                body: `We are glad to have you on board ${fname}`,
-                clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-            }
-        }
-    return fcm.sendToDevice(token, payload)
-        .catch(error => {
-            console.error('welcomeUser FCM Error',error)
-    })
-})
+// export const welcomeUser = functions.firestore
+//     .document('users/{user}')
+//     .onCreate(async snapshot => {
+//         //Send the user a welcome notification
+//         const token: string = snapshot.get('token')
+//         const fullName: string = snapshot.get('fullName')
+//         const fname: string = fullName.split(' ')[0]
+//         const payload = {
+//             notification: {
+//                 title: `It\'s time to Sortika`,
+//                 body: `We are glad to have you on board ${fname}`,
+//                 clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+//             }
+//         }
+//     return fcm.sendToDevice(token, payload)
+//         .catch(error => {
+//             console.error('welcomeUser FCM Error',error)
+//     })
+// })

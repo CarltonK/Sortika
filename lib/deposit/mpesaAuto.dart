@@ -186,7 +186,7 @@ class _MpesaAutoState extends State<MpesaAuto> {
                 builder: (BuildContext context) {
                   return SuccessMessage(
                     message:
-                        'Your deposit has been received successfully. Please wait for us to process your request',
+                        'Enter your M-PESA PIN when prompted. This won\'t take long',
                   );
                 });
 
