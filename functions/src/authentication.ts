@@ -26,7 +26,7 @@ class User {
 
     constructor(fullName:string, phone: string, email: string, password: string, 
         confirmPass: string) { 
-
+            
         this.fullName = fullName
         this.phone = phone
         this.email = email

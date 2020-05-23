@@ -103,7 +103,7 @@ exports.allocationsCalculatorV1 = functions.firestore
         //Update each document with new allocations
         for (let index = 0; index < documentIds.length; index ++) {
             const documentId: string = documentIds[index]
-            let allocatedPercent: number = allocationpercents[index]
+            const allocatedPercent: number = allocationpercents[index]
             await db.collection('users').doc(uid)
                 .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
         }
@@ -125,97 +125,173 @@ Any change to goal amount saved
 //Run a task every night midnight. GoalCreateDate update to current date, then recalculate dialy, weekly, monthly targets
 */
 
-exports.allocationsCalculatorV3 = functions.firestore
-    .document('/users/{user}/goals/{goal}')
-    .onWrite(async snapshot => {
-        //Check if the goalCreateDate has changed
-        if (snapshot.before.exists && snapshot.after.exists) {
-            const timeBefore: FirebaseFirestore.Timestamp = snapshot.before.get('goalCreateDate')
-            const timeAfter: FirebaseFirestore.Timestamp = snapshot.after.get('goalCreateDate')
+// exports.allocationsCalculatorV3 = functions.firestore
+//     .document('/users/{user}/goals/{goal}')
+//     .onWrite(async snapshot => {
+//         //Check if the goalCreateDate has changed
+//         if (snapshot.before.exists && snapshot.after.exists) {
+//             const timeBefore: FirebaseFirestore.Timestamp = snapshot.before.get('goalCreateDate')
+//             const timeAfter: FirebaseFirestore.Timestamp = snapshot.after.get('goalCreateDate')
 
-            if (!timeAfter.isEqual(timeBefore)) {
-                //Retrieve user id
-                const uid = snapshot.before.get('uid')
-                const docs = await db.collection('users').doc(uid).collection('goals').get()
-                const allDocs: Array<DocumentSnapshot> = docs.docs
-                const periods: Array<number> = []
-                const amounts: Array<number> = []
-                const adjustedAmounts: Array<number> = []
-                const documentIds: Array<string> = []
-                const allocationpercents: Array<number> = []
-                allDocs.forEach(element => {
-                    //Document Snapshot
-                    /*
-                    Timestamp is returned from Firebase.
-                    Convert to Date then get differences in days
-                    */
-                    const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
-                    const dateStart: Date = timeStart.toDate()
+//             if (!timeAfter.isEqual(timeBefore)) {
+//                 //Retrieve user id
+//                 const uid = snapshot.before.get('uid')
+//                 const docs = await db.collection('users').doc(uid).collection('goals').get()
+//                 const allDocs: Array<DocumentSnapshot> = docs.docs
+//                 const periods: Array<number> = []
+//                 const amounts: Array<number> = []
+//                 const adjustedAmounts: Array<number> = []
+//                 const documentIds: Array<string> = []
+//                 const allocationpercents: Array<number> = []
+//                 allDocs.forEach(element => {
+//                     //Document Snapshot
+//                     /*
+//                     Timestamp is returned from Firebase.
+//                     Convert to Date then get differences in days
+//                     */
+//                     const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
+//                     const dateStart: Date = timeStart.toDate()
 
-                    const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
-                    const dateEnd = timeEnd.toDate()
+//                     const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
+//                     const dateEnd = timeEnd.toDate()
 
-                    const differenceSeconds = dateEnd.getTime() - dateStart.getTime()
-                    const differenceDays = differenceSeconds / (1000*60*60*24)
+//                     const differenceSeconds = dateEnd.getTime() - dateStart.getTime()
+//                     const differenceDays = differenceSeconds / (1000*60*60*24)
 
-                    //Save the difference in a list
-                    periods.push(Math.ceil(differenceDays))
-                    //Retrieve target amount and save in amounts
-                    amounts.push(element.get('goalAmount'))
-                    documentIds.push(element.id)
-                });
-                //Sort from smallest to largest
-                periods.sort()
-                const leastDays = periods[0]
-                //Show arrays
-                console.log(`Periods: ${periods}`)
-                console.log(`Amounts: ${amounts}`)
-                console.log(`Document Ids: ${documentIds}`)
-                //Keep a total adjusted amount counter
-                let totalAdjusted: number = 0
-                for (let index = 0; index < amounts.length; index ++) {
-                    let adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
-                    adjustedAmounts.push(adjusted)
-                    totalAdjusted = totalAdjusted + adjusted
-                }
-                //Show adjusted amounts
-                console.log(`Adjusted Amounts: ${adjustedAmounts}`)
-                //Show the total adjusted number
-                console.log(`Total Adjusted Value: ${totalAdjusted}`)
-                //Get allocation percentages
-                for (let index = 0; index < adjustedAmounts.length; index ++) {
-                    let percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
-                    allocationpercents.push(percent)
-                }
-                //Show percents
-                console.log(`Allocation Percents: ${allocationpercents}`)
-                //Update each document with new allocations
-                for (let index = 0; index < documentIds.length; index ++) {
-                    let documentId: string = documentIds[index]
-                    let allocatedPercent: number = allocationpercents[index]
-                    await db.collection('users').doc(uid)
-                        .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
-                }
-                //Update User Targets
-                const dailyTarget: number = (totalAdjusted / leastDays)
-                const weeklyTarget: number = (dailyTarget * 7)
-                const monthlyTarget: number = (dailyTarget * 30)
-                //Update USERS Collection
-                await db.collection('users').doc(uid).update({
-                    'dailyTarget': dailyTarget,
-                    'weeklyTarget': weeklyTarget,
-                    'monthlyTarget': monthlyTarget
-                })
+//                     //Save the difference in a list
+//                     periods.push(Math.ceil(differenceDays))
+//                     //Retrieve target amount and save in amounts
+//                     amounts.push(element.get('goalAmount'))
+//                     documentIds.push(element.id)
+//                 });
+//                 //Sort from smallest to largest
+//                 periods.sort()
+//                 const leastDays = periods[0]
+//                 //Show arrays
+//                 console.log(`Periods: ${periods}`)
+//                 console.log(`Amounts: ${amounts}`)
+//                 console.log(`Document Ids: ${documentIds}`)
+//                 //Keep a total adjusted amount counter
+//                 let totalAdjusted: number = 0
+//                 for (let index = 0; index < amounts.length; index ++) {
+//                     let adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
+//                     adjustedAmounts.push(adjusted)
+//                     totalAdjusted = totalAdjusted + adjusted
+//                 }
+//                 //Show adjusted amounts
+//                 console.log(`Adjusted Amounts: ${adjustedAmounts}`)
+//                 //Show the total adjusted number
+//                 console.log(`Total Adjusted Value: ${totalAdjusted}`)
+//                 //Get allocation percentages
+//                 for (let index = 0; index < adjustedAmounts.length; index ++) {
+//                     let percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
+//                     allocationpercents.push(percent)
+//                 }
+//                 //Show percents
+//                 console.log(`Allocation Percents: ${allocationpercents}`)
+//                 //Update each document with new allocations
+//                 for (let index = 0; index < documentIds.length; index ++) {
+//                     let documentId: string = documentIds[index]
+//                     let allocatedPercent: number = allocationpercents[index]
+//                     await db.collection('users').doc(uid)
+//                         .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
+//                 }
+//                 //Update User Targets
+//                 const dailyTarget: number = (totalAdjusted / leastDays)
+//                 const weeklyTarget: number = (dailyTarget * 7)
+//                 const monthlyTarget: number = (dailyTarget * 30)
+//                 //Update USERS Collection
+//                 await db.collection('users').doc(uid).update({
+//                     'dailyTarget': dailyTarget,
+//                     'weeklyTarget': weeklyTarget,
+//                     'monthlyTarget': monthlyTarget
+//                 })
+//             }
+//         }
+//     })
+
+
+function scheduledAllocator(users: Array<string>) {
+    users.forEach(async (user) => {
+        const docs = await db.collection('users').doc(user).collection('goals').get()
+        const allDocs: Array<DocumentSnapshot> = docs.docs
+        const periods: Array<number> = []
+        const amounts: Array<number> = []
+        const adjustedAmounts: Array<number> = []
+        const documentIds: Array<string> = []
+        const allocationpercents: Array<number> = []
+        allDocs.forEach(element => {
+            //Document Snapshot
+            /*
+            Timestamp is returned from Firebase.
+            Convert to Date then get differences in days
+            */
+            const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
+            const dateStart: Date = timeStart.toDate()
+
+            const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
+            const dateEnd = timeEnd.toDate()
+
+            const differenceSeconds = dateEnd.getTime() - dateStart.getTime()
+            const differenceDays = differenceSeconds / (1000*60*60*24)
+
+            //Save the difference in a list
+            periods.push(Math.ceil(differenceDays))
+            //Retrieve target amount and save in amounts
+            amounts.push(element.get('goalAmount'))
+            documentIds.push(element.id)
+        });
+            //Sort from smallest to largest
+            periods.sort()
+            const leastDays = periods[0]
+            //Show arrays
+            console.log(`Periods: ${periods}`)
+            console.log(`Amounts: ${amounts}`)
+            console.log(`Document Ids: ${documentIds}`)
+            //Keep a total adjusted amount counter
+            let totalAdjusted: number = 0
+            for (let index = 0; index < amounts.length; index ++) {
+                const adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
+                adjustedAmounts.push(adjusted)
+                totalAdjusted = totalAdjusted + adjusted
             }
-        }
+            //Show adjusted amounts
+            console.log(`Adjusted Amounts: ${adjustedAmounts}`)
+            //Show the total adjusted number
+            console.log(`Total Adjusted Value: ${totalAdjusted}`)
+            //Get allocation percentages
+            for (let index = 0; index < adjustedAmounts.length; index ++) {
+                const percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
+                allocationpercents.push(percent)
+            }
+            //Show percents
+            console.log(`Allocation Percents: ${allocationpercents}`)
+            //Update each document with new allocations
+            for (let index = 0; index < documentIds.length; index ++) {
+                const documentId: string = documentIds[index]
+                const allocatedPercent: number = allocationpercents[index]
+                await db.collection('users').doc(user)
+                    .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
+            }
+            //Update User Targets
+            const dailyTarget: number = (totalAdjusted / leastDays)
+            const weeklyTarget: number = (dailyTarget * 7)
+            const monthlyTarget: number = (dailyTarget * 30)
+            //Update USERS Collection
+            await db.collection('users').doc(user).update({
+                'dailyTarget': dailyTarget,
+                'weeklyTarget': weeklyTarget,
+                'monthlyTarget': monthlyTarget
+            })
     })
+}
 
-
+// every day 00:01
 export const scheduledFunction = functions.pubsub.schedule(`every day 00:01`)
     .timeZone('Africa/Nairobi')
     .onRun(async (context: functions.EventContext) => {
         //every day 00:01
-        console.log(`This will run every day 00:00`)
+        console.log(`This will run every day 00:01`)
         //Retrieve all user documets
         const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
         const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
@@ -241,7 +317,11 @@ export const scheduledFunction = functions.pubsub.schedule(`every day 00:01`)
             }
 
         }
-        console.log(`Finished updating`)
+        console.log(`Finished updating Timestamps`)
+        //Perform changes
+        console.log('Perform allocation changes')
+        scheduledAllocator(uidList)
+        console.log('Finished updating allocations')
         return null;
     });
 
@@ -264,7 +344,7 @@ exports.allocationsCalculatorV2 = functions.firestore
                 let currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
                 currentAmount = currentAmount + averageAmount
             
-                let documentId: string = investmentDocuments.docs[index].id
+                const documentId: string = investmentDocuments.docs[index].id
                 await db.collection('users').doc(uid)
                 .collection('goals').doc(documentId).update({'goalAmount': currentAmount})
             }
@@ -321,9 +401,9 @@ exports.allocationsCalculatorV2 = functions.firestore
         console.log(`Amounts: ${amounts}`)
         console.log(`Document Ids: ${documentIds}`)
         //Keep a total adjusted amount counter
-        var totalAdjusted: number = 0
+        let totalAdjusted: number = 0
         for (let index = 0; index < amounts.length; index ++) {
-            let adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
+            const adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
             adjustedAmounts.push(adjusted)
             totalAdjusted = totalAdjusted + adjusted
         }
@@ -333,15 +413,15 @@ exports.allocationsCalculatorV2 = functions.firestore
         console.log(`Total Adjusted Value: ${totalAdjusted}`)
         //Get allocation percentages
         for (let index = 0; index < adjustedAmounts.length; index ++) {
-            let percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
+            const percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
             allocationpercents.push(percent)
         }
         //Show percents
         console.log(`Allocation Percents: ${allocationpercents}`)
         //Update each document with new allocations
         for (let index = 0; index < documentIds.length; index ++) {
-            let documentId: string = documentIds[index]
-            let allocatedPercent: number = allocationpercents[index]
+            const documentId: string = documentIds[index]
+            const allocatedPercent: number = allocationpercents[index]
             await db.collection('users').doc(uid)
                 .collection('goals').doc(documentId).update(
                     {'goalAllocation':allocatedPercent})
@@ -809,12 +889,12 @@ export const selfLoan = functions.firestore
         //const allInvestmentDocIds: Array<string> = []
         //Iterate to get investment types in each
         for (let index = 0; index < upperDocsArray.length; index ++) {
-            var currentDocId: string = upperDocsArray[index].get('title')
+            const currentDocId: string = upperDocsArray[index].get('title')
             const lowerDocs = await db.collection('investments').doc(currentDocId)
                 .collection('types').get()
             const lowerDocsArray = lowerDocs.docs
             for (let i = 0; i < lowerDocsArray.length; i ++) {
-                var map = new Map()
+                const map = new Map()
                 map.set(`${currentDocId}`, lowerDocsArray[i].get('name'))
                 if (rate === 'low') {
                     if (lowerDocsArray[i].get('return') <= 10.5) {
@@ -838,7 +918,7 @@ export const selfLoan = functions.firestore
         //console.log(`Document IDs: ${allInvestmentDocIds}`)
         //Calculate Deviation
         // This is based on user selected return rate
-        var deviation: number
+        let deviation: number
         const deviationList: Array<number> = []
         if (rate === 'low') {
             const staticFigure: number = 10.5
@@ -870,7 +950,7 @@ export const selfLoan = functions.firestore
         const weightCalcs: Array<number> = []
         //Iterate through the list of deviations
         for (let index = 0; index < deviationList.length; index ++) {
-            var weight: number = deviationList[index] * 0.1
+            const weight: number = deviationList[index] * 0.1
             weightCalcs.push(weight)
         }
         //console.log(weightCalcs)
@@ -879,14 +959,14 @@ export const selfLoan = functions.firestore
         const weightEstimates: Array<number> = []
         //Iterate through the list of weights
         for (let index = 0; index < weightCalcs.length; index ++) {
-            var estimate = 1 - weightCalcs[index]
+            const estimate = 1 - weightCalcs[index]
             weightEstimates.push(estimate)
         }
         console.log(`Weight Estimates: ${weightEstimates}`)
         //Calculate adjusted weight estimates
         //These are the weightEstimates that are below 1
         //Keep a running total of adjusted weight estimates
-        var weightEstimatesTotal: number  = 0
+        let weightEstimatesTotal: number  = 0
         const adjustedWeightEstimates: Array<number> = []
         //Iterate through the weight estimates list
         for (let index = 0; index < weightEstimates.length; index ++) {
@@ -920,7 +1000,7 @@ export const selfLoan = functions.firestore
         //This is calculated by (adjustedWeight * (1/weightEstimatesTotal))
         const actualWeights: Array<number> = []
         for (let index = 0; index < adjustedWeightEstimates.length; index ++) {
-            var weightActual = adjustedWeightEstimates[index] * (1/weightEstimatesTotal)
+            const weightActual = adjustedWeightEstimates[index] * (1/weightEstimatesTotal)
             actualWeights.push(weightActual)
         }
         console.log(`Actual Weights: ${actualWeights}`)
@@ -928,9 +1008,9 @@ export const selfLoan = functions.firestore
         //This is calculated by actual weight * asset return
         const expectedReturns: Array<number> = []
         //Keep a counter for total expected return
-        var expectedReturnTotal = 0
+        let expectedReturnTotal = 0
         for (let index = 0; index < actualWeights.length; index ++) {
-            var calculatedReturn = allInvestments[index]['return'] * actualWeights[index]
+            const calculatedReturn = allInvestments[index]['return'] * actualWeights[index]
             expectedReturns.push(calculatedReturn)
             expectedReturnTotal = expectedReturnTotal + calculatedReturn
         }
@@ -939,7 +1019,7 @@ export const selfLoan = functions.firestore
         //This is calculated by actual weight * amount
         const allocation: Array<number> = []
         for (let index = 0; index < actualWeights.length; index ++) {
-            var allocatedAmount = actualWeights[index] * amount
+            const allocatedAmount = actualWeights[index] * amount
             allocation.push(allocatedAmount)
         }
         console.log(`Respective Allocations: ${allocation}`)
@@ -960,8 +1040,8 @@ export const selfLoan = functions.firestore
         const created: Date = new Date
         const deletable: boolean = true
         const amountSaved: number = 0.0
-        var currentKey: string = ''
-        var currentValue: string = ''
+        let currentKey: string = ''
+        let currentValue: string = ''
 
         //New List to store allocations without 0
         const newAllocations: Array<number> = [];
@@ -1036,7 +1116,7 @@ export const groupMembers = functions.firestore
 
         if (!snapshot.before.exists) {
             membersAfter.forEach(async (element) => {
-                let user: DocumentSnapshot = await db.collection('users').doc(element).get()
+                const user: DocumentSnapshot = await db.collection('users').doc(element).get()
                 console.log(`Requesting USER: ${user.get('uid')}`)
                 await db.collection('groups').doc(snapshot.after.id).collection('members').doc(element).set({
                     "fullName": user.get('fullName'),
@@ -1067,7 +1147,7 @@ export const groupMembers = functions.firestore
                     continue
                 }
                 else {
-                    let user: DocumentSnapshot = await db.collection('users').doc(membersAfter[index]).get()
+                    const user: DocumentSnapshot = await db.collection('users').doc(membersAfter[index]).get()
                     console.log(`Requesting USER: ${user.get('uid')}`)
                     await db.collection('groups').doc(snapshot.after.id).collection('members').doc(membersAfter[index]).set({
                         "fullName": user.get('fullName'),
