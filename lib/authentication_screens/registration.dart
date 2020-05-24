@@ -498,6 +498,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
         //Disable the keyboard from showing again
         FocusScope.of(context).unfocus();
+
         if (value) {
           // print('Successful response $result');
           //Show a welcome message
@@ -527,7 +528,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           Timer(Duration(milliseconds: 2200), () {
             goToNextPage(authService.currentUser.uid, token);
           });
-        } else {
+        } 
+        else {
           // print('Failed response: $result');
           //Show an action sheet with result
           showErrorSheet(result);

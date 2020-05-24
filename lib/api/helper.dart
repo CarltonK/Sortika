@@ -138,6 +138,7 @@ class Helper {
 
   //Deposit Money
   Future depositMoney(String uid, DepositModel model) async {
+    
     await _firestore
         .collection('deposits')
         .document(uid)

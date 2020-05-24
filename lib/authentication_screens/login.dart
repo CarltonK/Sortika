@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/widgets/networkSensitive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  AnalyticsFunnel funnel = AnalyticsFunnel();
   //Form Key
   final _formKey = GlobalKey<FormState>();
 
@@ -433,6 +435,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
           //Retrieve UID
           final String uid = result.uid;
+
+          await funnel.logLogin();
 
           //Retrieve USER DOC
           await _firestore

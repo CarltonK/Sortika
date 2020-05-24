@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/activityModel.dart';
@@ -31,6 +32,7 @@ class BorrowPage extends StatefulWidget {
 }
 
 class _BorrowPageState extends State<BorrowPage> {
+  AnalyticsFunnel funnel = AnalyticsFunnel();
   final styleLabel =
       GoogleFonts.muli(textStyle: TextStyle(color: Colors.white, fontSize: 15));
 
@@ -666,6 +668,7 @@ class _BorrowPageState extends State<BorrowPage> {
     //Add request to Loans Collections
     final String _collection = "loans";
     await _firestore.collection(_collection).document().setData(model.toJson());
+    await funnel.logBorrowRequest(model.loanAmountTaken, typeLoan, model.loanTakenDate.toDate().toString(), model.loanEndDate.toDate().toString(), model.loanBorrower);
   }
 
   void _applyBtnPressed() async {

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/autoCreateModel.dart';
 import 'package:wealth/models/notificationModel.dart';
@@ -14,6 +15,8 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   //create instance of Firestore
   final Firestore _firestore = Firestore.instance;
+  //Analytics
+  final AnalyticsFunnel funnel = AnalyticsFunnel();
 
   //Initialize class
   AuthService() {
@@ -48,6 +51,9 @@ class AuthService {
 
       //Get the uid
       String uid = currentUser.uid;
+
+      //Log an Analytics Event signalling SIGN UP
+      await funnel.logSignUp(uid);
 
       //Initiate email verification
       currentUser.sendEmailVerification();
@@ -156,6 +162,7 @@ class AuthService {
     var response;
     try {
       await _auth.sendPasswordResetEmail(email: user.email);
+      await funnel.logEvent('Password Reset', user.email);
       response = true;
       return response;
     } catch (e) {
@@ -214,6 +221,8 @@ class AuthService {
   }
 
   Future<void> createAutoGoal(AutoCreateModel model) async {
+    //Analytics Event - LOG EVENT
+    await funnel.logEvent('Autocreate Goals', model.uid);
     await _firestore
         .collection("autocreates")
         .document()

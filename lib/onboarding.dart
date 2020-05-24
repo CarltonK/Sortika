@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/models/usermodel.dart';
 
 class OnBoarding extends StatefulWidget {
@@ -19,6 +20,7 @@ class _OnBoardingState extends State<OnBoarding> {
   //Placeholder for current page
   int _currentPage = 0;
   Firestore _firestore = Firestore.instance;
+  AnalyticsFunnel funnel = AnalyticsFunnel();
 
   Future checkFirstSeen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -31,10 +33,13 @@ class _OnBoardingState extends State<OnBoarding> {
           DocumentSnapshot doc =
               await _firestore.collection("users").document(value).get();
           User user = User.fromJson(doc.data);
+          //Analytics Event - LOGIN
+          await funnel.logLogin();
           Navigator.of(context).pushReplacementNamed('/home', arguments: user);
         }
       });
     } else {
+      await funnel.logOnBoardingStart();
       await prefs.setBool('seen', true);
     }
   }
@@ -247,7 +252,9 @@ class _OnBoardingState extends State<OnBoarding> {
               width: double.infinity,
               color: Color(0xFF398AE5),
               child: GestureDetector(
-                onTap: () {
+                onTap: () async{
+                  //Analytics Event - TUTORIAL COMPLETE
+                  await funnel.logOnBoardingEnd();
                   //Go to Login Page
                   Navigator.of(context).pushReplacementNamed('/login');
                 },

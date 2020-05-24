@@ -9,6 +9,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
+import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/home_screens/autoCreateHolder.dart';
@@ -45,6 +46,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   //Authentication
   AuthService authService = AuthService();
   Helper helper = new Helper();
+  AnalyticsFunnel funnel = AnalyticsFunnel();
 
   static String uid;
   User userData;
@@ -1636,6 +1638,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   await helper
                       .rejectLoanDoc(loanData['docId'])
                       .whenComplete(() => _loanRejection(loanData));
+                  await funnel.logLoanRejection(loanData['loanAmountTaken'], loanData['loanTakenDate'].toDate().toString(), loanData['loanEndDate'].toDate().toString());
                 },
                 child: Text(
                   'REJECT',

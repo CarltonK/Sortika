@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:intl/intl.dart';
+import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/models/usermodel.dart';
@@ -19,6 +20,7 @@ class EditGroup extends StatefulWidget {
 }
 
 class _EditGroupState extends State<EditGroup> {
+  AnalyticsFunnel funnel = AnalyticsFunnel();
   //Data Holder
   static Map<String, dynamic> data;
   final Firestore _firestore = Firestore.instance;
@@ -551,10 +553,12 @@ class _EditGroupState extends State<EditGroup> {
     );
   }
 
-  void _sendInvite() {
+  void _sendInvite() async {
     var groupName = data["goalName"];
     var groupCode = data["groupCode"];
+    
     try {
+      await funnel.logShareGroup(groupCode);
       Share.share(
           'Please join my group ($groupName) on Sortika using this code $groupCode');
     } catch (error) {

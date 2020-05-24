@@ -6,6 +6,7 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/models/groupModel.dart';
 
 class MyGroups extends StatefulWidget {
@@ -16,6 +17,7 @@ class MyGroups extends StatefulWidget {
 }
 
 class _MyGroupsState extends State<MyGroups> {
+  AnalyticsFunnel funnel = AnalyticsFunnel();
   //Form Key
   final _formKey = GlobalKey<FormState>();
 
@@ -469,7 +471,8 @@ class _MyGroupsState extends State<MyGroups> {
                 onPressed: () {
                   //Dismiss first dialog
                   Navigator.of(context).pop();
-                  _addToGroup().then((value) {
+                  _addToGroup().then((value) async {
+                    await funnel.logJoinGroup(meinGruppe.groupCode);
                     _promptGroupJoinSuccess(value);
                   });
                 },
@@ -514,7 +517,7 @@ class _MyGroupsState extends State<MyGroups> {
         .collection("goals")
         .document()
         .setData(model.toJson());
-
+        
     return doc.data["goalName"];
   }
 
