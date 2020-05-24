@@ -1136,7 +1136,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         height: 5,
                       ),
                       Text(
-                        '${mods.goalAmountSaved} KES',
+                        '${mods.goalAmountSaved.toStringAsFixed(1)} KES',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w700)),
@@ -1638,7 +1638,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   await helper
                       .rejectLoanDoc(loanData['docId'])
                       .whenComplete(() => _loanRejection(loanData));
-                  await funnel.logLoanRejection(loanData['loanAmountTaken'], loanData['loanTakenDate'].toDate().toString(), loanData['loanEndDate'].toDate().toString());
+                  await funnel.logLoanRejection(
+                      loanData['loanAmountTaken'],
+                      loanData['loanTakenDate'].toDate().toString(),
+                      loanData['loanEndDate'].toDate().toString());
                 },
                 child: Text(
                   'REJECT',

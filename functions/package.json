@@ -10,7 +10,7 @@
     "logs": "firebase functions:log"
   },
   "engines": {
-    "node": "8"
+    "node": "10"
   },
   "main": "lib/index.js",
   "dependencies": {
@@ -18,9 +18,11 @@
     "express": "^4.17.1",
     "firebase-admin": "^8.9.0",
     "firebase-functions": "^3.6.1",
+    "prettyjson": "^1.2.1",
     "request": "^2.88.2"
   },
   "devDependencies": {
+    "@types/prettyjson": "0.0.29",
     "@types/request": "^2.48.5",
     "firebase-functions-test": "^0.1.6",
     "tslint": "^5.12.0",

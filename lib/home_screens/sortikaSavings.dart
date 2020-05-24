@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/helper.dart';
 
 class SortikaSavings extends StatefulWidget {
   @override
@@ -9,7 +10,8 @@ class SortikaSavings extends StatefulWidget {
 }
 
 class _SortikaSavingsState extends State<SortikaSavings> {
-  Firestore _firestore = Firestore.instance;
+  Future redeemablesData;
+  Helper helper = Helper();
 
   Widget _introText() {
     return Container(
@@ -93,10 +95,10 @@ class _SortikaSavingsState extends State<SortikaSavings> {
     );
   }
 
-  Future<QuerySnapshot> getRedeemables() async {
-    QuerySnapshot queries =
-        await _firestore.collection('redeemables').getDocuments();
-    return queries;
+  @override
+  void initState() {
+    super.initState();
+    redeemablesData = helper.getRedeemables();
   }
 
   @override
@@ -132,7 +134,7 @@ class _SortikaSavingsState extends State<SortikaSavings> {
           ),
           Expanded(
               child: FutureBuilder<QuerySnapshot>(
-                  future: getRedeemables(),
+                  future: redeemablesData,
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       return ListView(

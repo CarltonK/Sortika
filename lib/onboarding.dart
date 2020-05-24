@@ -252,7 +252,7 @@ class _OnBoardingState extends State<OnBoarding> {
               width: double.infinity,
               color: Color(0xFF398AE5),
               child: GestureDetector(
-                onTap: () async{
+                onTap: () async {
                   //Analytics Event - TUTORIAL COMPLETE
                   await funnel.logOnBoardingEnd();
                   //Go to Login Page

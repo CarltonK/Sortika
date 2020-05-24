@@ -14,6 +14,13 @@ class Helper {
     print("An instance of Database Helper has started");
   }
 
+  //Retrieve User
+  Stream<DocumentSnapshot> getUser(String uid) {
+    Stream<DocumentSnapshot> stream =
+        _firestore.collection('users').document(uid).snapshots();
+    return stream;
+  }
+
   //Retrieve all user goals
   Future<QuerySnapshot> getAllGoals(String uid) async {
     QuerySnapshot queries = await _firestore
@@ -25,25 +32,13 @@ class Helper {
   }
 
   //Retrieve Investment data to populate graph
-  Future<QuerySnapshot> getInvestmentGraphData(String uid) async {
+  Future<QuerySnapshot> getInvestmentData(String uid) async {
     QuerySnapshot queries = await _firestore
         .collection('users')
         .document(uid)
         .collection('goals')
         .where('goalCategory', isEqualTo: 'Investment')
         .getDocuments();
-    return queries;
-  }
-
-  //Retrieve Investment data to populate pie chart
-  Future<QuerySnapshot> getPieChartData(String uid) async {
-    QuerySnapshot queries = await _firestore
-        .collection("users")
-        .document(uid)
-        .collection("goals")
-        .where("goalCategory", isEqualTo: 'Investment')
-        .getDocuments();
-    //print(queries.documents[0].data);
     return queries;
   }
 
@@ -138,7 +133,6 @@ class Helper {
 
   //Deposit Money
   Future depositMoney(String uid, DepositModel model) async {
-    
     await _firestore
         .collection('deposits')
         .document(uid)
@@ -154,5 +148,12 @@ class Helper {
         .document(uid)
         .snapshots();
     return doc;
+  }
+
+  //Get Redeemables
+  Future<QuerySnapshot> getRedeemables() async {
+    QuerySnapshot queries =
+        await _firestore.collection('redeemables').getDocuments();
+    return queries;
   }
 }

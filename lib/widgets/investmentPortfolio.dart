@@ -28,6 +28,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
   Map<String, double> dataMap = Map();
 
   Helper helper = new Helper();
+  Future investmentData;
 
   DateTime rightNow = DateTime.now();
 
@@ -35,11 +36,18 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
   void initState() {
     super.initState();
     _controller = PageController(viewportFraction: 0.9);
+    investmentData = helper.getInvestmentData(widget.uid);
+  }
+
+  graphLineDraw(double month, double point) {
+    return FlSpot(month, point);
   }
 
   LineChartData mainData(double amount, Timestamp end, var saved) {
-    int daysDiff = end.toDate().difference(rightNow).inDays;
+    int daysDiff = end.toDate().month - 1;
     print(daysDiff);
+
+    double point = (saved / amount) * 6;
 
     return LineChartData(
       titlesData: FlTitlesData(
@@ -95,22 +103,16 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
         show: false,
       ),
       minX: 0,
-      maxX: 12,
+      maxX: 11,
       minY: 0,
       maxY: 6,
       lineBarsData: [
         LineChartBarData(
-          spots: const [
-            FlSpot(0, 3),
-            FlSpot(2.6, 2),
-            FlSpot(4.9, 5),
-            FlSpot(6.8, 3.1),
-            FlSpot(8, 4),
-            FlSpot(9.5, 3),
-            FlSpot(11, 4),
+          spots: [
+            graphLineDraw(daysDiff.toDouble(), point),
           ],
           isCurved: true,
-          barWidth: 3,
+          barWidth: 2,
           isStrokeCapRound: true,
           dotData: const FlDotData(
             show: false,
@@ -282,7 +284,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
     return Container(
         height: MediaQuery.of(context).size.height * 0.5,
         child: FutureBuilder<QuerySnapshot>(
-            future: helper.getInvestmentGraphData(widget.uid),
+            future: investmentData,
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 if (snapshot.data.documents.length == 0) {
@@ -429,8 +431,8 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
   Widget _assetAllocation() {
     return Container(
       height: MediaQuery.of(context).size.height * 0.5,
-      child: FutureBuilder(
-        future: helper.getPieChartData(widget.uid),
+      child: FutureBuilder<QuerySnapshot>(
+        future: investmentData,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data.documents.length == 0) {

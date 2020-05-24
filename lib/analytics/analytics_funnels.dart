@@ -1,7 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 
 class AnalyticsFunnel {
-
   static FirebaseAnalytics analytics = FirebaseAnalytics();
 
   AnalyticsFunnel() {
@@ -35,7 +34,8 @@ class AnalyticsFunnel {
   }
 
   //Log a borrow request as both an 'Add to Cart' and present offer
-  Future logBorrowRequest(double amount, String loanType, String startDate, String endDate, String borrower) async {
+  Future logBorrowRequest(double amount, String loanType, String startDate,
+      String endDate, String borrower) async {
     await analytics.logAddToCart(
       currency: 'KES',
       value: amount,
@@ -50,17 +50,17 @@ class AnalyticsFunnel {
   }
 
   //Log when a loan is rejected
-  Future logLoanRejection(double amount, String startDate, String endDate) async {
+  Future logLoanRejection(
+      double amount, String startDate, String endDate) async {
     await analytics.logRemoveFromCart(
-      itemId: null, 
-      itemName: null, 
-      itemCategory: 'Loan', 
-      quantity: 1,
-      currency: 'KES',
-      value: amount,
-      startDate: startDate,
-      endDate: endDate
-    );
+        itemId: null,
+        itemName: null,
+        itemCategory: 'Loan',
+        quantity: 1,
+        currency: 'KES',
+        value: amount,
+        startDate: startDate,
+        endDate: endDate);
   }
 
   //Track virtual currency
@@ -80,17 +80,12 @@ class AnalyticsFunnel {
 
   //Preferred Payment Method
   Future logLogin() async {
-    await analytics.logLogin(
-      loginMethod: 'Firebase (Email & Password)'
-    );
+    await analytics.logLogin(loginMethod: 'Firebase (Email & Password)');
   }
 
   //Group Sharing action
   Future logShareGroup(String groupCode) async {
     await analytics.logShare(
-      contentType: 'Group',
-      itemId: groupCode,
-      method: 'ACTION_SEND'
-    );
+        contentType: 'Group', itemId: groupCode, method: 'ACTION_SEND');
   }
 }

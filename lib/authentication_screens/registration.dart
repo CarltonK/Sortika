@@ -528,8 +528,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           Timer(Duration(milliseconds: 2200), () {
             goToNextPage(authService.currentUser.uid, token);
           });
-        } 
-        else {
+        } else {
           // print('Failed response: $result');
           //Show an action sheet with result
           showErrorSheet(result);

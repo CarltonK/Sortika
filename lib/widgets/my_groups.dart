@@ -517,7 +517,7 @@ class _MyGroupsState extends State<MyGroups> {
         .collection("goals")
         .document()
         .setData(model.toJson());
-        
+
     return doc.data["goalName"];
   }
 

@@ -668,7 +668,12 @@ class _BorrowPageState extends State<BorrowPage> {
     //Add request to Loans Collections
     final String _collection = "loans";
     await _firestore.collection(_collection).document().setData(model.toJson());
-    await funnel.logBorrowRequest(model.loanAmountTaken, typeLoan, model.loanTakenDate.toDate().toString(), model.loanEndDate.toDate().toString(), model.loanBorrower);
+    await funnel.logBorrowRequest(
+        model.loanAmountTaken,
+        typeLoan,
+        model.loanTakenDate.toDate().toString(),
+        model.loanEndDate.toDate().toString(),
+        model.loanBorrower);
   }
 
   void _applyBtnPressed() async {
@@ -721,7 +726,9 @@ class _BorrowPageState extends State<BorrowPage> {
 
       //Create an activity
       ActivityModel borrowAct = new ActivityModel(
-          activity: 'You sent a loan request to ${loanModel.loanInviteeName}',
+          activity: loanModel.loanInviteeName == null
+              ? 'You sent a loan request to yourself'
+              : 'You sent a loan request to ${loanModel.loanInviteeName}',
           activityDate: Timestamp.fromDate(rightNow));
       await authService.postActivity(widget.uid, borrowAct);
 

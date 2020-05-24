@@ -5,7 +5,6 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/api/localPrefs.dart';
-import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/models/depositModel.dart';
 import 'package:wealth/utilities/styles.dart';
 import 'package:wealth/global/progressDialog.dart';

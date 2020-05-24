@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -18,6 +19,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  Helper helper = Helper();
   //Form Key
   final _formKey = GlobalKey<FormState>();
 
@@ -2038,8 +2040,7 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               _backgroundWidget(),
               StreamBuilder(
-                stream:
-                    _firestore.collection("users").document(uid).snapshots(),
+                stream: helper.getUser(uid),
                 builder: (BuildContext context,
                     AsyncSnapshot<DocumentSnapshot> snapshot) {
                   if (snapshot.hasError) {}

@@ -556,7 +556,7 @@ class _EditGroupState extends State<EditGroup> {
   void _sendInvite() async {
     var groupName = data["goalName"];
     var groupCode = data["groupCode"];
-    
+
     try {
       await funnel.logShareGroup(groupCode);
       Share.share(
