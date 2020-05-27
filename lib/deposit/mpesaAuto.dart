@@ -55,7 +55,6 @@ class _MpesaAutoState extends State<MpesaAuto> {
         ),
         TextFormField(
             autofocus: false,
-            enabled: false,
             keyboardType: TextInputType.phone,
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
@@ -162,7 +161,7 @@ class _MpesaAutoState extends State<MpesaAuto> {
               goalName: goal,
               method: widget.method,
               phone: widget.phone);
-          print(depositModel.toJson());
+          // print(depositModel.toJson());
           _helper.depositMoney(widget.uid, depositModel).catchError((error) {
             //Dismiss the dialog
             Navigator.of(context).pop();

@@ -47,6 +47,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   AuthService authService = AuthService();
   Helper helper = new Helper();
   AnalyticsFunnel funnel = AnalyticsFunnel();
+  //Form Key
+  final _formKey = GlobalKey<FormState>();
+
+  double _withdrawAmt;
+  void _handleSubmittedWithdrawAmt(String value) {
+    _withdrawAmt = double.parse(value.trim());
+    print('Withdraw amount: ' + _withdrawAmt.toString());
+  }
 
   static String uid;
   User userData;
@@ -1510,7 +1518,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  Future _showUserProgress() {
+  Future _showUserProgress(String action) {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
@@ -1523,7 +1531,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                  'Updating loan...',
+                  '$action...',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
                   textAlign: TextAlign.center,
@@ -1880,7 +1888,19 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget walletItem() {
+  Widget walletItem(DocumentSnapshot doc) {
+    String action = doc.data['transactionAction'];
+    //String goal = doc.data['transactionGoal'];
+    var amount = doc.data['transactionAmount'];
+    //String category = doc.data['transactionCategory'];
+    Timestamp time = doc.data['transactionDate'];
+    String code = doc.documentID;
+
+    var formatter = new DateFormat('d MMM y');
+    String date = formatter.format(time.toDate());
+
+    List<String> greenColorItems = ['Earning', 'Deposit', 'Redemption'];
+
     return Container(
       width: MediaQuery.of(context).size.width,
       margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -1892,10 +1912,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       child: Row(
         children: [
           Container(
-            child: Icon(
-              Icons.arrow_upward,
-              color: Colors.green,
-            ),
+            child: greenColorItems.contains(action)
+                ? Icon(
+                    Icons.arrow_upward,
+                    color: Colors.green,
+                  )
+                : Icon(
+                    Icons.arrow_downward,
+                    color: Colors.red,
+                  ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: Colors.grey[50],
@@ -1912,37 +1937,24 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Loan Fund',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                      Text(
-                        '',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.normal)),
-                      )
-                    ],
+                  Text(
+                    code,
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.green, fontWeight: FontWeight.w600)),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '2000 KES',
+                        '$amount KES',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w600)),
                       ),
                       Text(
-                        '23 Dec',
+                        '$date',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,
@@ -1970,13 +1982,210 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     fontSize: 18, fontWeight: FontWeight.w600, color: color),
               )),
           children: [
-            walletItem(),
-            walletItem(),
-            walletItem(),
-            walletItem(),
-            walletItem()
+            Container(
+              height: MediaQuery.of(context).size.height * 0.4,
+              width: MediaQuery.of(context).size.width,
+              child: FutureBuilder<QuerySnapshot>(
+                future: helper.getWalletTransactions(uid, name),
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.active:
+                    case ConnectionState.done:
+                      if (snapshot.data.documents.length > 0) {
+                        return ListView(
+                          children: snapshot.data.documents
+                              .map((doc) => walletItem(doc))
+                              .toList(),
+                        );
+                      } else {
+                        return Center(
+                          child: Text(
+                            'You have not made any $name transactions',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.muli(textStyle: TextStyle()),
+                          ),
+                        );
+                      }
+                      break;
+                    case ConnectionState.waiting:
+                      return SpinKitDoubleBounce(
+                        size: 100,
+                        color: Colors.greenAccent[700],
+                      );
+                    default:
+                      return SpinKitDoubleBounce(
+                        size: 100,
+                        color: Colors.greenAccent[700],
+                      );
+                  }
+                },
+              ),
+            )
           ],
         ));
+  }
+
+  Widget _walletWithdrawTF() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.black,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            validator: (value) {
+              //Check if password is empty
+              if (value.isEmpty) {
+                return 'Amount is required';
+              }
+              return null;
+            },
+            textInputAction: TextInputAction.done,
+            onSaved: _handleSubmittedWithdrawAmt,
+            obscureText: false,
+            decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue)),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue))))
+      ],
+    );
+  }
+
+    Future _promptNotEnoughFunds() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.sentiment_dissatisfied,
+                  size: 100,
+                  color: Colors.red,
+                ),
+                Text(
+                  'You do not have sufficient funds',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+    Future _promptWithdrawWalletSuccess() {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(
+                  Icons.sentiment_satisfied,
+                  size: 100,
+                  color: Colors.blue,
+                ),
+                Text(
+                  'Your withdrawal request has been submitted successfully',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  void _withdrawBtnPressed(var amount) async {
+    final FormState form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+      //Dismiss the keyboard
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
+      //Dismiss the dialog
+      Navigator.of(context).pop();
+      //Show a progress dialog
+      _showUserProgress('Submitting your request');
+      //Check if money can be withdrawn
+      if (_withdrawAmt > amount) {
+        //print('Not enough money in wallet');
+        Navigator.of(context).pop();
+        _promptNotEnoughFunds();
+      }
+      else {
+        //Money can be withdrawn
+        await helper.withdrawMoney(uid, userData.phone, _withdrawAmt);
+        Navigator.of(context).pop();
+        _promptWithdrawWalletSuccess();
+      }
+    }
+  }
+
+  Future _withdrawFromWallet(var amount) {
+    return showCupertinoModalPopup(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            title: Text(
+              'Enter Amount',
+              style: GoogleFonts.muli(textStyle: TextStyle()),
+            ),
+            content: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [_walletWithdrawTF()],
+                )),
+            actions: [
+              FlatButton(
+                  onPressed: () => _withdrawBtnPressed(amount),
+                  child: Text(
+                    'WITHDRAW',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18)),
+                  )),
+              FlatButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'CANCEL',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18)),
+                  ))
+            ],
+          );
+        });
   }
 
   //Wallet Page
@@ -2007,44 +2216,54 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             var amount = snapshot.data.data['amount'];
-
-                            return Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 10),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Balance',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 15)),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      '$amount KES',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w700)),
-                                    )
-                                  ],
-                                ));
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 10),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Balance',
+                                          style: GoogleFonts.muli(
+                                              textStyle: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 15)),
+                                        ),
+                                        SizedBox(
+                                          height: 5,
+                                        ),
+                                        Text(
+                                          '$amount KES',
+                                          style: GoogleFonts.muli(
+                                              textStyle: TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w700)),
+                                        )
+                                      ],
+                                    )),
+                                IconButton(
+                                  tooltip: 'Withdraw',
+                                  icon: Icon(Icons.redeem),
+                                  onPressed: () => _withdrawFromWallet(amount),
+                                )
+                              ],
+                            );
                           }
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: LinearProgressIndicator(),
                           );
                         }),
-                    walletHeader('Earnings', Colors.green),
-                    walletHeader('Withdrawals', Colors.red),
-                    walletHeader('Deposits', Colors.green),
-                    walletHeader('Payments', Colors.red),
-                    walletHeader('Redemptions', Colors.green),
+                    walletHeader('Earning', Colors.green),
+                    walletHeader('Withdrawal', Colors.red),
+                    walletHeader('Deposit', Colors.green),
+                    walletHeader('Payment', Colors.red),
+                    walletHeader('Redemption', Colors.green),
                   ],
                 ),
               ),

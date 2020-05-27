@@ -7,7 +7,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/api/localPrefs.dart';
-import 'package:wealth/deposit/bankcard.dart';
+//import 'package:wealth/deposit/bankcard.dart';
 import 'package:wealth/deposit/mpesaAuto.dart';
 import 'package:wealth/deposit/mpesaManual.dart';
 import 'package:wealth/models/depositmethods.dart';
@@ -43,8 +43,8 @@ class _DepositState extends State<Deposit> {
       phone: phone,
     ),
     MpesaManual(),
-    MpesaAuto(),
-    BankCard()
+    //MpesaAuto(),
+    //BankCard()
   ];
   Helper _helper = new Helper();
 
@@ -152,14 +152,15 @@ class _DepositState extends State<Deposit> {
       margin: EdgeInsets.all(2),
       color: Colors.grey[50],
       child: ListTile(
-        onTap: () {
+        onTap: () async {
           setState(() {
             model.goalName == null
                 ? goalName = model.goalCategory
                 : goalName = model.goalName;
-            print(goalName);
-            Navigator.of(context).pop();
           });
+          await localPrefs.saveDepositDestination(_destination, goalName);
+          print(goalName);
+          Navigator.of(context).pop();
         },
         title: Text(
             model.goalName == null
@@ -168,10 +169,11 @@ class _DepositState extends State<Deposit> {
             style: GoogleFonts.muli(
               textStyle: TextStyle(color: Colors.black),
             )),
-        subtitle: Text('Current: ${model.goalAmountSaved} KES',
-            style: GoogleFonts.muli(
-              textStyle: TextStyle(color: Colors.black),
-            )),
+        subtitle:
+            Text('Current: ${model.goalAmountSaved.toStringAsFixed(1)} KES',
+                style: GoogleFonts.muli(
+                  textStyle: TextStyle(color: Colors.black),
+                )),
       ),
     );
   }

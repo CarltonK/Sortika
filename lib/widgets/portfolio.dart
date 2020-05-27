@@ -4,7 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:pie_chart/pie_chart.dart' as pie;
+import 'package:wealth/api/helper.dart';
 
 class Portfolio extends StatefulWidget {
   final String uid;
@@ -25,12 +27,16 @@ class _PortfolioState extends State<Portfolio> {
   List<Color> chartColors = [Colors.pink];
 
   Map<String, double> dataMap = Map();
+  final String category = 'Saving';
 
   Firestore _firestore = Firestore.instance;
+  Helper helper = new Helper();
+  Future transactionsData;
 
   @override
   void initState() {
     super.initState();
+    transactionsData = helper.getTransactions(widget.uid, category);
   }
 
   LineChartData mainData() {
@@ -308,7 +314,18 @@ class _PortfolioState extends State<Portfolio> {
         ));
   }
 
-  Widget _singleTransaction() {
+  Widget _singleTransaction(DocumentSnapshot doc) {
+    print(doc.data);
+
+    String action = doc.data['transactionAction'];
+    String goal = doc.data['transactionGoal'];
+    var amount = doc.data['transactionAmount'];
+    String category = doc.data['transactionCategory'];
+    Timestamp time = doc.data['transactionDate'];
+
+    var formatter = new DateFormat('d MMM y');
+    String date = formatter.format(time.toDate());
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
@@ -319,7 +336,9 @@ class _PortfolioState extends State<Portfolio> {
       child: Row(
         children: [
           Container(
-            child: Icon(Icons.arrow_upward),
+            child: action == 'Deposit'
+                ? Icon(Icons.arrow_upward)
+                : Icon(Icons.arrow_downward),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: Colors.grey[50],
@@ -340,14 +359,16 @@ class _PortfolioState extends State<Portfolio> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Deposit',
+                        action,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
-                                color: Colors.green,
+                                color: action == 'Deposit'
+                                    ? Colors.green
+                                    : Colors.red,
                                 fontWeight: FontWeight.w600)),
                       ),
                       Text(
-                        'MMF',
+                        goal,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,
@@ -359,14 +380,14 @@ class _PortfolioState extends State<Portfolio> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '2000 KES',
+                        '$amount KES',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w600)),
                       ),
                       Text(
-                        '23 Dec',
+                        '$date',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,
@@ -383,13 +404,83 @@ class _PortfolioState extends State<Portfolio> {
     );
   }
 
-  Widget _investmentTransactions() {
+  Widget _savingsTransactions() {
     return LimitedBox(
-      maxHeight: double.maxFinite,
-      child: ListView(
-        children: [
-          _singleTransaction(),
-        ],
+      maxHeight: MediaQuery.of(context).size.height * 0.5,
+      child: FutureBuilder<QuerySnapshot>(
+        future: transactionsData,
+        builder: (context, snapshot) {
+          switch (snapshot.connectionState) {
+            case ConnectionState.active:
+            case ConnectionState.none:
+              return Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.sentiment_neutral,
+                      size: 100,
+                      color: Colors.red,
+                    ),
+                    Text(
+                      'You have not made any transactions',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 16)),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                  ],
+                ),
+              );
+            case ConnectionState.done:
+              if (snapshot.data.documents.length > 0) {
+                return ListView(
+                  children: snapshot.data.documents
+                      .map((doc) => _singleTransaction(doc))
+                      .toList(),
+                );
+              } else {
+                return Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.sentiment_neutral,
+                        size: 100,
+                        color: Colors.red,
+                      ),
+                      Text(
+                        'You have not made any transactions',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 16)),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                    ],
+                  ),
+                );
+              }
+              break;
+            case ConnectionState.waiting:
+              return SpinKitDoubleBounce(
+                size: 100,
+                color: Colors.greenAccent[700],
+              );
+            default:
+              return SpinKitDoubleBounce(
+                size: 100,
+                color: Colors.greenAccent[700],
+              );
+          }
+        },
       ),
     );
   }
@@ -516,21 +607,21 @@ class _PortfolioState extends State<Portfolio> {
             SizedBox(
               height: 10,
             ),
-            Text(
-              'Summary',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                      color: Colors.black,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            _portfolioSummary(),
-            SizedBox(
-              height: 10,
-            ),
+            // Text(
+            //   'Summary',
+            //   style: GoogleFonts.muli(
+            //       textStyle: TextStyle(
+            //           color: Colors.black,
+            //           fontSize: 20,
+            //           fontWeight: FontWeight.bold)),
+            // ),
+            // SizedBox(
+            //   height: 20,
+            // ),
+            // _portfolioSummary(),
+            // SizedBox(
+            //   height: 10,
+            // ),
             Text(
               'Transactions',
               style: GoogleFonts.muli(
@@ -539,7 +630,7 @@ class _PortfolioState extends State<Portfolio> {
                       fontSize: 20,
                       fontWeight: FontWeight.bold)),
             ),
-            _investmentTransactions()
+            _savingsTransactions()
           ],
         ),
       ),

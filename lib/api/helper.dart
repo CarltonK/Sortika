@@ -139,6 +139,18 @@ class Helper {
         .setData(model.toJson());
   }
 
+    //Deposit Money
+  Future withdrawMoney(String uid, String phone, double amount) async {
+    await _firestore
+        .collection('withdrawals')
+        .document(uid)
+        .setData({
+          'uid': uid,
+          'phone': phone,
+          'amount': amount
+        });
+  }
+
   //Get Wallet Balance
   Stream<DocumentSnapshot> getWalletBalance(String uid) {
     Stream<DocumentSnapshot> doc = _firestore
@@ -154,6 +166,30 @@ class Helper {
   Future<QuerySnapshot> getRedeemables() async {
     QuerySnapshot queries =
         await _firestore.collection('redeemables').getDocuments();
+    return queries;
+  }
+
+  //Get transaction documents
+  Future<QuerySnapshot> getTransactions(String uid, String category) async {
+    QuerySnapshot queries = await _firestore
+        .collection('users')
+        .document(uid)
+        .collection('transactions')
+        .where('transactionCategory', isEqualTo: category)
+        .getDocuments();
+    return queries;
+  }
+
+  //Get wallet transaction documents
+  Future<QuerySnapshot> getWalletTransactions(String uid, String action) async {
+    QuerySnapshot queries = await _firestore
+        .collection('users')
+        .document(uid)
+        .collection('transactions')
+        .where('transactionCategory', isEqualTo: 'Wallet')
+        .where('transactionAction', isEqualTo: action)
+        .getDocuments();
+    //print(queries.documents);
     return queries;
   }
 }
