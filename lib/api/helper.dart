@@ -38,6 +38,7 @@ class Helper {
         .document(uid)
         .collection('goals')
         .where('goalCategory', isEqualTo: 'Investment')
+        .limit(12)
         .getDocuments();
     return queries;
   }
@@ -139,16 +140,12 @@ class Helper {
         .setData(model.toJson());
   }
 
-    //Deposit Money
+  //Deposit Money
   Future withdrawMoney(String uid, String phone, double amount) async {
     await _firestore
         .collection('withdrawals')
         .document(uid)
-        .setData({
-          'uid': uid,
-          'phone': phone,
-          'amount': amount
-        });
+        .setData({'uid': uid, 'phone': phone, 'amount': amount});
   }
 
   //Get Wallet Balance

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
+import 'package:sms/sms.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
@@ -32,6 +34,7 @@ import 'package:wealth/widgets/my_groups.dart';
 import 'package:wealth/widgets/portfolio.dart';
 import 'package:wealth/widgets/savings_colored.dart';
 import 'package:wealth/widgets/networkSensitive.dart';
+import 'package:http/http.dart' as http;
 
 final menuLabelStyle = GoogleFonts.muli(
     textStyle: TextStyle(
@@ -72,6 +75,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   final Firestore _firestore = Firestore.instance;
   final FirebaseMessaging _fcm = FirebaseMessaging();
+  SmsReceiver _smsReceiver;
 
   //Saved amount
   double saved = 2000;
@@ -2062,7 +2066,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-    Future _promptNotEnoughFunds() {
+  Future _promptNotEnoughFunds() {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
@@ -2091,7 +2095,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         });
   }
 
-    Future _promptWithdrawWalletSuccess() {
+  Future _promptWithdrawWalletSuccess() {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
@@ -2135,8 +2139,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         //print('Not enough money in wallet');
         Navigator.of(context).pop();
         _promptNotEnoughFunds();
-      }
-      else {
+      } else {
         //Money can be withdrawn
         await helper.withdrawMoney(uid, userData.phone, _withdrawAmt);
         Navigator.of(context).pop();
@@ -2522,37 +2525,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ),
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: duration);
-    _scaleAnimation = Tween<double>(begin: 1, end: 0.6).animate(_controller);
-    _menuScaleAnimation =
-        Tween<double>(begin: 0.5, end: 1).animate(_controller);
-    _slideAnimation = Tween<Offset>(begin: Offset(-1, 0), end: Offset(0, 0))
-        .animate(_controller);
-
-    //Handle Notifications
-    _fcm.configure(
-      onMessage: (Map<String, dynamic> message) async {
-        print('onMessage: $message');
-        //notificationPopup(message);
-      },
-      onLaunch: (Map<String, dynamic> message) async {
-        print("onLaunch: $message");
-      },
-      onResume: (Map<String, dynamic> message) async {
-        print("onResume: $message");
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   Future notificationPopup(Map<String, dynamic> message) {
@@ -3050,6 +3022,63 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  void _onMessageReceived(SmsReceiver receiver) {
+    receiver.onSmsReceived.listen((message) async {
+      //print('A new message has been detected');
+      if (message.address == 'MPESA') {
+        List<Map<String, dynamic>> smsList = [];
+        Map<String, dynamic> map = {
+          'address': message.address,
+          'body': message.body,
+          'date': message.date.millisecondsSinceEpoch,
+          'uid': uid
+        };
+        smsList.add(map);
+        String data = json.encode({'sms_data': smsList});
+        print(data);
+        // //Try HTTP Post
+        String url = 'https://us-central1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
+        var response = await http.post(url, body: data);
+        print('Response status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    });
+  }
+
+    @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: duration);
+    _scaleAnimation = Tween<double>(begin: 1, end: 0.6).animate(_controller);
+    _menuScaleAnimation =
+        Tween<double>(begin: 0.5, end: 1).animate(_controller);
+    _slideAnimation = Tween<Offset>(begin: Offset(-1, 0), end: Offset(0, 0))
+        .animate(_controller);
+
+    _smsReceiver = new SmsReceiver();
+    _onMessageReceived(_smsReceiver);
+
+    //Handle Notifications
+    _fcm.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print('onMessage: $message');
+        //notificationPopup(message);
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override

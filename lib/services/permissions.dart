@@ -18,11 +18,13 @@ class PermissionService {
     return false;
   }
 
+  //A permission function for viewing contacts on a device
   Future<bool> requestContactsPermission() async {
     return requestPermission(PermissionGroup.contacts);
   }
 
-  Future<bool> requestMessagesPermission() async {
+  //A permission function for reading SMS on a device
+  Future<bool> requestSmsPermission() async {
     return requestPermission(PermissionGroup.sms);
   }
 }

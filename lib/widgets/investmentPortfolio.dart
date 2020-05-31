@@ -338,12 +338,12 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
   }
 
   Widget _singleTransaction(DocumentSnapshot doc) {
-    print(doc.data);
+    //print(doc.data);
 
     String action = doc.data['transactionAction'];
     String goal = doc.data['transactionGoal'];
     var amount = doc.data['transactionAmount'];
-    String category = doc.data['transactionCategory'];
+    //String category = doc.data['transactionCategory'];
     Timestamp time = doc.data['transactionDate'];
 
     var formatter = new DateFormat('d MMM y');

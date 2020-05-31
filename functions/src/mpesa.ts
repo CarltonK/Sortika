@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import * as superadmin from 'firebase-admin'
 import { DocumentSnapshot } from "firebase-functions/lib/providers/firestore";
 
-export function mpesaCallback(request: Request, response: Response) {
+export function mpesaLnmCallback(request: Request, response: Response) {
     try {
         console.log('---Received Safaricom M-PESA Webhook---')
         const serverRequest = request.body
@@ -220,4 +220,15 @@ export function mpesaCallback(request: Request, response: Response) {
     } catch (error) {
         console.error(error)
     }
+}
+
+export function mpesaB2cTimeout(request: Request, response: Response) {
+    console.log('---Received Safaricom M-PESA Webhook---')
+    console.log(`---B2C Timeout---\n${request.body}`)
+}
+
+export function mpesaB2cResult(request: Request, response: Response) {
+    console.log('---Received Safaricom M-PESA Webhook---')
+    console.log(`---B2C Result---\n${request.body['Result']['ResultCode']}`)
+    console.log(`---B2C Result---\n${request.body['Result']['ResultDesc']}`)
 }

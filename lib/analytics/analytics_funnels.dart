@@ -1,10 +1,12 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
 
 class AnalyticsFunnel {
   static FirebaseAnalytics analytics = FirebaseAnalytics();
 
   AnalyticsFunnel() {
     print("An instance of Firebase Analytics has started");
+    FirebaseAnalyticsObserver(analytics: analytics);
   }
 
   //Log a SIGN UP

@@ -1,9 +1,17 @@
 import * as functions from 'firebase-functions'
 import * as superadmin from 'firebase-admin'
+
+superadmin.initializeApp()
+
 import * as express from 'express'
 import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
 //import * as auth from './authentication'
 import * as mpesa from './mpesa'
+import * as sms from './sms'
+
+
+const db = superadmin.firestore()
+const fcm = superadmin.messaging()
 
 // Initialize Express Server
 const app = express()
@@ -23,8 +31,17 @@ main.use(express.json())
 export const sortikaMain = functions.https.onRequest(main)
 // Registration
 // app.post('/users', auth.createUser)
-// M-PESA
-app.post('/nitumiekakitu/0CCX2LkvU7kG8cSHU2Ez', mpesa.mpesaCallback)
+
+// M-PESA Endpoints
+// 1) Lipa Na Mpesa Online CallbackURL
+app.post('/nitumiekakitu/0CCX2LkvU7kG8cSHU2Ez', mpesa.mpesaLnmCallback)
+// 2) B2C Timeout URL
+app.post('/oyab2cimetimeout/Mm6rm3JwcExVNFk82l9X', mpesa.mpesaB2cTimeout)
+// 3) B2C ResultURL
+app.post('/wolandehb2cimeingia/SV02a3Lpqi883ZNfjIma', mpesa.mpesaB2cResult)
+
+// SMS ANALYSIS Endpoints
+app.post('/tusomerecords/9z5JjD9bGODXeSVpdNFW', sms.receiveSMS)
 
 
 /*
@@ -36,10 +53,6 @@ Version 2: onDelete
 */
 
 //Calculate goal allocations
-superadmin.initializeApp()
-const db = superadmin.firestore()
-const fcm = superadmin.messaging()
-
 exports.allocationsCalculatorV1 = functions.firestore
     .document('/users/{user}/goals/{goal}')
     .onCreate(async snapshot => {

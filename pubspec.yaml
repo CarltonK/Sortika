@@ -1,7 +1,7 @@
 name: wealth
 description: A new Flutter application.
 
-version: 1.0.18+1
+version: 1.0.20+1
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -53,6 +53,8 @@ dependencies:
   connectivity: ^0.4.3+1
   # State Management
   provider: ^2.0.1
+  # SMS
+  sms: ^0.2.0
 
 dev_dependencies:
   flutter_test:
