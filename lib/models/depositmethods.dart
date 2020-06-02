@@ -15,6 +15,6 @@ final Deposit depoCard = new Deposit(title: 'Card', subtitle: '');
 List<Deposit> methods = [
   depoMpesaAuto,
   depoMpesaManual,
-  depoPesaLink,
-  depoCard
+  //depoPesaLink,
+  //depoCard
 ];

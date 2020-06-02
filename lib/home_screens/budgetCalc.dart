@@ -409,13 +409,13 @@ class _BudgetCalcState extends State<BudgetCalc> {
                   fontSize: 20,
                   fontWeight: FontWeight.bold)),
         ),
-        IconButton(
-          icon: Icon(
-            Icons.edit,
-            color: Colors.greenAccent[700],
-          ),
-          onPressed: () => _addCustomGoal(),
-        )
+        // IconButton(
+        //   icon: Icon(
+        //     Icons.edit,
+        //     color: Colors.greenAccent[700],
+        //   ),
+        //   onPressed: () => _addCustomGoal(),
+        // )
       ],
     );
   }

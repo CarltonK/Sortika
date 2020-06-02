@@ -136,7 +136,7 @@ class Helper {
   Future depositMoney(String uid, DepositModel model) async {
     await _firestore
         .collection('deposits')
-        .document(uid)
+        .document()
         .setData(model.toJson());
   }
 
@@ -173,7 +173,9 @@ class Helper {
         .document(uid)
         .collection('transactions')
         .where('transactionCategory', isEqualTo: category)
+        .orderBy('transactionDate', descending: true)
         .getDocuments();
+    print(queries.documents);
     return queries;
   }
 
@@ -188,5 +190,57 @@ class Helper {
         .getDocuments();
     //print(queries.documents);
     return queries;
+  }
+
+  //Retrieve Incomes vs Expenses
+  Future<Map<String, dynamic>> getIncomeVExpenses(String uid) async {
+    //Expenses - (transaction_type == 'sent')
+    QuerySnapshot queriesSent = await _firestore
+        .collection('captures')
+        .where('transaction_user', isEqualTo: uid)
+        .where('transaction_type', isEqualTo: 'sent')
+        .orderBy('transaction_date', descending: true)
+        .getDocuments();
+    print('Expenses count: ${queriesSent.documents.length}');
+    //Income - (transaction_type == 'received')
+    QuerySnapshot queriesReceived = await _firestore
+        .collection('captures')
+        .where('transaction_user', isEqualTo: uid)
+        .where('transaction_type', isEqualTo: 'received')
+        .orderBy('transaction_date', descending: true)
+        .getDocuments();
+    print('Incomes count: ${queriesReceived.documents.length}');
+    int totalDocs =
+        queriesSent.documents.length + queriesReceived.documents.length;
+
+    //Retrieve total amount
+    //expect string eg 10.00
+    //split by '.'
+    //convert to double then add
+    //1) Sent
+    //2) Received
+
+    double sentAmount = 0;
+    queriesSent.documents.forEach((element) {
+      String amount = element.data['transaction_amount'];
+      String amountNeeded = amount.split('.')[0];
+      sentAmount += double.parse(amountNeeded);
+    });
+
+    double receivedAmount = 0;
+    queriesReceived.documents.forEach((element) {
+      String amount = element.data['transaction_amount'];
+      String amountNeeded = amount.split('.')[0];
+      receivedAmount += double.parse(amountNeeded);
+    });
+
+
+    return {
+      'expenses': queriesSent,
+      'incomes': queriesReceived,
+      'total': totalDocs,
+      'sentAmount': sentAmount,
+      'receivedAmount': receivedAmount
+    };
   }
 }

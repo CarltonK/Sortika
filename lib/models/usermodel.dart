@@ -14,6 +14,7 @@ class User {
   String password;
   Timestamp registerDate;
   String designation;
+  var passiveSavingsRate;
   //Firebase user metadata
   String uid;
   //Account Page
@@ -46,6 +47,7 @@ class User {
       this.password,
       this.registerDate,
       this.designation,
+      this.passiveSavingsRate,
       this.uid,
       this.photoURL,
       this.natId,
@@ -93,6 +95,7 @@ class User {
       kinNatIdURL: json["kinNatIdURL"],
       kinPhotoURL: json["kinPhotoURL"],
       dailySavingsTarget: json["dailySavingsTarget"],
+      passiveSavingsRate: json['passiveSavingsRate'],
       loanLimitRatio: json['loanLimitRatio']);
 
   //Convert Dart object to JSON
@@ -115,6 +118,7 @@ class User {
         "dailyTarget": dailyTarget,
         "weeklyTarget": weeklyTarget,
         "monthlyTarget": monthlyTarget,
+        "passiveSavingsRate": passiveSavingsRate,
         "kinName": kinName,
         "kinPhone": kinPhone,
         "kinID": kinID,

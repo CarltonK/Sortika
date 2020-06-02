@@ -479,6 +479,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           registerDate: Timestamp.fromDate(DateTime.now()),
           loanLimitRatio: 75,
           token: token,
+          passiveSavingsRate: 5,
           platform: Platform.operatingSystem,
           dailySavingsTarget: 0,
           dailyTarget: 0,

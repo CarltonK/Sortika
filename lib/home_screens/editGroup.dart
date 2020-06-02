@@ -420,7 +420,7 @@ class _EditGroupState extends State<EditGroup> {
                                   textStyle: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600))),
-                          Text('${model.goalAmount} KES',
+                          Text('${model.targetAmountPerp} KES',
                               style: GoogleFonts.muli(
                                   textStyle: TextStyle(
                                       fontSize: 20,

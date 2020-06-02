@@ -35,6 +35,8 @@ export const sortikaMain = functions.https.onRequest(main)
 // M-PESA Endpoints
 // 1) Lipa Na Mpesa Online CallbackURL
 app.post('/nitumiekakitu/0CCX2LkvU7kG8cSHU2Ez', mpesa.mpesaLnmCallback)
+//2) Lipa Na Mpesa Online CallbackURL (Captures)
+app.post('tumecapturekitu/CBCwudDBSn46CVuz1wnn', mpesa.mpesaLnmCallbackForCapture)
 // 2) B2C Timeout URL
 app.post('/oyab2cimetimeout/Mm6rm3JwcExVNFk82l9X', mpesa.mpesaB2cTimeout)
 // 3) B2C ResultURL

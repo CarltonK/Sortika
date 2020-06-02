@@ -29,29 +29,31 @@ class _OnBoardingState extends State<OnBoarding> {
   Future checkFirstSeen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool _seen = (prefs.getBool('seen') ?? false);
-      if (_seen) {
-        checkLoginStatus().then((value) async {
-          if (value == null) {
-            Navigator.of(context).pushReplacementNamed('/login');
-          } else {
-            DocumentSnapshot doc = await _firestore.collection("users").document(value).get();
-            User user = User.fromJson(doc.data);
-              //Analytics Event - LOGIN
-            await funnel.logLogin();
-            readSMS.readMPESA(user.uid).then((value) async {
-              if (value) {
-                Navigator.of(context).pushReplacementNamed('/home', arguments: user);
-              } else {
-                print('There is an error getting SMS Permissions. Let us retry');
-                await permissionService.requestSmsPermission();
-              }
-            });
-          }
-        });
-      } else {
-        await funnel.logOnBoardingStart();
-        await prefs.setBool('seen', true);
-      }
+    if (_seen) {
+      checkLoginStatus().then((value) async {
+        if (value == null) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        } else {
+          DocumentSnapshot doc =
+              await _firestore.collection("users").document(value).get();
+          User user = User.fromJson(doc.data);
+          //Analytics Event - LOGIN
+          await funnel.logLogin();
+          readSMS.readMPESA(user.uid).then((value) async {
+            if (value) {
+              Navigator.of(context)
+                  .pushReplacementNamed('/home', arguments: user);
+            } else {
+              print('There is an error getting SMS Permissions. Let us retry');
+              await permissionService.requestSmsPermission();
+            }
+          });
+        }
+      });
+    } else {
+      await funnel.logOnBoardingStart();
+      await prefs.setBool('seen', true);
+    }
   }
 
   Future checkLoginStatus() async {

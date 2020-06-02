@@ -87,13 +87,20 @@ async function parseMessage(data: SMS) {
         //Push to Firestore
         await db.collection('captures').doc().set({
             'transaction_date': date,
+            'transaction_recorded': firestore.Timestamp.now(),
             'transaction_code': trx_code,
             'transaction_amount': amount,
             'transaction_type': 'sent',
-            'transaction_user': data.uid
+            'transaction_user': data.uid,
+            'transaction_fulfilled': false
         })
-        .then(value => {
+        .then(async value => {
             console.log('Document added in database')
+            await db.collection('users').doc(data.uid).collection('notifications').doc().set({
+                'message': `We have captured an MPESA transaction of type expense for ${amount} KES`,
+                'time': firestore.Timestamp.now()
+            })
+            console.log('Notification added')
         })
         .catch(error => {
             console.error(error)
@@ -109,12 +116,19 @@ async function parseMessage(data: SMS) {
         await db.collection('captures').doc().set({
             'transaction_date': date,
             'transaction_code': trx_code,
+            'transaction_recorded': firestore.Timestamp.now(),
             'transaction_amount': amount,
             'transaction_type': 'received',
-            'transaction_user': data.uid
+            'transaction_user': data.uid,
+            'transaction_fulfilled': false
         })
-        .then(value => {
+        .then(async value => {
             console.log('Document added in database')
+            await db.collection('users').doc(data.uid).collection('notifications').doc().set({
+                'message': `We have captured an MPESA transaction of type income for ${amount} KES`,
+                'time': firestore.Timestamp.now()
+            })
+            console.log('Notification added')
         })
         .catch(error => {
             console.error(error)

@@ -40,14 +40,14 @@ class MpesaManual extends StatelessWidget {
           SizedBox(
             height: 15,
           ),
-          Text('Enter SORTIKA paybill number XXXXXX',
+          Text('Enter SORTIKA paybill number 287450',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.white),
               )),
           SizedBox(
             height: 15,
           ),
-          Text('Enter XXXX as account number',
+          Text('Enter your PHONE NUMBER as account number',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.white),
               )),

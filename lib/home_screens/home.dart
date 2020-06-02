@@ -2448,7 +2448,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           curve: Curves.ease);
                     });
                   },
-                  children: [BudgetCalc(), Insights(), FinancialRatios()],
+                  children: [
+                    BudgetCalc(),
+                    Insights(uid: uid),
+                    FinancialRatios()
+                  ],
                 )),
                 SizedBox(
                   height: 5,
@@ -3039,7 +3043,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         String data = json.encode({'sms_data': smsList});
         print(data);
         // //Try HTTP Post
-        String url = 'https://us-central1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
+        String url =
+            'https://us-central1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
         var response = await http.post(url, body: data);
         print('Response status: ${response.statusCode}');
         print('Response body: ${response.body}');
@@ -3047,7 +3052,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
   }
 
-    @override
+  @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this, duration: duration);

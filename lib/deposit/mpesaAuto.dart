@@ -1,10 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/api/localPrefs.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/depositModel.dart';
 import 'package:wealth/utilities/styles.dart';
 import 'package:wealth/global/progressDialog.dart';
@@ -34,6 +37,8 @@ class _MpesaAutoState extends State<MpesaAuto> {
   final _formKey = GlobalKey<FormState>();
 
   final FocusNode focusAmount = FocusNode();
+
+  AuthService _authService = new AuthService();
 
   Future prefs;
 
@@ -154,15 +159,19 @@ class _MpesaAutoState extends State<MpesaAuto> {
           //Deposit Model PlaceHolder
           String dest = retrievedValues['destination'];
           String goal = retrievedValues['goal'];
+          print('Mpesa auto destination: $dest');
+          print('Mpesa auto goal: $goal');
 
           DepositModel depositModel = new DepositModel(
               amount: _amount,
               destination: dest,
               goalName: goal,
+              uid: widget.uid,
               method: widget.method,
               phone: widget.phone);
-          // print(depositModel.toJson());
-          _helper.depositMoney(widget.uid, depositModel).catchError((error) {
+           print(depositModel.toJson());
+          _helper.depositMoney(widget.uid, depositModel)
+          .catchError((error) {
             //Dismiss the dialog
             Navigator.of(context).pop();
 
@@ -174,7 +183,7 @@ class _MpesaAutoState extends State<MpesaAuto> {
                     message: error,
                   );
                 });
-          }).whenComplete(() {
+          }).whenComplete(() async {
             //Dismiss the dialog
             Navigator.of(context).pop();
 
@@ -188,8 +197,14 @@ class _MpesaAutoState extends State<MpesaAuto> {
                   );
                 });
 
+                ActivityModel depositAct = new ActivityModel(
+                  activity: 'You have submitted a deposit request of ${_amount.toStringAsFixed(0)} KES',
+                  activityDate: Timestamp.now()
+                );
+
+                await _authService.postActivity(widget.uid, depositAct);
             setState(() {
-              _isRequestProcessing = false;
+              _isRequestProcessing = true;
             });
           });
         } else {

@@ -9,6 +9,8 @@ class LocalPrefs {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('destination', destination);
     prefs.setString('goal', goalName);
+    print('local prefs destination: ${prefs.getString('destination')}');
+    print('local prefs goal: ${prefs.getString('goal')}');
   }
 
   Future retrieveDestination() async {
