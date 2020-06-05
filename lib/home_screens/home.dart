@@ -20,6 +20,7 @@ import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/insights.dart';
 import 'package:wealth/home_screens/notifications.dart';
+import 'package:wealth/home_screens/rate.dart';
 import 'package:wealth/home_screens/sortikaLottery.dart';
 import 'package:wealth/home_screens/sortikaSavings.dart';
 import 'package:wealth/models/activityModel.dart';
@@ -556,7 +557,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 '${model.goalAmountSaved.toString()}'),
                             min: 0,
                             max: model.goalCategory == 'Group'
-                                ? groupModel.targetAmountPerp
+                                ? double.parse(
+                                    groupModel.targetAmountPerp.toString())
                                 : double.parse(model.goalAmount.toString()),
                             onChanged: (value) {}),
                       ),
@@ -1897,11 +1899,19 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     //String goal = doc.data['transactionGoal'];
     var amount = doc.data['transactionAmount'];
     //String category = doc.data['transactionCategory'];
-    Timestamp time = doc.data['transactionDate'];
     String code = doc.documentID;
 
-    var formatter = new DateFormat('d MMM y');
-    String date = formatter.format(time.toDate());
+    //Date and Time Formatting
+    int numberTime = doc.data['transactionTime'];
+    String year = numberTime.toString().substring(0, 4);
+    String month = numberTime.toString().substring(4, 6);
+    String day = numberTime.toString().substring(6, 8);
+    String hour = numberTime.toString().substring(8, 10);
+    String minutes = numberTime.toString().substring(10, 12);
+    String seconds = numberTime.toString().substring(12);
+
+    String date =
+        year + "-" + month + "-" + day + " at " + hour + ":" + minutes;
 
     List<String> greenColorItems = ['Earning', 'Deposit', 'Redemption'];
 
@@ -1941,20 +1951,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    code,
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            color: Colors.green, fontWeight: FontWeight.w600)),
-                  ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$amount KES',
+                        code,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
-                                color: Colors.black,
+                                color: Colors.green,
                                 fontWeight: FontWeight.w600)),
                       ),
                       Text(
@@ -1965,6 +1969,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 fontWeight: FontWeight.normal)),
                       )
                     ],
+                  ),
+                  Text(
+                    '$amount KES',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.w600)),
                   )
                 ],
               ),
@@ -2607,8 +2617,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 color: Colors.white,
                 size: 35,
               ),
-              onPressed: () =>
-                  Navigator.of(context).pushNamed('/settings', arguments: uid))
+              onPressed: () => Navigator.of(context)
+                  .pushNamed('/settings', arguments: userData))
         ],
       ),
     );
@@ -2661,7 +2671,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             color: Color(0xFF73AEF5),
             child: InkWell(
               splashColor: Colors.greenAccent[700],
-              onTap: () => Navigator.of(context).pushNamed('/rate'),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => Rate(uid: uid),)
+              ),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 child: Column(
@@ -3021,7 +3033,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.max,
-            children: [_menuHeader(), midfieldMenuItems(), _menuFooter()],
+            children: [
+              _menuHeader(),
+              //SizedBox(height: 80),
+              midfieldMenuItems(),
+              //SizedBox(height: 80),
+              _menuFooter()
+            ],
           ),
         ),
       ),
@@ -3044,7 +3062,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         print(data);
         // //Try HTTP Post
         String url =
-            'https://us-central1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
+            'https://europe-west1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
         var response = await http.post(url, body: data);
         print('Response status: ${response.statusCode}');
         print('Response body: ${response.body}');

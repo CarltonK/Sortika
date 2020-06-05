@@ -206,9 +206,29 @@ class _LendPageState extends State<LendPage> {
   }
 
   Future _lendLoan(LoanModel model) async {
-    //Add request to Loans Collections
-    final String _collection = "loans";
-    await _firestore.collection(_collection).document().setData(model.toJson());
+    //Change the Loan Fund Goal
+    QuerySnapshot query = await _firestore
+        .collection('users')
+        .document(widget.uid)
+        .collection('goals')
+        .where('goalCategory', isEqualTo: 'Loan Fund')
+        .limit(1)
+        .getDocuments();
+    if (query.documents.length == 1) {
+      DocumentSnapshot doc = query.documents[0];
+      await _firestore
+          .collection('users')
+          .document(widget.uid)
+          .collection('goals')
+          .document(doc.documentID)
+          .updateData({'goalAmount': model.loanAmountTaken});
+      //Add request to Loans Collections
+      final String _collection = "loans";
+      await _firestore
+          .collection(_collection)
+          .document()
+          .setData(model.toJson());
+    }
   }
 
   void _lendBtnPressed() async {

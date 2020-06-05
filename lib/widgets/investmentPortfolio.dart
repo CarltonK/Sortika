@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:pie_chart/pie_chart.dart' as pie;
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/goalmodel.dart';
+import 'package:wealth/widgets/unsuccessfull_error.dart';
 
 class InvestmentPortfolio extends StatefulWidget {
   final String uid;
@@ -26,12 +29,17 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
   //Page Controller
   PageController _controller;
 
+  String goal;
+
   Map<String, double> dataMap = Map();
   final String category = 'Investment';
 
   Helper helper = new Helper();
+
   Future investmentData;
   Future transactionsData;
+  Future singleTransactionFuture;
+  Future graphData;
 
   DateTime rightNow = DateTime.now();
 
@@ -41,17 +49,17 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
     _controller = PageController(viewportFraction: 0.9);
     investmentData = helper.getInvestmentData(widget.uid);
     transactionsData = helper.getTransactions(widget.uid, category);
+    graphData = helper.investmentSummaryData(category, widget.uid);
   }
 
   graphLineDraw(double month, double point) {
     return FlSpot(month, point);
   }
 
-  LineChartData mainData(double amount, Timestamp end, var saved) {
+  LineChartData mainData(
+      double amount, Timestamp end, List<DocumentSnapshot> list) {
     int daysDiff = end.toDate().month - 1;
     print(daysDiff);
-
-    double point = (saved / amount) * 6;
 
     return LineChartData(
       titlesData: FlTitlesData(
@@ -110,19 +118,6 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
       maxX: 11,
       minY: 0,
       maxY: 6,
-      lineBarsData: [
-        LineChartBarData(
-          spots: [
-            graphLineDraw(daysDiff.toDouble(), point),
-          ],
-          isCurved: true,
-          barWidth: 2,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(
-            show: false,
-          ),
-        ),
-      ],
     );
   }
 
@@ -187,13 +182,12 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
     );
   }
 
-  Widget _singlePortfolioView(DocumentSnapshot doc) {
-    GoalModel goal = GoalModel.fromJson(doc.data);
+  Widget _singlePortfolioView(Map<String, dynamic> element) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
-          goal.goalClass,
+          element['name'],
           style: GoogleFonts.muli(
               textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         ),
@@ -225,7 +219,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         GestureDetector(
-                          onTap: () => _filterByTime(),
+                          // onTap: () => _filterByTime(),
                           child: Icon(
                             CupertinoIcons.time,
                             color: Colors.white,
@@ -249,8 +243,8 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                   alignment: Alignment.bottomCenter,
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    child: LineChart(mainData(goal.goalAmount, goal.goalEndDate,
-                        goal.goalAmountSaved)),
+                    child: LineChart(mainData(element['total'],
+                        element['endDate'], element['documents'])),
                   ),
                 ),
                 Align(
@@ -287,53 +281,42 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
   Widget _portfolioSummary() {
     return Container(
         height: MediaQuery.of(context).size.height * 0.5,
-        child: FutureBuilder<QuerySnapshot>(
-            future: investmentData,
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: graphData,
             builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                if (snapshot.data.documents.length == 0) {
+              print(snapshot.data);
+              switch (snapshot.connectionState) {
+                case ConnectionState.active:
+                case ConnectionState.none:
+                  return Text('none');
+                case ConnectionState.done:
+                  return PageView(
+                    scrollDirection: Axis.horizontal,
+                    controller: _controller,
+                    onPageChanged: (value) {
+                      _controller.animateToPage(value,
+                          duration: Duration(milliseconds: 200),
+                          curve: Curves.ease);
+                    },
+                    children: snapshot.data
+                        .map((element) => _singlePortfolioView(element))
+                        .toList(),
+                  );
+                case ConnectionState.waiting:
                   return Center(
-                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.sentiment_neutral,
-                        size: 100,
-                        color: Colors.red,
-                      ),
-                      Text(
-                        'You do not have any investments',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 16)),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                    ],
-                  ));
-                }
-                return PageView(
-                  scrollDirection: Axis.horizontal,
-                  controller: _controller,
-                  onPageChanged: (value) {
-                    _controller.animateToPage(value,
-                        duration: Duration(milliseconds: 200),
-                        curve: Curves.ease);
-                  },
-                  children: snapshot.data.documents
-                      .map((element) => _singlePortfolioView(element))
-                      .toList(),
-                );
+                    child: SpinKitDoubleBounce(
+                      size: MediaQuery.of(context).size.height * 0.25,
+                      color: Colors.greenAccent[700],
+                    ),
+                  );
+                default:
+                  return Center(
+                    child: SpinKitDoubleBounce(
+                      size: MediaQuery.of(context).size.height * 0.25,
+                      color: Colors.greenAccent[700],
+                    ),
+                  );
               }
-              return Center(
-                child: SpinKitDoubleBounce(
-                  size: MediaQuery.of(context).size.height * 0.25,
-                  color: Colors.greenAccent[700],
-                ),
-              );
             }));
   }
 
@@ -344,10 +327,18 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
     String goal = doc.data['transactionGoal'];
     var amount = doc.data['transactionAmount'];
     //String category = doc.data['transactionCategory'];
-    Timestamp time = doc.data['transactionDate'];
 
-    var formatter = new DateFormat('d MMM y');
-    String date = formatter.format(time.toDate());
+    //Date and Time Formatting
+    int numberTime = doc.data['transactionTime'];
+    String year = numberTime.toString().substring(0, 4);
+    String month = numberTime.toString().substring(4, 6);
+    String day = numberTime.toString().substring(6, 8);
+    String hour = numberTime.toString().substring(8, 10);
+    String minutes = numberTime.toString().substring(10, 12);
+    String seconds = numberTime.toString().substring(12);
+
+    String date =
+        year + "-" + month + "-" + day + " at " + hour + ":" + minutes;
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 5),
@@ -391,7 +382,15 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                                 fontWeight: FontWeight.w600)),
                       ),
                       Text(
-                        goal,
+                        goal == null ? 'General' : goal,
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.normal)),
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        date,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,
@@ -409,13 +408,6 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                                 color: Colors.black,
                                 fontWeight: FontWeight.w600)),
                       ),
-                      Text(
-                        '$date',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.normal)),
-                      )
                     ],
                   )
                 ],
@@ -436,30 +428,13 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
           switch (snapshot.connectionState) {
             case ConnectionState.active:
             case ConnectionState.none:
-              return Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.sentiment_neutral,
-                      size: 100,
-                      color: Colors.red,
-                    ),
-                    Text(
-                      'You have not made any transactions',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16)),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                  ],
-                ),
-              );
+              return UnsuccessfullError(
+                  message: 'You have not made any investment transactions');
             case ConnectionState.done:
+              if (snapshot.data.documents.length == 0) {
+                return UnsuccessfullError(
+                    message: 'You have not made any investment transactions');
+              }
               return ListView(
                 children: snapshot.data.documents
                     .map((doc) => _singleTransaction(doc))
@@ -581,9 +556,9 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
             //   height: 20,
             // ),
             // _portfolioSummary(),
-            SizedBox(
-              height: 10,
-            ),
+            // SizedBox(
+            //   height: 10,
+            // ),
             Text(
               'Transactions',
               style: GoogleFonts.muli(

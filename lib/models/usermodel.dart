@@ -26,6 +26,7 @@ class User {
   String kraURL;
   String platform;
   String token;
+  bool phoneVerified;
   //Savings Targets
   var dailyTarget;
   var weeklyTarget;
@@ -57,6 +58,7 @@ class User {
       this.kraURL,
       this.platform,
       this.token,
+      this.phoneVerified,
       this.dailyTarget,
       this.weeklyTarget,
       this.monthlyTarget,
@@ -83,6 +85,7 @@ class User {
       gender: json["gender"],
       natIDURL: json["natIDURL"],
       kraURL: json["kraURL"],
+      phoneVerified: json['phoneVerified'],
       platform: json["platform"],
       token: json["token"],
       dailyTarget: json["dailyTarget"],
@@ -114,6 +117,7 @@ class User {
         "natIDURL": natIDURL,
         "kraURL": kraURL,
         "platform": platform,
+        "phoneVerified": phoneVerified,
         "token": token,
         "dailyTarget": dailyTarget,
         "weeklyTarget": weeklyTarget,

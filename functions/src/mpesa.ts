@@ -7,8 +7,10 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
     try {
         console.log('---Received Safaricom M-PESA Webhook For Capture---')
         const serverRequest = request.body
+        //console.log(`Incoming Request: ${serverRequest}`)
         //Get the response code
         const code: number = serverRequest['Body']['stkCallback']['ResultCode']
+        //console.log(`Incoming Request Code: ${code}`)
         if (code === 0) {
             const transactionAmount: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
             const transactionCode: string = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
@@ -21,17 +23,22 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
             const db = superadmin.firestore()
             db.collection('users').where('phone' ,'==', transactionPhoneFormatted).limit(1).get()
                 .then(async (value) => {
-                    if (value.docs.length == 1) {
+                    if (value.docs.length === 1) {
 
+                        const document: DocumentSnapshot = value.docs[0]
+                        const uid: string = document.get('uid')
+
+                        console.log(`transaction ${transactionCode} document create begin`)
                         await db.collection('transactions').doc(transactionCode).set({
                             'transactionAmount': transactionAmount,
                             'transactionCode': transactionCode,
                             'transactionTime': transactionTime,
                             'transactionPhone': transactionPhone,
+                            'transactionAction': 'Passive',
+                            'transactionCategory': 'General',
+                            'transactionUid': uid
                         })
-
-                        const document: DocumentSnapshot = value.docs[0]
-                        const uid: string = document.get('uid')
+                        console.log(`transaction ${transactionCode} document create end`)
 
                         let category: string
                         let goalName: any 
@@ -44,23 +51,14 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
                                     goalName = category
                             } 
                             const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(element.id)
-                            const transactRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('transactions').doc(transactionCode)
                             db.runTransaction(async transaction => {
                                 return transaction.get(docRef)
                                     .then(doc => {
+                                        if (doc.get('goalAllocation') === Number.isNaN) {
+                                            console.error('goalAllocation is NaN')
+                                        }
                                         const newIncrement: number = (transactionAmount * doc.get('goalAllocation')) / 100
                                         transaction.update(docRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(newIncrement)})
-                                        console.log('transactions collection update begin')
-                                        transaction.set(transactRef, {
-                                            'transactionAction': 'Passive',
-                                            'transactionAmount': transactionAmount,
-                                            'transactionDate': superadmin.firestore.Timestamp.now(),
-                                            'transactionCategory': category,
-                                            'transactionGoal': goalName,
-                                            'transactionCode': transactionCode,
-                                            'transactionUid': uid
-                                        })
-                                        console.log('transactions collection update end')
                                     })
                             })
                             .then(async result => {
@@ -96,7 +94,7 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
 
 export function mpesaLnmCallback(request: Request, response: Response) {
     try {
-        console.log('---Received Safaricom M-PESA Webhook For Deposit---')
+        console.log('---Received Safaricom M-PESA Webhook---')
         const serverRequest = request.body
         //Get the ResponseCode
         const code: number = serverRequest['Body']['stkCallback']['ResultCode']
@@ -106,10 +104,10 @@ export function mpesaLnmCallback(request: Request, response: Response) {
             const transactionTime: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][3]['Value']
             const transactionPhone: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][4]['Value']
 
-            // console.log(`Amount: ${transactionAmount}`)
-            // console.log(`Code: ${transactionCode}`)
-            // console.log(`Time: ${transactionTime}`)
-            // console.log(`Phone: ${transactionPhone}`)
+            console.log(`Amount: ${transactionAmount}`)
+            console.log(`Code: ${transactionCode}`)
+            console.log(`Time: ${transactionTime}`)
+            console.log(`Phone: ${transactionPhone}`)
 
             let transactionPhoneFormatted: string = transactionPhone.toString().slice(3)
             transactionPhoneFormatted = "0" + transactionPhoneFormatted
@@ -121,12 +119,6 @@ export function mpesaLnmCallback(request: Request, response: Response) {
             db.collection('users').where('phone' ,'==', transactionPhoneFormatted).limit(1).get()
                 .then(async (value) => {
                     if (value.docs.length === 1) {
-                        await db.collection('transactions').doc(transactionCode).set({
-                            'transactionAmount': transactionAmount,
-                            'transactionCode': transactionCode,
-                            'transactionTime': transactionTime,
-                            'transactionPhone': transactionPhone,
-                        })
 
                         const document: DocumentSnapshot = value.docs[0]
                         const uid: string = document.get('uid')
@@ -137,39 +129,62 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                         const destination: string = depositDocument.get('destination')
                         const goal: string = depositDocument.get('goalName')
 
+
                         if (destination === 'wallet') {
+                            //Update transaction document, id - transaction code
+                            console.log(`transaction ${transactionCode} document create begin`)
+                            await db.collection('transactions').doc(transactionCode).set({
+                                'transactionAmount': transactionAmount,
+                                'transactionCode': transactionCode,
+                                'transactionTime': transactionTime,
+                                'transactionPhone': transactionPhone,
+                                'transactionAction': 'Deposit',
+                                'transactionCategory': 'Wallet',
+                                'transactionUid': uid
+                            })
+                            console.log(`transaction ${transactionCode} document create end`)
+
+                            //Transaction operation to update wallet
                             const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('wallet').doc(uid)
-                            const transactRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('transactions').doc(transactionCode)
                             db.runTransaction(async transaction => {
                                 return transaction.get(docRef)
                                     .then(doc => {
+                                        console.log(`Wallet update begin for user: ${uid}`)
                                         transaction.update(docRef, {amount: superadmin.firestore.FieldValue.increment(transactionAmount)})
-                                        console.log('transactions collection update begin')
-                                            transaction.set(transactRef, {
-                                                'transactionAction': 'Deposit',
-                                                'transactionAmount': transactionAmount,
-                                                'transactionDate': superadmin.firestore.Timestamp.now(),
-                                                'transactionCategory': 'Wallet',
-                                                'transactionCode': transactionCode,
-                                                'transactionUid': uid
-                                            })
-                                            console.log('transactions collection update end')
+                                        console.log(`Wallet update end for user: ${uid}`)
                                     });
                             })
                             .then(async result => {
                                 //Create a notification for the user
+                                console.log('notification update begin')
                                 await db.collection('users').doc(uid).collection('notifications').doc().set({
-                                    'message': `We have captured ${transactionAmount} KES`,
+                                    'message': `We have received your deposit of ${transactionAmount} KES`,
                                     'time': superadmin.firestore.Timestamp.now()
                                 })
-                                console.log('Wallet update success')
-                                console.log('notification update success')
+                                console.log('notification update end')
+
+                                console.log('Overall wallet update process ended')
                             })
                             .catch(err => {
                                 console.log('Wallet update failure:', err)
                             })
                         }
                         if (destination === 'general') {
+
+                            //Update transaction document, id - transaction code
+                            console.log(`transaction ${transactionCode} document create begin`)
+                            await db.collection('transactions').doc(transactionCode).set({
+                                'transactionAmount': transactionAmount,
+                                'transactionCode': transactionCode,
+                                'transactionTime': transactionTime,
+                                'transactionPhone': transactionPhone,
+                                'transactionAction': 'Deposit',
+                                'transactionCategory': 'General',
+                                'transactionUid': uid
+                            })
+                            console.log(`transaction ${transactionCode} document create end`)
+
+
                             let category: string
                             let goalName: any 
                             const userGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals').get()
@@ -179,35 +194,26 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                                 goalName = element.get('goalName')
                                 if (goalName === null) {
                                     goalName = category
-                                } 
+                                }
+                                
                                 const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(element.id)
-                                const transactRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('transactions').doc(transactionCode)
                                 db.runTransaction(async transaction => {
                                     return transaction.get(docRef)
                                         .then(doc => {
                                             const newIncrement: number = (transactionAmount * doc.get('goalAllocation')) / 100
                                             transaction.update(docRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(newIncrement)})
-                                            console.log('transactions collection update begin')
-                                            transaction.set(transactRef, {
-                                                'transactionAction': 'Deposit',
-                                                'transactionAmount': transactionAmount,
-                                                'transactionDate': superadmin.firestore.Timestamp.now(),
-                                                'transactionCategory': category,
-                                                'transactionGoal': goalName,
-                                                'transactionCode': transactionCode,
-                                                'transactionUid': uid
-                                            })
-                                            console.log('transactions collection update end')
                                         })
                                 })
                                 .then(async result => {
                                     //Create a notification for the user
+                                    console.log('notification update begin')
                                     await db.collection('users').doc(uid).collection('notifications').doc().set({
                                         'message': `You have distributed ${transactionAmount} KES based on the goal allocations of each goal`,
                                         'time': superadmin.firestore.Timestamp.now()
-                                })
-                                    console.log('General update success!')
-                                    console.log('notification update success')
+                                    })
+                                    console.log('notification update end')
+
+                                    console.log('Overal  General update success!')
                                 })
                                 .catch(err => {
                                     console.log('General update failure:', err)
@@ -223,30 +229,35 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                                     .limit(1)
                                     .get()
                                 if (userLoanFundQuery.docs.length === 1) {
-                                    const goalDoc: DocumentSnapshot = userLoanFundQuery.docs[0]
-                                    const goalDocRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(goalDoc.id)
-                                    const transactRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('transactions').doc(transactionCode)
-                                    db.runTransaction(async transaction => {
-                                        transaction.update(goalDocRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(transactionAmount)})
-                                        console.log('transactions collection update begin')
-                                        transaction.set(transactRef, {
+
+                                    console.log('transactions collection create begin')
+                                    await db.collection('transactions').doc(transactionCode).set({
                                             'transactionAction': 'Deposit',
                                             'transactionAmount': transactionAmount,
-                                            'transactionDate': superadmin.firestore.Timestamp.now(),
+                                            'transactionTime': transactionTime,
+                                            'transactionPhone': transactionPhone,
                                             'transactionCategory': 'Loan Fund',
                                             'transactionGoal': goal,
                                             'transactionCode': transactionCode,
                                             'transactionUid': uid
-                                        })
-                                        console.log('transactions collection update end')
+                                    })
+                                    console.log('transactions collection create end')
+
+                                    const goalDoc: DocumentSnapshot = userLoanFundQuery.docs[0]
+                                    const goalDocRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(goalDoc.id)
+                                    
+                                    db.runTransaction(async transaction => {
+                                        transaction.update(goalDocRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(transactionAmount)})
                                     })
                                     .then(async result => {
+                                        console.log('notification update begin')
                                         await db.collection('users').doc(uid).collection('notifications').doc().set({
                                             'message': `We have captured a Loan Fund Goal deposit of ${transactionAmount} KES`,
                                             'time': superadmin.firestore.Timestamp.now()
                                         })
-                                        console.log('Loan Fund goal update success')
-                                        console.log('notification update success')
+                                        console.log('notification update end')
+
+                                        console.log('Overall Loan Fund goal update success')
                                     })
                                     .catch(err => {
                                         console.log(`Loan Fund goal update failure:`, err)
@@ -259,30 +270,34 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                                     .limit(1)
                                     .get()
                                 if (userSavingQuery.docs.length >= 1) {
-                                    const goalDoc: DocumentSnapshot = userSavingQuery.docs[0]
-                                    const goalDocRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(goalDoc.id)
-                                    const transactRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('transactions').doc(transactionCode)
-                                    db.runTransaction(async transaction => {
-                                        transaction.update(goalDocRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(transactionAmount)})
-                                        console.log('transactions collection update begin')
-                                        transaction.set(transactRef, {
+
+                                    console.log('transactions collection create begin')
+                                    await db.collection('transactions').doc(transactionCode).set({
                                             'transactionAction': 'Deposit',
                                             'transactionAmount': transactionAmount,
-                                            'transactionDate': superadmin.firestore.Timestamp.now(),
+                                            'transactionTime': transactionTime,
+                                            'transactionPhone': transactionPhone,
                                             'transactionCategory': 'Saving',
                                             'transactionGoal': goal,
                                             'transactionCode': transactionCode,
                                             'transactionUid': uid
-                                        })
-                                        console.log('transactions collection update end')
+                                    })
+                                    console.log('transactions collection create end')
+
+                                    const goalDoc: DocumentSnapshot = userSavingQuery.docs[0]
+                                    const goalDocRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(goalDoc.id)
+                                    db.runTransaction(async transaction => {
+                                        transaction.update(goalDocRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(transactionAmount)})
                                     })
                                     .then(async result => {
+                                        console.log('notification update begin')
                                         await db.collection('users').doc(uid).collection('notifications').doc().set({
                                             'message': `We have captured a Savings Goal deposit of ${transactionAmount} KES`,
                                             'time': superadmin.firestore.Timestamp.now()
                                         })
-                                        console.log('savings goal update success')
-                                        console.log('notification update success')
+                                        console.log('notification update end')
+                                        
+                                        console.log('Overall Savings goal update success')
                                     })
                                     .catch(err => {
                                         console.log(`savings goal update failure:`, err)
@@ -295,21 +310,26 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                                     .limit(1)
                                     .get()
                                 if (userInvestQuery.docs.length === 1) {
-                                    const goalDoc: DocumentSnapshot = userInvestQuery.docs[0]
-                                    const goalDocRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(goalDoc.id)
-                                    const transactRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('transactions').doc(transactionCode)
-                                    db.runTransaction(async transaction => {
-                                        transaction.update(goalDocRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(transactionAmount)})
-                                        console.log('transactions collection update begin')
-                                        transaction.set(transactRef, {
+                                    const category: string = userInvestQuery.docs[0].get('goalCategory')
+
+
+                                    console.log('transactions collection create begin')
+                                    await db.collection('transactions').doc(transactionCode).set({
                                             'transactionAction': 'Deposit',
                                             'transactionAmount': transactionAmount,
-                                            'transactionDate': superadmin.firestore.Timestamp.now(),
-                                            'transactionCategory': 'Investment',
+                                            'transactionTime': transactionTime,
+                                            'transactionPhone': transactionPhone,
+                                            'transactionCategory': category,
                                             'transactionGoal': goal,
+                                            'transactionUid': uid,
                                             'transactionCode': transactionCode
-                                        })
-                                        console.log('transactions collection update end')
+                                    })
+                                    console.log('transactions collection create end')
+
+                                    const goalDoc: DocumentSnapshot = userInvestQuery.docs[0]
+                                    const goalDocRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(goalDoc.id)
+                                    db.runTransaction(async transaction => {
+                                        transaction.update(goalDocRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(transactionAmount)})
                                     })
                                     .then(async result => {
                                         await db.collection('users').doc(uid).collection('notifications').doc().set({

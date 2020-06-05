@@ -12,7 +12,12 @@ class DepositModel {
   final Timestamp time = Timestamp.now();
 
   DepositModel(
-      {this.destination, this.goalName, this.method, this.amount, this.phone, this.uid});
+      {this.destination,
+      this.goalName,
+      this.method,
+      this.amount,
+      this.phone,
+      this.uid});
 
   factory DepositModel.fromJson(Map<String, dynamic> json) => DepositModel(
       amount: json['amount'],

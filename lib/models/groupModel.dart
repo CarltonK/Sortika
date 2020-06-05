@@ -15,7 +15,7 @@ class GroupModel extends GoalModel {
   int groupMembersTargeted;
   int groupMembers;
   bool isGroupRegistered;
-  double targetAmountPerp;
+  var targetAmountPerp;
   bool shouldMemberSeeSavings;
   String groupCode;
 

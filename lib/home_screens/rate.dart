@@ -1,9 +1,19 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/errorMessage.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
 import 'package:wealth/utilities/rateArc.dart';
 import 'package:wealth/utilities/smile.dart';
+import 'package:wealth/models/reviewModel.dart';
 
 class Rate extends StatefulWidget {
+  final String uid;
+  Rate({@required this.uid});
   @override
   _RateState createState() => _RateState();
 }
@@ -29,6 +39,11 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
 
   Color startColor;
   Color endColor;
+
+  String title;
+  String review;
+
+  Helper helper = new Helper();
 
   @override
   void initState() {
@@ -90,6 +105,63 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
     animation.animateTo(slideValue.toDouble());
   }
 
+
+  void submitBtnPressed(String text) {
+    //print(text);
+    //Show a Progress Dialog
+    showCupertinoModalPopup(
+      context: context, 
+      builder: (context) => CustomProgressDialog(message: 'Sending your review...'),
+    );
+    if (text == 'OK') {
+      title = 'OK';
+      review = "It is okay. I can live with it";
+    }
+    if (text == 'GOOD') {
+      title = 'GOOD';
+      review = "I am satisfied i made the right choice. I like it";
+    }
+    if (text == 'BAD') {
+      title = 'BAD';
+      review = "I do not like it. I will uninstall immediately";
+    }
+    if (text == 'UGH') {
+      title = 'UGH';
+      review = "I am not satisfied. Please do something about it";
+    }
+
+    ReviewModel model = new ReviewModel(
+      title: title,
+      review: review,
+      uid: widget.uid
+    );
+
+    helper.createReview(model)
+    .catchError((error) {
+       //Pop the dialog
+      Navigator.of(context).pop();
+      //Show the error message after a second
+      Timer(Duration(seconds: 1), () {
+        showCupertinoModalPopup(
+          context: context, 
+          builder: (context) => ErrorMessage(message: 'There was an error sending your review. This is the error: $error'),
+        );
+      });
+    })
+    .then((value) {
+      //Pop the dialog
+      Navigator.of(context).pop();
+      //Show a success message after a second
+      Timer(Duration(seconds: 1), () {
+        showCupertinoModalPopup(
+          context: context, 
+          builder: (context) => SuccessMessage(message: 'Thank you for your review'),
+        );
+      });
+    });
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,7 +221,7 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: GestureDetector(
-                    onTap: () => print(arcItems[lastAnimPosition].text),
+                    onTap: () => submitBtnPressed(arcItems[lastAnimPosition].text),
                     child: Material(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25.0)),

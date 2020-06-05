@@ -205,18 +205,12 @@ class AuthService {
         .setData(activity.toJson());
   }
 
-  Stream<QuerySnapshot> fetchInvestmentAssetClasses() {
-    Stream<QuerySnapshot> queries =
-        _firestore.collection("investments").snapshots();
-    return queries;
-  }
-
-  Future<QuerySnapshot> fetchInvestmentAssetTypes(String title) async {
-    QuerySnapshot queries = await _firestore
+  Stream<QuerySnapshot> fetchInvestmentAssetTypes(String title) {
+    Stream<QuerySnapshot> queries = _firestore
         .collection("investments")
         .document(title)
-        .collection("types")
-        .getDocuments();
+        .collection('types')
+        .snapshots();
     return queries;
   }
 

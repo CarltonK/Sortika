@@ -194,16 +194,6 @@ class _FinancialRatiosState extends State<FinancialRatios> {
               height: 30,
             ),
             _targetNetworthWidget(),
-            SizedBox(
-              height: 30,
-            ),
-            Text(
-              'Networth Ratio',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.black,
-              )),
-            )
           ],
         ),
       ),

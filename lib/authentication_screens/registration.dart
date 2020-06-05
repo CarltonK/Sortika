@@ -474,6 +474,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           fullName: _names,
           phone: _phone,
           email: _email,
+          phoneVerified: false,
           password: _password,
           designation: null,
           registerDate: Timestamp.fromDate(DateTime.now()),

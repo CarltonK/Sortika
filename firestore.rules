@@ -17,7 +17,8 @@ service cloud.firestore {
       allow read: if isUserAuthorised();
       //Goals subcollection
       match /goals/{goal} {
-      	allow read, write: if isSignedInOwner(user);
+      	allow write: if isSignedInOwner(user);
+        allow read: if isUserAuthorised();
       }
       //Preferences subcollection
       match /preferences/{pref} {
@@ -41,10 +42,11 @@ service cloud.firestore {
       match /activity/{activityDoc} {
       	allow read, write: if isSignedInOwner(user);
       }
-      //Transactions subcollection
-      match /transactions/{transaction} {
-      	allow read: if isSignedInOwner(user);
-      }
+    }
+    
+    //TRANSACTIONS Collection
+    match /transactions/{transaction} {
+    	allow read: if isUserAuthorised();
     }
     
     //LOANS Collection
@@ -55,6 +57,9 @@ service cloud.firestore {
     //GROUPS Collection
     match /groups/{group} {
     	allow read, write: if isUserAuthorised();
+      match /members/{member} {
+      	allow read: if isUserAuthorised();
+      }
     }
     
     //REEDEMABLES Collection
@@ -69,16 +74,23 @@ service cloud.firestore {
     
     //DEPOSITS Collection
     match /deposits/{deposit} {
-    	allow read, write: if isSignedInOwner(deposit);
+    	allow read: if isUserAuthorised() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow create: if isUserAuthorised() && (request.resource.data.uid == request.auth.uid);
     }
     
     //AUTOCREATES Collection
     match /autocreates/{autocreate} {
     	allow read, write: if isUserAuthorised();
     }
+    
     //WITHDRAWALS Collection
     match /withdrawals/{withdraw} {
     	allow write: if isUserAuthorised();
+    }
+    
+    //CAPTURES Collection
+    match /captures/{capture} {
+    	allow read: if isUserAuthorised() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
     }
     
   }

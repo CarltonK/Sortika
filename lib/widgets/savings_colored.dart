@@ -83,6 +83,15 @@ class _SavingsColoredState extends State<SavingsColored> {
       ),
     ),
     DropdownMenuItem(
+      value: 'premium',
+      child: Text(
+        'Premium goals',
+        style: GoogleFonts.muli(
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    ),
+    DropdownMenuItem(
       value: 'custom',
       child: Text(
         'Create my own goal',
@@ -98,6 +107,15 @@ class _SavingsColoredState extends State<SavingsColored> {
       value: 'loan',
       child: Text(
         'Loan repayment',
+        style: GoogleFonts.muli(
+            textStyle:
+                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    ),
+    DropdownMenuItem(
+      value: 'rent',
+      child: Text(
+        'Rent payment',
         style: GoogleFonts.muli(
             textStyle:
                 TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),

@@ -1,17 +1,20 @@
 import 'dart:async';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/errorMessage.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
 import 'package:wealth/models/bankModel.dart';
 import 'package:wealth/models/cardModel.dart';
 import 'package:wealth/models/days.dart';
-import 'package:wealth/models/userPrefModel.dart';
+import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/utilities/inputFormatter.dart';
 import 'package:wealth/utilities/styles.dart';
+import 'package:wealth/models/phoneVerificationModel.dart';
 
 class Settings extends StatefulWidget {
   @override
@@ -21,11 +24,12 @@ class Settings extends StatefulWidget {
 class _SettingsState extends State<Settings> {
   //Form Key
   final _formPhone = GlobalKey<FormState>();
+  final _formOtp = GlobalKey<FormState>();
   final _formCard = GlobalKey<FormState>();
   final _formBank = GlobalKey<FormState>();
   //Identifiers
-  double _passiveRate = 5;
-  double _loanLimitRate = 75;
+  double _passiveRate;
+  double _loanLimitRate;
 
   bool _isReminderDaily = false;
   bool _isReminderWeekly = false;
@@ -33,12 +37,15 @@ class _SettingsState extends State<Settings> {
   String _prefferedPaymentMethod;
   String _prefferedWithdrawalMethod;
 
-  bool _isPayByMpesa = false;
+  static bool _isPayByMpesa;
   bool _isWithdrawByMpesa = false;
   List<Days> _days = [];
 
   bool _isPayByCard = false;
   bool _isWithdrawToBank = false;
+
+  User user;
+  Helper helper = new Helper();
 
   var _card = new PaymentCard();
   var _paymentCard = new PaymentCard();
@@ -46,9 +53,9 @@ class _SettingsState extends State<Settings> {
   var _autoValidate = false;
 
   TextEditingController numberController = new TextEditingController();
-  Firestore _firestore = Firestore.instance;
 
   String _phone;
+  String _otp;
   String _billing;
 
   final focusNumber = FocusNode();
@@ -64,6 +71,11 @@ class _SettingsState extends State<Settings> {
   void _handleSubmittedPhone(String value) {
     _phone = value.trim();
     print('Phone: ' + _phone);
+  }
+
+   void _handleSubmittedOtp(String value) {
+    _otp = value.trim();
+    print('OTP: ' + _otp);
   }
 
   void _handleSubmittedCardName(String value) {
@@ -94,8 +106,6 @@ class _SettingsState extends State<Settings> {
     _paymentCard.address = value.trim();
     print('Card Billing: ' + _billing);
   }
-
-  static String uid;
 
   String _nameBank;
   String _branchBank;
@@ -154,6 +164,7 @@ class _SettingsState extends State<Settings> {
   }
 
   Widget _passiveWidget() {
+    _passiveRate = double.parse(user.passiveSavingsRate.toString());
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,7 +179,7 @@ class _SettingsState extends State<Settings> {
             height: 20,
           ),
           Text(
-            'The current rate is ${_passiveRate.toInt().toString()} %',
+            'The current rate is ${_passiveRate.toStringAsFixed(0)} %',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
                     color: Colors.white, fontWeight: FontWeight.w300)),
@@ -186,6 +197,13 @@ class _SettingsState extends State<Settings> {
                   value: _passiveRate,
                   activeColor: Colors.lightBlue,
                   inactiveColor: Colors.grey[200],
+                  onChangeEnd: (value) => helper
+                      .changePassiveRate(user.uid, value.ceilToDouble())
+                      .whenComplete(() => showCupertinoModalPopup(
+                          context: context,
+                          builder: (context) => SuccessMessage(
+                              message:
+                                  'You have changed your passive savings rate to ${value.ceilToDouble()} %. Please login again to view changes'))),
                   onChanged: (value) {
                     setState(() {
                       _passiveRate = value;
@@ -209,6 +227,7 @@ class _SettingsState extends State<Settings> {
   }
 
   Widget _limitWidget() {
+    _loanLimitRate = double.parse(user.loanLimitRatio.toString());
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +242,7 @@ class _SettingsState extends State<Settings> {
             height: 20,
           ),
           Text(
-            'The current limit is ${_loanLimitRate.toInt()} %',
+            'The current limit is ${_loanLimitRate.toStringAsFixed(0)} %',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
                     color: Colors.white, fontWeight: FontWeight.w300)),
@@ -334,7 +353,6 @@ class _SettingsState extends State<Settings> {
                             })),
                   ),
                   leading: Icon(Icons.view_day),
-                  visualDensity: VisualDensity.compact,
                   selected: allDays[index].selected,
                   onTap: () {
                     _days.add(allDays[index]);
@@ -505,10 +523,144 @@ class _SettingsState extends State<Settings> {
     );
   }
 
+    Future _otpDialog() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text(
+            'Please enter the code we sent to you',
+            style: GoogleFonts.muli(textStyle: TextStyle()),
+          ),
+          content: Form(
+              key: _formOtp,
+              child: TextFormField(
+                  autofocus: false,
+                  keyboardType: TextInputType.number,
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                    color: Colors.black,
+                  )),
+                  onFieldSubmitted: (value) {
+                    FocusScope.of(context).unfocus();
+                  },
+                  validator: (value) {
+                    //Check if otp is available
+                    if (value.isEmpty) {
+                      return 'OTP is required';
+                    }
+
+                    //Check if otp has 5 digits
+                    if (value.length != 5) {
+                      return 'OTP should be 5 digits';
+                    }
+
+                    return null;
+                  },
+                  maxLength: 5,
+                  autovalidate: true,
+                  textInputAction: TextInputAction.done,
+                  onSaved: _handleSubmittedOtp,
+                  decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red)),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black)),
+                      prefixIcon: Icon(Icons.phone, color: Colors.black),
+                      labelText: 'Enter the 5 digit code',
+                      labelStyle: hintStyleBlack))),
+          actions: [
+            FlatButton(
+                onPressed: _setOtp,
+                child: Text('Verify',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black, fontWeight: FontWeight.bold))))
+          ],
+        );
+      },
+    );
+  }
+
   void _setPhone() {
     final form = _formPhone.currentState;
     if (form.validate()) {
       form.save();
+      Navigator.of(context).pop();
+      //Show a progress dialog
+      showCupertinoModalPopup(
+        context: context, 
+        builder: (context) => CustomProgressDialog(message: 'Processing your request'),
+      );
+      PhoneVerificationModel model = new PhoneVerificationModel(
+        uid: user.uid,
+        phone: user.phone
+      );
+
+      helper.phoneVerify(model)
+      .catchError((error) => {
+        showCupertinoModalPopup(
+          context: context, 
+          builder: (context) => ErrorMessage(message: 'You had sent in a similar request. Please use the code we sent to you.'),
+        )
+      })
+      .whenComplete(() {
+        Navigator.of(context).pop();
+        //Show OTP Popup
+        _otpDialog();
+      });
+    }
+  }
+
+    void _setOtp() {
+    final form = _formOtp.currentState;
+    if (form.validate()) {
+      form.save();
+      //Show a progress dialog
+      showCupertinoModalPopup(
+        context: context, 
+        builder: (context) => CustomProgressDialog(message: 'Processing your request'),
+      );
+      PhoneVerificationModel model = new PhoneVerificationModel(
+        uid: user.uid,
+        phone: user.phone,
+        genCode: _otp
+      );
+      helper.verifyOtp(model)
+      .catchError((error) {
+        Navigator.of(context).pop();
+        showCupertinoModalPopup(
+          context: context, 
+          builder: (context) => ErrorMessage(message: 'Your request could not be completed. Please try again'),
+        );
+      })
+      .then((value) async{
+        if (value) {
+          Navigator.of(context).pop();
+          showCupertinoModalPopup(
+            context: context, 
+            builder: (context) => SuccessMessage(message: 'You have verified your phone number successfully'),
+          );
+        }
+        else if (value == false) {
+          showCupertinoModalPopup(
+            context: context, 
+            builder: (context) => ErrorMessage(message: 'You have entered a wrong code'),
+          );
+        }
+        else {
+          showCupertinoModalPopup(
+            context: context, 
+            builder: (context) => ErrorMessage(message: value.toString()),
+          );
+        }
+      });
     }
   }
 
@@ -1074,9 +1226,6 @@ class _SettingsState extends State<Settings> {
                     checkColor: Colors.blue,
                     activeColor: Colors.white,
                     onChanged: (bool value) {
-                      setState(() {
-                        _isPayByMpesa = value;
-                      });
                       //Check if the box is selected
                       if (value) {
                         //Show Mpesa Number Dialog
@@ -1243,17 +1392,7 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-  Future _UpdateUserPrefs(UserPref model) async {
-    //Add request to Loans Collections
-    final String _collectionUpper = "users";
-    final String _collectionLower = "preferences";
-    await _firestore
-        .collection(_collectionUpper)
-        .document(uid)
-        .collection(_collectionLower)
-        .document("my_prefs")
-        .setData(model.toJson());
-  }
+  Future _UpdateUserPrefs(User model) async {}
 
   void _updatePrefs() {
     //Check if there is a preferred payment method
@@ -1261,39 +1400,7 @@ class _SettingsState extends State<Settings> {
       _promptUser('Please select your preferred payment method');
     } else if (_prefferedWithdrawalMethod == null) {
       _promptUser('Please select your preferred withdrawal method');
-    } else {
-      //Create a new model
-      UserPref userPref = new UserPref(
-          bankDetails: _bankDetals.toJson(),
-          phone: _phone,
-          isReminderDaily: _isReminderDaily,
-          isReminderWeekly: _isReminderWeekly,
-          loanLimit: _loanLimitRate,
-          passiveSavingsRate: _passiveRate,
-          paymentCard: _paymentCard.toJson(),
-          preferredPaymentMethod: _prefferedPaymentMethod,
-          preferredWithdrawalMethod: _prefferedWithdrawalMethod,
-          reminderTime: _defaultTime,
-          weeklyDays: _days);
-
-      //Show a dialog
-      _showUserProgress();
-
-      _UpdateUserPrefs(userPref).whenComplete(() {
-        //Pop that dialog
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
-
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => _promptUserSuccess());
-
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => Navigator.of(context).pop());
-      }).catchError((error) {
-        print('Update Prefs Error: $error');
-        _promptUser(error);
-      });
-    }
+    } else {}
   }
 
   Future _promptUser(String message) {
@@ -1402,7 +1509,10 @@ class _SettingsState extends State<Settings> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_isMpesa(), _isCard()],
+        children: [
+          _isMpesa(),
+          //_isCard()
+        ],
       ),
     );
   }
@@ -1415,7 +1525,10 @@ class _SettingsState extends State<Settings> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_iswithdrawBank(), _iswithdrawMpesa()],
+        children: [
+          //_iswithdrawBank(),
+          _iswithdrawMpesa()
+        ],
       ),
     );
   }
@@ -1445,8 +1558,9 @@ class _SettingsState extends State<Settings> {
 
   @override
   Widget build(BuildContext context) {
-    //Retreieve UID
-    uid = ModalRoute.of(context).settings.arguments;
+    //Retreieve User
+    user = ModalRoute.of(context).settings.arguments;
+    _isPayByMpesa = user.phoneVerified;
     //print('Settings UID: $uid');
 
     return Scaffold(
@@ -1481,20 +1595,20 @@ class _SettingsState extends State<Settings> {
                       SizedBox(
                         height: 30,
                       ),
-                      Text(
-                        'Reminders',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700)),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      _reminder(),
-                      SizedBox(
-                        height: 30,
-                      ),
+                      // Text(
+                      //   'Reminders',
+                      //   style: GoogleFonts.muli(
+                      //       textStyle: TextStyle(
+                      //           color: Colors.white,
+                      //           fontWeight: FontWeight.w700)),
+                      // ),
+                      // SizedBox(
+                      //   height: 10,
+                      // ),
+                      // _reminder(),
+                      // SizedBox(
+                      //   height: 30,
+                      // ),
                       Text(
                         'Preffered payment method',
                         style: GoogleFonts.muli(
@@ -1520,7 +1634,7 @@ class _SettingsState extends State<Settings> {
                         height: 10,
                       ),
                       _withdrawMethod(),
-                      _updateBtn()
+                      //_updateBtn()
                     ],
                   ),
                 ),

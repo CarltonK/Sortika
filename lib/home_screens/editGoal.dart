@@ -406,7 +406,7 @@ class _EditGoalState extends State<EditGoal> {
                   Container(
                       height: 50,
                       child: TextFormField(
-                        enabled: data["goalCategory"] == 'Group' ? false : true,
+                        enabled: true,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(color: Colors.black)),
                         keyboardType: TextInputType.number,

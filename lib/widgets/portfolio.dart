@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pie_chart/pie_chart.dart' as pie;
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/widgets/unsuccessfull_error.dart';
 
 class Portfolio extends StatefulWidget {
   final String uid;
@@ -321,11 +322,17 @@ class _PortfolioState extends State<Portfolio> {
     String goal = doc.data['transactionGoal'];
     var amount = doc.data['transactionAmount'];
     String category = doc.data['transactionCategory'];
-    Timestamp time = doc.data['transactionDate'];
+    //Date and Time Formatting
+    int numberTime = doc.data['transactionTime'];
+    String year = numberTime.toString().substring(0, 4);
+    String month = numberTime.toString().substring(4, 6);
+    String day = numberTime.toString().substring(6, 8);
+    String hour = numberTime.toString().substring(8, 10);
+    String minutes = numberTime.toString().substring(10, 12);
+    String seconds = numberTime.toString().substring(12);
 
-    var formatter = new DateFormat('d MMM y');
-    String date = formatter.format(time.toDate());
-
+    String date =
+        year + "-" + month + "-" + day + " at " + hour + ":" + minutes;
     return Container(
       margin: EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
@@ -368,7 +375,15 @@ class _PortfolioState extends State<Portfolio> {
                                 fontWeight: FontWeight.w600)),
                       ),
                       Text(
-                        goal,
+                        goal == null ? 'General' : goal,
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.normal)),
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        date,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,
@@ -386,13 +401,6 @@ class _PortfolioState extends State<Portfolio> {
                                 color: Colors.black,
                                 fontWeight: FontWeight.w600)),
                       ),
-                      Text(
-                        '$date',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.normal)),
-                      )
                     ],
                   )
                 ],
@@ -413,29 +421,8 @@ class _PortfolioState extends State<Portfolio> {
           switch (snapshot.connectionState) {
             case ConnectionState.active:
             case ConnectionState.none:
-              return Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.sentiment_neutral,
-                      size: 100,
-                      color: Colors.red,
-                    ),
-                    Text(
-                      'You have not made any transactions',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16)),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                  ],
-                ),
-              );
+              return UnsuccessfullError(
+                  message: 'You have not made any savings transactions');
             case ConnectionState.done:
               if (snapshot.data.documents.length > 0) {
                 return ListView(
@@ -444,29 +431,8 @@ class _PortfolioState extends State<Portfolio> {
                       .toList(),
                 );
               } else {
-                return Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.sentiment_neutral,
-                        size: 100,
-                        color: Colors.red,
-                      ),
-                      Text(
-                        'You have not made any transactions',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 16)),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                    ],
-                  ),
-                );
+                return UnsuccessfullError(
+                    message: 'You have not made any savings transactions');
               }
               break;
             case ConnectionState.waiting:
@@ -512,28 +478,8 @@ class _PortfolioState extends State<Portfolio> {
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
               if (snapshot.data.documents.length == 0) {
-                return Center(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.sentiment_neutral,
-                      size: 100,
-                      color: Colors.red,
-                    ),
-                    Text(
-                      'You do not have any savings',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16)),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
-                  ],
-                ));
+                return UnsuccessfullError(
+                    message: 'You do not have any savings');
               }
               return pie.PieChart(
                 dataMap: _retrieveAssets(snapshot.data.documents),
@@ -552,28 +498,7 @@ class _PortfolioState extends State<Portfolio> {
               );
             }
             if (!snapshot.hasData) {
-              return Center(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.sentiment_neutral,
-                    size: 100,
-                    color: Colors.red,
-                  ),
-                  Text(
-                    'You do not have any savings',
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            fontWeight: FontWeight.w700, fontSize: 16)),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                ],
-              ));
+              return UnsuccessfullError(message: 'You do not have any savings');
             }
             return SpinKitDoubleBounce(
               size: MediaQuery.of(context).size.height * 0.25,

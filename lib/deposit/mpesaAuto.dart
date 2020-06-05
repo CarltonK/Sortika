@@ -169,9 +169,8 @@ class _MpesaAutoState extends State<MpesaAuto> {
               uid: widget.uid,
               method: widget.method,
               phone: widget.phone);
-           print(depositModel.toJson());
-          _helper.depositMoney(widget.uid, depositModel)
-          .catchError((error) {
+          print(depositModel.toJson());
+          _helper.depositMoney(widget.uid, depositModel).catchError((error) {
             //Dismiss the dialog
             Navigator.of(context).pop();
 
@@ -197,12 +196,12 @@ class _MpesaAutoState extends State<MpesaAuto> {
                   );
                 });
 
-                ActivityModel depositAct = new ActivityModel(
-                  activity: 'You have submitted a deposit request of ${_amount.toStringAsFixed(0)} KES',
-                  activityDate: Timestamp.now()
-                );
+            ActivityModel depositAct = new ActivityModel(
+                activity:
+                    'You have submitted a deposit request of ${_amount.toStringAsFixed(0)} KES',
+                activityDate: Timestamp.now());
 
-                await _authService.postActivity(widget.uid, depositAct);
+            await _authService.postActivity(widget.uid, depositAct);
             setState(() {
               _isRequestProcessing = true;
             });

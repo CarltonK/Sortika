@@ -1,10 +1,11 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/widgets/manualCapture.dart';
+import 'package:wealth/widgets/unsuccessfull_error.dart';
 
 class Insights extends StatefulWidget {
   final String uid;
@@ -16,65 +17,11 @@ class Insights extends StatefulWidget {
 }
 
 class _InsightsState extends State<Insights> {
-  String _itemType;
-
   Helper helper = new Helper();
 
   Future incVexpe;
-
-  List<DropdownMenuItem> entryTypes = [
-    DropdownMenuItem(
-      value: 'income',
-      child: Text(
-        'Income',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'expense',
-      child: Text(
-        'Expense',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
-
-  Widget _typeEntry() {
-    return Container(
-      alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 12),
-      child: DropdownButton(
-        items: entryTypes,
-        underline: Divider(
-          color: Colors.transparent,
-        ),
-        value: _itemType,
-        hint: Text(
-          'Type',
-          style: GoogleFonts.muli(textStyle: TextStyle()),
-        ),
-        icon: Icon(
-          CupertinoIcons.down_arrow,
-          color: Colors.black,
-        ),
-        isExpanded: true,
-        onChanged: (value) {
-          setState(() {
-            _itemType = value;
-          });
-          print(_itemType);
-        },
-      ),
-    );
-  }
+  Future activeVincome;
+  Future passVexp;
 
   Future _addIncorExp() {
     return showCupertinoModalPopup(
@@ -91,43 +38,9 @@ class _InsightsState extends State<Insights> {
                     fontWeight: FontWeight.w600,
                     fontSize: 16)),
           ),
-          content: Form(
-              child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _typeEntry(),
-              SizedBox(
-                height: 10,
-              ),
-              TextFormField(
-                style:
-                    GoogleFonts.muli(textStyle: TextStyle(color: Colors.black)),
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                  hintText: 'Amount',
-                  hintStyle: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black, fontWeight: FontWeight.w300)),
-                  border: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
-                  focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black)),
-                ),
-              ),
-            ],
-          )),
-          actions: [
-            FlatButton(
-                onPressed: () {},
-                child: Text(
-                  'ADD',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                  )),
-                ))
-          ],
+          content: ManualCapture(
+            uid: widget.uid,
+          ),
         );
       },
     );
@@ -251,8 +164,9 @@ class _InsightsState extends State<Insights> {
                     'Captured from SMS',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
-                            color: Colors.black.withOpacity(0.5),
-                            fontWeight: FontWeight.w600,)),
+                      color: Colors.black.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                    )),
                   ),
                 ],
               ),
@@ -278,56 +192,332 @@ class _InsightsState extends State<Insights> {
                     double receivedAmount = snapshot.data['receivedAmount'];
                     double sentAmount = snapshot.data['sentAmount'];
 
-                    return Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AnimatedContainer(
-                          duration: Duration(seconds: 1),
-                          height:
-                              (MediaQuery.of(context).size.height * 0.3) * 0.2,
-                          width: (MediaQuery.of(context).size.width) *
-                              (incomeCount / total),
-                          decoration: BoxDecoration(
-                              color: Colors.green,
-                              borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(30),
-                                  bottomRight: Radius.circular(30))),
-                          child: Center(
-                            child: Text(
-                              '${receivedAmount.toStringAsFixed(0)} KES',
-                              style: GoogleFonts.quicksand(
-                                fontSize: 12,
-                                  textStyle: TextStyle(color: Colors.white)),
+                    if (incomeCount == 0 && expenseCount == 0) {
+                      return UnsuccessfullError(
+                          message: 'We have not captured any data');
+                    } else {
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AnimatedContainer(
+                            duration: Duration(seconds: 1),
+                            height: (MediaQuery.of(context).size.height * 0.3) *
+                                0.2,
+                            width: (MediaQuery.of(context).size.width) *
+                                (incomeCount / total),
+                            decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(30),
+                                    bottomRight: Radius.circular(30))),
+                            child: Center(
+                              child: Text(
+                                '${receivedAmount.toStringAsFixed(0)} KES',
+                                style: GoogleFonts.quicksand(
+                                    fontSize: 12,
+                                    textStyle: TextStyle(color: Colors.white)),
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        AnimatedContainer(
-                          duration: Duration(seconds: 1),
-                          height:
-                              (MediaQuery.of(context).size.height * 0.3) * 0.2,
-                          width: (MediaQuery.of(context).size.width) *
-                              (expenseCount / total),
-                          decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(30),
-                                  bottomRight: Radius.circular(30))),
-                                  child: Center(
-                            child: Text(
-                              '${sentAmount.toStringAsFixed(0)} KES',
-                              style: GoogleFonts.quicksand(
-                                fontSize: 12,
-                                  textStyle: TextStyle(color: Colors.white)),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          AnimatedContainer(
+                            duration: Duration(seconds: 1),
+                            height: (MediaQuery.of(context).size.height * 0.3) *
+                                0.2,
+                            width: (MediaQuery.of(context).size.width) *
+                                (expenseCount / total),
+                            decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(30),
+                                    bottomRight: Radius.circular(30))),
+                            child: Center(
+                              child: Text(
+                                '${sentAmount.toStringAsFixed(0)} KES',
+                                style: GoogleFonts.quicksand(
+                                    fontSize: 12,
+                                    textStyle: TextStyle(color: Colors.white)),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
+                        ],
+                      );
+                    }
+                  }
+                  if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
+                  } else {
+                    return UnsuccessfullError(
+                        message: 'We have not captured any data');
+                  }
+                  break;
+                case ConnectionState.active:
+                case ConnectionState.waiting:
+                  return SpinKitDoubleBounce(
+                    size: (MediaQuery.of(context).size.height * 0.3) / 2,
+                    color: Colors.greenAccent[700],
+                  );
+                case ConnectionState.none:
+                  return Text('none');
+                default:
+                  return SpinKitDoubleBounce(
+                    size: (MediaQuery.of(context).size.height * 0.3) / 2,
+                    color: Colors.greenAccent[700],
+                  );
+              }
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _containerPassvExp() {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Passive Savings v Expenses',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16)),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          FutureBuilder<Map<String, dynamic>>(
+            future: passVexp,
+            builder: (context, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.done:
+                  if (snapshot.hasData) {
+                    int total = snapshot.data['total'];
+                    int passiveCount =
+                        snapshot.data["passive"].documents.length;
+                    int expensesCount =
+                        snapshot.data['expenses'].documents.length;
+                    double passiveAmount = snapshot.data['passiveAmount'];
+                    double sentAmount = snapshot.data['sentAmount'];
+
+                    if (passiveCount == 0 && expensesCount == 0) {
+                      return UnsuccessfullError(
+                          message: 'We have not captured any data');
+                    } else {
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AnimatedContainer(
+                            duration: Duration(seconds: 1),
+                            height: (MediaQuery.of(context).size.height * 0.3) *
+                                0.2,
+                            width: (MediaQuery.of(context).size.width) *
+                                (passiveCount / total),
+                            decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(30),
+                                    bottomRight: Radius.circular(30))),
+                            child: Center(
+                              child: Text(
+                                '${passiveAmount.toStringAsFixed(0)} KES',
+                                style: GoogleFonts.quicksand(
+                                    fontSize: 12,
+                                    textStyle: TextStyle(color: Colors.white)),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          AnimatedContainer(
+                            duration: Duration(seconds: 1),
+                            height: (MediaQuery.of(context).size.height * 0.3) *
+                                0.2,
+                            width: (MediaQuery.of(context).size.width) *
+                                (expensesCount / total),
+                            decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(30),
+                                    bottomRight: Radius.circular(30))),
+                            child: Center(
+                              child: Text(
+                                '${sentAmount.toStringAsFixed(0)} KES',
+                                style: GoogleFonts.quicksand(
+                                    fontSize: 12,
+                                    textStyle: TextStyle(color: Colors.white)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  }
+                  if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
+                  } else {
+                    return UnsuccessfullError(
+                        message: 'We have not captured any data');
+                  }
+                  break;
+                case ConnectionState.active:
+                case ConnectionState.waiting:
+                  return SpinKitDoubleBounce(
+                    size: (MediaQuery.of(context).size.height * 0.3) / 2,
+                    color: Colors.greenAccent[700],
+                  );
+                case ConnectionState.none:
+                  return Text('none');
+                default:
+                  return SpinKitDoubleBounce(
+                    size: (MediaQuery.of(context).size.height * 0.3) / 2,
+                    color: Colors.greenAccent[700],
+                  );
+              }
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget singleColorKey(Color color, String text, String subtitle) {
+    return ListTile(
+      leading: Container(
+        height: 20,
+        width: 20,
+        decoration: BoxDecoration(
+            color: color, borderRadius: BorderRadius.circular(16)),
+      ),
+      title: Text(
+        text,
+        style: GoogleFonts.quicksand(
+            color: color, fontWeight: FontWeight.bold, fontSize: 20),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: GoogleFonts.quicksand(color: Colors.black, fontSize: 12),
+      ),
+    );
+  }
+
+  Widget _containerKey() {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
+      child: Container(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //Incomes
+            singleColorKey(Colors.green, 'INCOMES', ''),
+            //Expenses
+            singleColorKey(Colors.red, 'EXPENSES', ''),
+            //PassiveSavings
+            singleColorKey(Colors.blue, 'PASSIVE SAVINGS',
+                'These are savings you make when you complete the M-PESA prompt'),
+            //Active Savings
+            singleColorKey(Colors.purple, 'ACTIVE SAVINGS',
+                'These are savings you make deposit money via Paybill')
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _containerActvPassIncs() {
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Active Savings v Income',
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16)),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          FutureBuilder<Map<String, dynamic>>(
+            future: activeVincome,
+            builder: (context, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.done:
+                  if (snapshot.hasData) {
+                    int total = snapshot.data['total'];
+                    int incomeCount = snapshot.data["incomes"].documents.length;
+                    int activeCount = snapshot.data['active'].documents.length;
+                    double receivedAmount = snapshot.data['receivedAmount'];
+                    double activeAmount = snapshot.data['activeAmount'];
+
+                    if (incomeCount == 0 && activeCount == 0) {
+                      return UnsuccessfullError(
+                          message: 'We have not captured any data');
+                    } else {
+                      return Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AnimatedContainer(
+                            duration: Duration(seconds: 1),
+                            height: (MediaQuery.of(context).size.height * 0.3) *
+                                0.2,
+                            width: (MediaQuery.of(context).size.width) *
+                                (activeCount / total),
+                            decoration: BoxDecoration(
+                                color: Colors.purple,
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(30),
+                                    bottomRight: Radius.circular(30))),
+                            child: Center(
+                              child: Text(
+                                '${activeAmount.toStringAsFixed(0)} KES',
+                                style: GoogleFonts.quicksand(
+                                    fontSize: 12,
+                                    textStyle: TextStyle(color: Colors.white)),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          AnimatedContainer(
+                            duration: Duration(seconds: 1),
+                            height: (MediaQuery.of(context).size.height * 0.3) *
+                                0.2,
+                            width: (MediaQuery.of(context).size.width) *
+                                (incomeCount / total),
+                            decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(30),
+                                    bottomRight: Radius.circular(30))),
+                            child: Center(
+                              child: Text(
+                                '${receivedAmount.toStringAsFixed(0)} KES',
+                                style: GoogleFonts.quicksand(
+                                    fontSize: 12,
+                                    textStyle: TextStyle(color: Colors.white)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
                   }
                   if (snapshot.hasError) {
                     return Text(snapshot.error.toString());
@@ -356,114 +546,12 @@ class _InsightsState extends State<Insights> {
     );
   }
 
-  Widget _containerPassvActive() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Passive Savings v Expenses',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16)),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-            child: LineChart(incomeVExpenseData()),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget singleColorKey(Color color, String text, String subtitle) {
-    return ListTile(
-            leading: Container(
-              height: 20,
-              width: 20,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(16)
-              ),
-            ),
-            title: Text(
-              text,
-              style: GoogleFonts.quicksand(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 20
-              ),
-            ),
-            subtitle: Text(
-              subtitle,
-              style: GoogleFonts.quicksand(
-                color: Colors.black,
-              ),
-            ),
-          );
-  }
-
-   Widget _containerKey() {
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16)
-      ),
-      elevation: 4,
-      child: Container(
-        padding: EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //Incomes
-            singleColorKey(Colors.green, 'INCOMES',''),
-            //Expenses
-            singleColorKey(Colors.red, 'EXPENSES',''),
-            //PassiveSavings
-            singleColorKey(Colors.blue, 'PASSIVE SAVINGS','These are savings you make when you complete the M-PESA prompt'),
-            //Active Savings
-            singleColorKey(Colors.purple, 'ACTIVE SAVINGS','These are savings you make deposit money via Paybill')
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _containerActvPassIncs() {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Active Savings v Income',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16)),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-            child: LineChart(incomeVExpenseData()),
-          )
-        ],
-      ),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
     incVexpe = helper.getIncomeVExpenses(widget.uid);
+    activeVincome = helper.getActiveVIncome(widget.uid);
+    passVexp = helper.getPassiveVExpense(widget.uid);
   }
 
   @override
@@ -500,12 +588,14 @@ class _InsightsState extends State<Insights> {
               height: 5,
             ),
             _containerKey(),
-            SizedBox(height: 10,),
+            SizedBox(
+              height: 10,
+            ),
             _containerIncVExp(),
             SizedBox(
               height: 30,
             ),
-            _containerPassvActive(),
+            _containerPassvExp(),
             SizedBox(
               height: 30,
             ),
