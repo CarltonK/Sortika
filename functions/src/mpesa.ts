@@ -366,12 +366,12 @@ export function mpesaLnmCallback(request: Request, response: Response) {
 }
 
 export function mpesaB2cTimeout(request: Request, response: Response) {
-    console.log('---Received Safaricom M-PESA Webhook---')
+    console.log('---Received Safaricom M-PESA Webhook For B2C Timeout---')
     console.log(`---B2C Timeout---\n${request.body}`)
 }
 
 export function mpesaB2cResult(request: Request, response: Response) {
-    console.log('---Received Safaricom M-PESA Webhook---')
+    console.log('---Received Safaricom M-PESA Webhook For B2C---')
     console.log(`---B2C Result---\n${request.body['Result']['ResultCode']}`)
     console.log(`---B2C Result---\n${request.body['Result']['ResultDesc']}`)
 }

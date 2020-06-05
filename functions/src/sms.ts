@@ -50,7 +50,7 @@ export function receiveSMS(request: Request, response: Response) {
         response.status(400).json({status: false, "message": `${error}`})
     }
 }
-
+        
 // function analyzeUnwanted(data: Array<SMS>) {
 //     console.log(`Unwanted SMS Count: ${data.length}`)
 // }
@@ -141,7 +141,7 @@ async function parseMessage(data: SMS) {
                             'transaction_recorded': firestore.Timestamp.now(),
                             'transaction_code': trx_code,
                             'transaction_amount': amount,
-                            'transaction_type': 'sent',
+                            'transaction_type': 'received',
                             'transaction_user': data.uid,
                             'transaction_fulfilled': false
                         })

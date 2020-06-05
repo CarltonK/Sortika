@@ -474,12 +474,12 @@ export const promptLoanAccepted = functions.firestore
     .document('loans/{loan}')
     .onWrite(async snapshot => {
         const token: string = snapshot.after.get('tokenBorrower')
-            const amount: number = snapshot.after.get('loanAmountTaken')
-            const due: number = snapshot.after.get('totalAmountToPay')
-            //const borrowerUid: string = snapshot.after.get('loanBorrower')
-            const time: FirebaseFirestore.Timestamp = snapshot.after.get('loanEndDate')
+        const amount: number = snapshot.after.get('loanAmountTaken')
+        const due: number = snapshot.after.get('totalAmountToPay')
+        const borrowerUid: string = snapshot.after.get('loanBorrower')
+        const time: FirebaseFirestore.Timestamp = snapshot.after.get('loanEndDate')
         //Retrieve the token (If exists)
-        if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === true) {
+        if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === true) {       
             //Retrieve key info
             //Define the payload
             const payload = {
@@ -491,12 +491,11 @@ export const promptLoanAccepted = functions.firestore
             }
             //Create a notification for the borrower
             //Store in notifications subcollection of user
-            // await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-            //     'message': `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${date.toLocaleDateString()}`,
-            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
-            // })
+            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                'message': `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${time.toDate().toString()}`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
             console.log(payload);
-            //Send to all tenants in the topic "landlord_code"
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
                 console.error('promptLoanAccepted FCM Error',error)
@@ -510,9 +509,65 @@ export const promptAcceptLoan = functions.firestore
             const token: string = snapshot.after.get('loanLenderToken')
             const borrowerName: string = snapshot.after.get('borrowerName')
             const amount: number = snapshot.after.get('loanAmountTaken')
-            //const lenderUid: string = snapshot.after.get('loanLender')
+            const lenderUid: string = snapshot.after.get('loanLender')
+            const borrowerUid: string = snapshot.after.get('loanBorrower')
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === true) {
+            //Transaction
+            //Perform transaction if the lender is not the borrower
+            if (lenderUid !== borrowerUid) {
+                //Borrowers Wallet Reference
+                const borrowerWalletDoc: FirebaseFirestore.DocumentReference = db.collection('users').doc(borrowerUid).collection('wallet').doc(borrowerUid)
+                //First Retrieve Lenders Goal Fund Goal
+                const lenderLoanFundQuery: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(lenderUid)
+                    .collection('goals').where('goalCategory','==','Loan Fund').limit(1).get()
+                const goalDocs: Array<DocumentSnapshot> = lenderLoanFundQuery.docs
+                goalDocs.forEach(async goalDoc => {
+                    const goalAmount: number = goalDoc.get('goalAmountSaved')
+                    if (amount > goalAmount) {
+                        console.log('The lender cannot satisfy the amount quoted')
+                        //Delete the goal
+                        await db.collection('loans').doc(snapshot.after.id).delete()
+                    }
+                    else {
+                        //Transfer the money to the borrowers wallet
+                        //Lenders Wallet Reference
+                        const lenderLoanFundDoc: FirebaseFirestore.DocumentReference = db.collection('users').doc(lenderUid).collection('goals').doc(goalDoc.id)
+                        db.runTransaction(async transact => {
+                            return transact.get(lenderLoanFundDoc)
+                                .then(value => {
+                                    console.log(`Loan Fund Goal update begin for user: ${lenderUid}`)
+                                    transact.update(lenderLoanFundDoc, {goalAmountSaved: superadmin.firestore.FieldValue.increment(-amount)})
+                                    console.log(`Loan Fund Goal update end for user: ${lenderUid}`)
+
+                                    db.runTransaction(async transaction => {
+                                        return transaction.get(borrowerWalletDoc)
+                                            .then(val => {
+                                                console.log(`Wallet update begin for user: ${borrowerUid}`)
+                                                transaction.update(borrowerWalletDoc, {amount: superadmin.firestore.FieldValue.increment(amount)})
+                                                console.log(`Wallet update end for user: ${borrowerUid}`)
+                                            })
+                                    })
+                                    .then(async thenVal => {
+                                        console.log('The wallet has beeen updated successfully after the loan')
+                                    })
+                                    .catch(error => {
+                                        console.error(`Wallet update transaction error: ${error}`)
+                                    })
+                                })
+                                .catch(error => {
+                                    console.error(`Fetch Loan Fund Goal Error: ${error}`)
+                                })
+                        })
+                        .then(value => {
+                            console.log(`P2P Loan Transaction completed`)
+                        })
+                        .catch(error => {
+                            console.error(`P2P Loan Transaction Error: ${error}`)
+                        })
+                    }
+                })
+            }
             //Retrieve key info
             //Define the payload
             const payload = {
@@ -764,18 +819,23 @@ export const selfLoan = functions.firestore
         const token: string = snapshot.get('tokenBorrower')
         if (lender !== null) {
             //Check if user has enough amount in Loan Fund Goal
-            await db.collection('users').doc(lender).collection('goals')
+            db.collection('users').doc(lender).collection('goals')
                 .where('goalCategory', '==', 'Loan Fund')
                 .limit(1)
-                .get().then((queries) => {
+                .get()
+                .then((queries) => {
                     queries.forEach(async (element) => {
+                        //Document Reference of the wallet doc
+                        const doc: FirebaseFirestore.DocumentReference = db.collection('users').doc(lender).collection('wallet').doc(lender)
+                        //Document Reference of the loan fund goal doc
+                        const loanDoc: FirebaseFirestore.DocumentReference = db.collection('users').doc(lender).collection('goals').doc(element.id)
                         const limit: number = element.get('goalAmountSaved')
                         if (amount > limit) {
                             await db.collection('loans').doc(snapshot.id).update({
                                 'tokenInvitee': token,
                             })
                             await db.collection('loans').doc(snapshot.id).update({
-                            'loanStatus': 'Rejected'
+                                'loanStatus': 'Rejected'
                             })
                             const payload = {
                                 notification: {
@@ -794,19 +854,53 @@ export const selfLoan = functions.firestore
                                 'loanLenderToken': token,
                                 'loanStatus': true
                             })
-                            const payload = {
-                                notification: {
-                                    title: `Good News`,
-                                    body: `You have successfully borrowed ${amount} KES from your loan Fund Goal`,
-                                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-                                }
-                            }
-                            return fcm.sendToDevice(token, payload)
-                                .catch(error => {
-                                    console.error('selfLoanAccept FCM Error',error)
-                                })
+                            db.runTransaction(async transact => {
+                                return transact.get(loanDoc)
+                                    .then(value => {
+                                        console.log(`Loan Fund Goal update begin for user: ${lender}`)
+                                        transact.update(loanDoc, {goalAmountSaved: superadmin.firestore.FieldValue.increment(-amount)})
+                                        console.log(`Loan Fund Goal update end for user: ${lender}`)
+
+                                        db.runTransaction(async transaction => {
+                                            return transaction.get(doc)
+                                                .then(val => {
+                                                    console.log(`Wallet update begin for user: ${lender}`)
+                                                    transaction.update(doc, {amount: superadmin.firestore.FieldValue.increment(amount)})
+                                                    console.log(`Wallet update end for user: ${lender}`)
+                                                })
+                                        })
+                                        .then(async thenVal => {
+                                            const payload = {
+                                                notification: {
+                                                    title: `Good News`,
+                                                    body: `You have successfully borrowed ${amount} KES from your loan Fund Goal`,
+                                                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+                                                }
+                                            }
+                                            return fcm.sendToDevice(token, payload)
+                                                .catch(error => {
+                                                    console.error('selfLoanAccept FCM Error',error)
+                                                })
+                                        })
+                                        .catch(error => {
+                                            console.error(`Wallet update transaction error: ${error}`)
+                                        })
+                                    })
+                                    .catch(error => {
+                                        console.error(`Fetch Loan Fund Goal Error: ${error}`)
+                                    })
+                            })
+                            .then(value => {
+                                console.log(`Self Loan Transaction completed`)
+                            })
+                            .catch(error => {
+                                console.error(`Self Loan Transaction Error: ${error}`)
+                            })
                         }
                     })
+                })
+                .catch(error => {
+                    console.error(`Fetch Loan Fund Goal Error: ${error}`)
                 })
         }
     })
