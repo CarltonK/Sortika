@@ -8,6 +8,7 @@ import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
+import 'package:wealth/models/investmentModel.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class InvestmentGoal extends StatefulWidget {
@@ -28,8 +29,11 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
   //Placeholder of amount
   double targetAmount = 0;
 
-  Stream<QuerySnapshot> futureTypes;
+  Future<List<InvestmentModel>> fetchData;
   Helper helper = new Helper();
+
+  List<InvestmentModel> _classes = [];
+  List<dynamic> _types = [];
 
   //Set an average loan to be 30 days
   static DateTime rightNow = DateTime.now();
@@ -61,73 +65,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
     'Dec'
   ];
 
-  List<DropdownMenuItem> classesItems = [
-    DropdownMenuItem(
-      value: 'Commodities',
-      child: Text(
-        'Commodities',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'Cryptos',
-      child: Text(
-        'Cryptos',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'Equities',
-      child: Text(
-        'Equities',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'Fixed Income',
-      child: Text(
-        'Fixed Income',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'Global Financial Markets',
-      child: Text(
-        'Global Financial Markets',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'Indexes',
-      child: Text(
-        'Indexes',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'Money Market',
-      child: Text(
-        'Money Market',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
-
-  Widget _investClassWidget() {
+    Widget _investClassWidget() {
     return Container(
         alignment: Alignment.centerLeft,
         decoration: BoxDecoration(
@@ -142,34 +80,73 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
           ],
         ),
         padding: EdgeInsets.symmetric(horizontal: 12),
-        child: DropdownButton(
-          items: classesItems,
-          underline: Divider(
-            color: Colors.transparent,
-          ),
-          value: classInvestment,
-          hint: Text(
-            '',
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600)),
-          ),
-          icon: Icon(
-            CupertinoIcons.down_arrow,
-            color: Colors.black,
-          ),
-          isExpanded: true,
-          onChanged: (value) {
-            setState(() {
-              classInvestment = value;
-              futureTypes = helper.fetchInvestmentTypes(classInvestment);
-              //print(classInvestment);
-            });
+        child: FutureBuilder<List<InvestmentModel>>(
+          future: fetchData,
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.active:
+              case ConnectionState.done:
+                if (snapshot.hasData) {
+                  _classes = snapshot.data;
+                  return DropdownButton(
+                    items: _classes
+                        .map((map) => DropdownMenuItem(
+                              value: map.title,
+                              child: Text(
+                                map.title,
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w600)),
+                              ),
+                            ))
+                        .toList(),
+                    underline: Divider(
+                      color: Colors.transparent,
+                    ),
+                    value: classInvestment,
+                    hint: Text(
+                      '',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600)),
+                    ),
+                    icon: Icon(
+                      CupertinoIcons.down_arrow,
+                      color: Colors.black,
+                    ),
+                    isExpanded: true,
+                    onChanged: (value) => selectedChange(value),
+                  );
+                }
+                return LinearProgressIndicator();
+              case ConnectionState.waiting:
+                return LinearProgressIndicator();
+              default:
+                return LinearProgressIndicator();
+            }
           },
         ));
   }
+
+    void selectedChange(String value) {
+    setState(() {
+      goalInvestment = 'Choose a goal';
+      _types = [{'name':'Choose a goal','return':0}];
+      classInvestment = value;
+      _types = List.from(_types)..addAll(getgoalByTitle(value));
+      print(_types);
+    });
+  }
+
+  getgoalByTitle(String value) => _classes
+    .map((map) => map)
+    .where((item) => item.title == value)
+    .map((item) => item.types)
+    .expand((i) => i)
+    .toList();
 
   Widget _investTypeWidget() {
     return Container(
@@ -186,55 +163,39 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         ],
       ),
       padding: EdgeInsets.symmetric(horizontal: 12),
-      child: StreamBuilder<QuerySnapshot>(
-        stream: futureTypes,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return DropdownButton(
-              disabledHint: Text(
-                'Please select a class',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(fontWeight: FontWeight.w600)),
-              ),
-              items: snapshot.data.documents.map((map) {
-                //goalInvestment = map.data['name'];
-                return DropdownMenuItem(
-                  value: map.data['name'],
-                  child: Text(
-                    '${map.data['name']} (${map.data['return']}%)',
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            color: Colors.black, fontWeight: FontWeight.w600)),
-                  ),
-                );
-              }).toList(),
-              underline: Divider(
-                color: Colors.transparent,
-              ),
-              value: goalInvestment,
-              hint: Text(
-                '',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600)),
-              ),
-              icon: Icon(
-                CupertinoIcons.down_arrow,
-                color: Colors.black,
-              ),
-              isExpanded: true,
-              onChanged: (value) {
-                setState(() {
-                  goalInvestment = value;
-                  print(goalInvestment);
-                });
-              },
-            );
-          } else {
-            return LinearProgressIndicator();
-          }
+      child: DropdownButton(
+        value: goalInvestment,
+        disabledHint: Text(
+          'Please select a class',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(fontWeight: FontWeight.w600)),
+        ),
+        items: _types.map((map) {
+          String name = map['name'];
+          num retu = map['return'];
+          return DropdownMenuItem(
+            value: name,
+            child: Text(
+              '$name ($retu%)',
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.w600)),
+            ),
+          );
+        }).toList(),
+        underline: Divider(
+          color: Colors.transparent,
+        ),
+        icon: Icon(
+          CupertinoIcons.down_arrow,
+          color: Colors.black,
+        ),
+        isExpanded: true,
+        onChanged: (value) {
+          setState(() {
+            goalInvestment = value;
+            print(goalInvestment);
+          });
         },
       ),
     );
@@ -437,7 +398,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
     //Check if class is non null
     if (classInvestment == null) {
       _promptUser("Please specify an investment class");
-    } else if (goalInvestment == null) {
+    } else if (goalInvestment == null || goalInvestment == "Choose a goal") {
       _promptUser("Please select an investment goal");
     } else if (targetAmount == 0) {
       _promptUser("Please select your initial investment amount");
@@ -512,6 +473,12 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData = helper.getInvestmentddData();
   }
 
   @override

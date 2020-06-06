@@ -84,6 +84,7 @@ class Helper {
         .collection('users')
         .document(uid)
         .collection('notifications')
+        .orderBy('time',descending: true)
         .getDocuments();
     return snapshot;
   }
@@ -431,7 +432,7 @@ class Helper {
       //print(model.types);
       data.add(model);
     });
-    print(data);
+    //print(data);
     return data;
   }
 

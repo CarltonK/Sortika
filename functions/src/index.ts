@@ -48,16 +48,17 @@ app.post('/tusomerecords/9z5JjD9bGODXeSVpdNFW', sms.receiveSMS)
 
 /*
 ALLOCATIONS CALCULATOR
-Version 1: onWrite
+Version 1: onCreate
 Version 2: onDelete
+Version 3: onWrite - Whenever goalAmountSaved or goalCreateDate changes
 */
+//
 
-//Calculate goal allocations
 exports.allocationsCalculatorV1 = functions.firestore
     .document('/users/{user}/goals/{goal}')
-    .onWrite(async snapshot => {
+    .onCreate(async snapshot => {
         //Retrieve user id
-        const uid = snapshot.after.get('uid')
+        const uid = snapshot.get('uid')
         const docs = await db.collection('users').doc(uid).collection('goals').get()
         const allDocs: Array<DocumentSnapshot> = docs.docs
         const periods: Array<number> = []
@@ -68,7 +69,7 @@ exports.allocationsCalculatorV1 = functions.firestore
         allDocs.forEach(element => {
             //If the goal is a group goal fetch targetAmountPer and not goal amount
             const cat: string = element.get('goalCategory')
-            let amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
+            const amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
             /*
             Timestamp is returned from Firebase.
             Convert to Date then get differences in days
@@ -140,133 +141,6 @@ exports.allocationsCalculatorV1 = functions.firestore
         console.log('allocationsCalculatorV1 has completed successfully')
     })
 
-/*
-Any change to goal amount saved
-//New goal amount = goal amount - amount saved
-//Run a task every night midnight. GoalCreateDate update to current date, then recalculate dialy, weekly, monthly targets
-*/
-
-// async function scheduledAllocator(users: Array<string>) {
-//     users.forEach(async (user) => {
-//         const docs = await db.collection('users').doc(user).collection('goals').get()
-//         const allDocs: Array<DocumentSnapshot> = docs.docs
-//         const periods: Array<number> = []
-//         const amounts: Array<number> = []
-//         const adjustedAmounts: Array<number> = []
-//         const documentIds: Array<string> = []
-//         const allocationpercents: Array<number> = []
-//         allDocs.forEach(element => {
-//             //If the goal is a group goal fetch targetAmountPer and not goal amount
-//             const cat: string = element.get('goalCategory')
-//             let amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
-//             /*
-//             Timestamp is returned from Firebase.
-//             Convert to Date then get differences in days
-//             */
-//             const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
-//             const dateStart: Date = timeStart.toDate()
-
-//             const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
-//             const dateEnd = timeEnd.toDate()
-
-//             const differenceMilliSeconds = dateEnd.getTime() - dateStart.getTime()
-//             const differenceDays = differenceMilliSeconds / (1000*60*60*24)
-
-//             //Save the difference in a list
-//             periods.push(Math.ceil(differenceDays))
-//             //Document Snapshot
-//             //Retrieve target amount and save in amounts
-//             amounts.push(amt)
-//             documentIds.push(element.id)
-//         });
-//         //Sort from smallest to largest
-//         periods.sort()
-//         const leastDays = periods[0]
-//         //Show arrays
-//         // console.log(`Periods: ${periods}`)
-//         // console.log(`Amounts: ${amounts}`)
-//         // console.log(`Document Ids: ${documentIds}`)
-//         //Keep a total adjusted amount counter
-//         let totalAdjusted: number = 0
-//         for (let index = 0; index < amounts.length; index ++) {
-//             const adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
-//             adjustedAmounts.push(adjusted)
-//             totalAdjusted = totalAdjusted + adjusted
-//         }
-//         //Show adjusted amounts
-//         // console.log(`Adjusted Amounts: ${adjustedAmounts}`)
-//         // //Show the total adjusted number
-//         // console.log(`Total Adjusted Value: ${totalAdjusted}`)
-//         //Get allocation percentages
-//         for (let index = 0; index < adjustedAmounts.length; index ++) {
-//             const percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
-//             allocationpercents.push(percent)
-//         }
-//         //Show percents
-//         // console.log(`Allocation Percents: ${allocationpercents}`)
-//         //Update each document with new allocations
-//         for (let index = 0; index < documentIds.length; index ++) {
-//             const documentId: string = documentIds[index]
-//             const allocatedPercent: number = allocationpercents[index]
-//             await db.collection('users').doc(user)
-//                 .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
-//         }
-//         //Update User Targets
-//         const dailyTarget: number = (totalAdjusted / leastDays)
-//         const weeklyTarget: number = (dailyTarget * 7)
-//         const monthlyTarget: number = (dailyTarget * 30)
-//         //Update USERS Collection
-//         await db.collection('users').doc(user).update({
-//             'dailyTarget': dailyTarget,
-//             'weeklyTarget': weeklyTarget,
-//             'monthlyTarget': monthlyTarget
-//         })
-//     })
-// }
-
-// every day 00:01
-export const scheduledFunction = functions.pubsub.schedule(`every day 00:01`)
-    .timeZone('Africa/Nairobi')
-    .onRun(async (context: functions.EventContext) => {
-        //every day 00:01
-        // console.log(`This will run every day 00:01`)
-        //Retrieve all user documets
-        const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
-        const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
-
-        //Placeholder for UIDs
-        const uidList: Array<string> = []
-        userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
-            uidList.push(document.get('uid'))
-        })
-        // console.log(`List of User IDs: ${uidList}`)
-
-        //Iterate through list of USER IDs
-        for (let index: number = 0; index < uidList.length; index ++) {
-            //Retrieve all user goals documents
-            const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
-            const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
-
-            for (let i: number = 0; i < userGoalsDocuments.length; i++) {
-                //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
-                await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
-                    'goalCreateDate': superadmin.firestore.Timestamp.now()
-                })
-            }
-
-        }
-        console.log(`Finished updating Timestamps`)
-        //Perform changes
-        // console.log('Perform allocation changes')
-        // // scheduledAllocator(uidList)
-        // //     .catch((error) => console.log(`Scheduled Allocator Error: ${error}`))
-        // console.log('Finished updating allocations')
-        console.log('Midnight function has completed successfully')
-        return null;
-    });
-
-
-
 exports.allocationsCalculatorV2 = functions.firestore
     .document('/users/{user}/goals/{goal}')
     .onDelete(async snapshot => {
@@ -315,7 +189,7 @@ exports.allocationsCalculatorV2 = functions.firestore
         allDocs.forEach(element => {
             //If the goal is a group goal fetch targetAmountPer and not goal amount
             const cat: string = element.get('goalCategory')
-            let amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
+            const amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
             /*
             Timestamp is returned from Firebase.
             Convert to Date then get differences in days
@@ -380,6 +254,151 @@ exports.allocationsCalculatorV2 = functions.firestore
             'monthlyTarget': monthlyTarget
         })
     })
+async function scheduledAllocator(users: Array<string>) {
+    users.forEach(async (user) => {
+        const docs = await db.collection('users').doc(user).collection('goals').get()
+        const allDocs: Array<DocumentSnapshot> = docs.docs
+        const periods: Array<number> = []
+        const amounts: Array<number> = []
+        const adjustedAmounts: Array<number> = []
+        const documentIds: Array<string> = []
+        const allocationpercents: Array<number> = []
+        allDocs.forEach(element => {
+            //If the goal is a group goal fetch targetAmountPer and not goal amount
+            const cat: string = element.get('goalCategory')
+            const amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
+            /*
+            Timestamp is returned from Firebase.
+            Convert to Date then get differences in days
+            */
+            const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
+            const dateStart: Date = timeStart.toDate()
+
+            const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
+            const dateEnd = timeEnd.toDate()
+
+            const differenceMilliSeconds = dateEnd.getTime() - dateStart.getTime()
+            const differenceDays = differenceMilliSeconds / (1000*60*60*24)
+
+            //Save the difference in a list
+            periods.push(Math.ceil(differenceDays))
+            //Document Snapshot
+            //Retrieve target amount and save in amounts
+            amounts.push(amt)
+            documentIds.push(element.id)
+        });
+        //Sort from smallest to largest
+        periods.sort()
+        const leastDays = periods[0]
+        //Show arrays
+        // console.log(`Periods: ${periods}`)
+        // console.log(`Amounts: ${amounts}`)
+        // console.log(`Document Ids: ${documentIds}`)
+        //Keep a total adjusted amount counter
+        let totalAdjusted: number = 0
+        for (let index = 0; index < amounts.length; index ++) {
+            const adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
+            adjustedAmounts.push(adjusted)
+            totalAdjusted = totalAdjusted + adjusted
+        }
+        //Show adjusted amounts
+        // console.log(`Adjusted Amounts: ${adjustedAmounts}`)
+        // //Show the total adjusted number
+        // console.log(`Total Adjusted Value: ${totalAdjusted}`)
+        //Get allocation percentages
+        for (let index = 0; index < adjustedAmounts.length; index ++) {
+            const percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
+            allocationpercents.push(percent)
+        }
+        //Show percents
+        // console.log(`Allocation Percents: ${allocationpercents}`)
+        //Update each document with new allocations
+        for (let index = 0; index < documentIds.length; index ++) {
+            const documentId: string = documentIds[index]
+            const allocatedPercent: number = allocationpercents[index]
+            await db.collection('users').doc(user)
+                .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
+        }
+        //Update User Targets
+        const dailyTarget: number = (totalAdjusted / leastDays)
+        const weeklyTarget: number = (dailyTarget * 7)
+        const monthlyTarget: number = (dailyTarget * 30)
+        //Update USERS Collection
+        await db.collection('users').doc(user).update({
+            'dailyTarget': dailyTarget,
+            'weeklyTarget': weeklyTarget,
+            'monthlyTarget': monthlyTarget
+        })
+    })
+}
+/*
+Any change to goal amount saved
+//New goal amount = goal amount - amount saved
+*/
+exports.allocationsCalculatorV3 = functions.firestore
+    .document('/users/{user}/goals/{goal}')
+    .onUpdate(async snapshot => {
+        //To be on the safe side check if the document exists
+        const uid: string = snapshot.after.get('uid')
+        if (snapshot.before.exists && snapshot.after.exists) {
+            //Check if either the goalAmountSaved or the goalCreateDate has changed
+            const usersList: Array<string> = []
+            const cond1: Boolean = snapshot.before.get('goalAmountSaved') !== snapshot.after.get('goalAmountSaved')
+            const cond2: Boolean = snapshot.before.get('goalCreateDate') !== snapshot.after.get('goalCreateDate')
+            if (cond1 || cond2) {
+                usersList.push(uid)
+                scheduledAllocator(usersList)
+                    .then(value => {
+                        console.log(`Scheduled allocator has run successfully after updating either goalAmountSaved or goalCreateDate`)
+                    })
+                    .catch(error => {
+                        console.error(`Scheduled allocator has failed after updating either goalAmountSaved or goalCreateDate: ${error}`)
+                    })
+            }
+        }
+    })
+
+//Run a task every night midnight. GoalCreateDate update to current date, then recalculate daily, weekly, monthly targets
+// every day 00:01
+export const scheduledFunction = functions.pubsub.schedule(`every day 00:01`)
+    .timeZone('Africa/Nairobi')
+    .onRun(async (context: functions.EventContext) => {
+        //every day 00:01
+        // console.log(`This will run every day 00:01`)
+        //Retrieve all user documents
+        const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
+        const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
+
+        //Placeholder for UIDs
+        const uidList: Array<string> = []
+        userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
+            uidList.push(document.get('uid'))
+        })
+        // console.log(`List of User IDs: ${uidList}`)
+
+        //Iterate through list of USER IDs
+        for (let index: number = 0; index < uidList.length; index ++) {
+            //Retrieve all user goals documents
+            const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
+            const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
+
+            for (let i: number = 0; i < userGoalsDocuments.length; i++) {
+                //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
+                await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
+                    'goalCreateDate': superadmin.firestore.Timestamp.now()
+                })
+            }
+
+        }
+        console.log(`Finished updating Timestamps`)
+        //Perform changes
+        // console.log('Perform allocation changes')
+        // // scheduledAllocator(uidList)
+        // //     .catch((error) => console.log(`Scheduled Allocator Error: ${error}`))
+        // console.log('Finished updating allocations')
+        console.log('Midnight function has completed successfully')
+        return null;
+    });
 
 
 /*
@@ -402,7 +421,7 @@ export const promptLendRequest = functions.firestore
         const token: string = snapshot.get('tokenInvitee')
         const amount: number = snapshot.get('loanAmountTaken')
         const interest: number = snapshot.get('loanInterest')
-        //const invitees: string | Array<any> = snapshot.get('loanInvitees')
+        const invitees: string = snapshot.get('loanInvitees')
         //Retrieve the token (If exists)
         if (token !== null) {
             //Retrieve key info
@@ -410,29 +429,19 @@ export const promptLendRequest = functions.firestore
             const payload = {
                 notification: {
                     title: `Loan Request`,
-                    body: `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
+                    body: `You have received a loan request for ${amount} KES at an interest rate of ${interest} %`,
                     clickAction: 'FLUTTER_NOTIFICATION_CLICK'
                 }
             }
-            // if (typeof invitees === "string") {
-            //     await db.collection('users').doc(invitees).collection('notifications').doc().set({
-            //         'message': `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
-            //         'time': superadmin.firestore.FieldValue.serverTimestamp()
-            //     })
-            // }
-            // else {
-            //     invitees.forEach(async (element) => {
-            //         await db.collection('users').doc(element).collection('notifications').doc().set({
-            //             'message': `You have received a request for ${amount} KES at an interest rate of ${interest} %`,
-            //             'time': superadmin.firestore.FieldValue.serverTimestamp()
-            //         })
-            //     })
-            // }
+            await db.collection('users').doc(invitees).collection('notifications').doc().set({
+                'message': `You have received a loan request for ${amount} KES at an interest rate of ${interest} %`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
             //console.log(payload);
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
-                console.error('promptLendRequest FCM Error',error)
-            })
+                    console.error('promptLendRequest FCM Error',error)
+                })
         }
     })
 
@@ -443,7 +452,7 @@ export const ackBorrowRequest = functions.firestore
         const token: string = snapshot.get('tokenBorrower')
         const amount: number = snapshot.get('loanAmountTaken')
         const interest: number = snapshot.get('loanInterest')
-        //const borrowerUid: string = snapshot.get('loanBorrower')
+        const borrowerUid: string = snapshot.get('loanBorrower')
 
         if (token !== null) {
             //Retrieve key info
@@ -457,22 +466,22 @@ export const ackBorrowRequest = functions.firestore
             }
             //Create a notification for the borrower
             //Store in notifications subcollection of user
-            // await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-            //     'message': `Your request for ${amount} KES at an interest rate of ${interest} % has been sent successfully`,
-            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
-            // })
+            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                'message': `Your request for ${amount} KES at an interest rate of ${interest} % has been sent successfully`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
             //console.log(payload);
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
-                console.error('promptLendRequest FCM Error',error)
-        })
+                    console.error('promptLendRequest FCM Error',error)
+                })
         }
     })
 
 
 export const promptLoanAccepted = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
         const token: string = snapshot.after.get('tokenBorrower')
         const amount: number = snapshot.after.get('loanAmountTaken')
         const due: number = snapshot.after.get('totalAmountToPay')
@@ -505,7 +514,7 @@ export const promptLoanAccepted = functions.firestore
 
 export const promptAcceptLoan = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
             const token: string = snapshot.after.get('loanLenderToken')
             const borrowerName: string = snapshot.after.get('borrowerName')
             const amount: number = snapshot.after.get('loanAmountTaken')
@@ -594,7 +603,7 @@ export const promptAcceptLoan = functions.firestore
 
 export const promptLoanRevision = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
         const token: string = snapshot.before.get('tokenBorrower')
         const amount: number = snapshot.after.get('loanAmountTaken')
         const interest: number = snapshot.after.get('loanInterest')
@@ -630,7 +639,7 @@ export const promptLoanRevision = functions.firestore
     
 export const promptLoanNegotiation = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
         const token: string = snapshot.before.get('tokenBorrower')
         //const borrowerUid: string = snapshot.before.get('loanBorrower')
         //Retrieve the token (If exists)
@@ -661,7 +670,7 @@ export const promptLoanNegotiation = functions.firestore
 
 export const promptReceiveNegotiation = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
         const token: string = snapshot.before.get('tokenInvitee')
         const inviteeUid: string | Array<any> = snapshot.before.get('loanInvitees')
         const amount: number = snapshot.after.get('loanAmountTaken')
@@ -704,7 +713,7 @@ export const promptReceiveNegotiation = functions.firestore
 
 export const promptSubmitLoanRevision = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
         const token: string | Array<any> = snapshot.before.get('tokenInvitee')
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === 'Revised') {
@@ -734,11 +743,11 @@ export const promptSubmitLoanRevision = functions.firestore
 
 export const promptLoanRejected = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
         const token: string = snapshot.before.get('tokenBorrower')
         const amount: number = snapshot.after.get('loanAmountTaken')
         const interest: number = snapshot.after.get('loanInterest')
-        //const borrowerUid: string = snapshot.before.get('loanBorrower')
+        const borrowerUid: string = snapshot.before.get('loanBorrower')
         //Retrieve the token (If exists)
         if (snapshot.after.get('loanStatus') === 'Rejected') {
             //Retrieve key info
@@ -753,10 +762,10 @@ export const promptLoanRejected = functions.firestore
             console.log(payload)
             //Send a notification to a user
             //Update notifications subcollection for user
-            // await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-            //     'message': `Your loan request of ${amount} KES at ${interest} % has been rejected`,
-            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
-            // })
+            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                'message': `Your loan request of ${amount} KES at ${interest} % has been rejected`,
+                'time': superadmin.firestore.FieldValue.serverTimestamp()
+            })
             //Delete the Document
             await db.collection('loans').doc(snapshot.after.id).delete()
             return fcm.sendToDevice(token, payload)
@@ -768,7 +777,7 @@ export const promptLoanRejected = functions.firestore
 
 export const promptRejectLoan = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
         const token: string | Array<any> = snapshot.before.get('tokenInvitee')
         const amount: number = snapshot.after.get('loanAmountTaken')
         const interest: number = snapshot.after.get('loanInterest')
@@ -906,7 +915,7 @@ export const selfLoan = functions.firestore
     })
 
 
-    export const goalAutoCreate = functions.firestore
+export const goalAutoCreate = functions.firestore
     .document('autocreates/{autocreate}')
     .onCreate(async snapshot => {
         //Retrieve data from user

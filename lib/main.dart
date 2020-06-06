@@ -64,7 +64,6 @@ class MyApp extends StatelessWidget {
           '/home': (context) => Home(),
           '/profile': (context) => ProfilePage(),
           '/create-goal': (context) => CreateGoal(),
-          '/rate': (context) => Rate(),
           '/help': (context) => Help(),
           '/settings': (context) => Settings(),
           '/edit-goal': (context) => EditGoal(),

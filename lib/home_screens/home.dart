@@ -28,12 +28,9 @@ import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/models/usermodel.dart';
-import 'package:wealth/widgets/group_savings_colored.dart';
 import 'package:wealth/widgets/investmentPortfolio.dart';
-import 'package:wealth/widgets/investment_colored.dart';
 import 'package:wealth/widgets/my_groups.dart';
 import 'package:wealth/widgets/portfolio.dart';
-import 'package:wealth/widgets/savings_colored.dart';
 import 'package:wealth/widgets/networkSensitive.dart';
 import 'package:http/http.dart' as http;
 
@@ -92,14 +89,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   int _currentPage = 0;
 
   List<Widget> _buildPageIndicator() {
-    List<Widget> list = [];
-    for (int i = 0; i < _numPages; i++) {
-      list.add(i == _currentPage ? _indicator(true) : _indicator(false));
-    }
-    return list;
-  }
-
-  List<Widget> _buildGroupPageIndicator() {
     List<Widget> list = [];
     for (int i = 0; i < _numPages; i++) {
       list.add(i == _currentPage ? _indicator(true) : _indicator(false));
@@ -917,21 +906,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     Portfolio(
                       uid: uid,
                     ),
-                    SavingsColored(
-                      uid: uid,
-                    )
                   ],
                 )),
-                SizedBox(
-                  height: 5,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: _buildPageIndicator(),
-                ),
-                SizedBox(
-                  height: 5,
-                )
               ],
             ),
           ),
@@ -2327,19 +2303,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     },
                     children: [
                       MyGroups(uid: uid),
-                      GroupSavingsColored(uid: uid)
                     ],
                   )),
-                  SizedBox(
-                    height: 5,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: _buildGroupPageIndicator(),
-                  ),
-                  SizedBox(
-                    height: 5,
-                  )
                 ],
               ),
             ),
@@ -2394,21 +2359,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   },
                   children: [
                     InvestmentPortfolio(uid: uid),
-                    InvestmentColored(
-                      uid: uid,
-                    )
                   ],
                 )),
-                SizedBox(
-                  height: 5,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: _buildPageIndicator(),
-                ),
-                SizedBox(
-                  height: 5,
-                )
               ],
             ),
           ),

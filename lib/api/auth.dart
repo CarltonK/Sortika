@@ -205,15 +205,6 @@ class AuthService {
         .setData(activity.toJson());
   }
 
-  Stream<QuerySnapshot> fetchInvestmentAssetTypes(String title) {
-    Stream<QuerySnapshot> queries = _firestore
-        .collection("investments")
-        .document(title)
-        .collection('types')
-        .snapshots();
-    return queries;
-  }
-
   Future<void> createAutoGoal(AutoCreateModel model) async {
     //Analytics Event - LOG EVENT
     await funnel.logEvent('Autocreate Goals', model.uid);

@@ -550,7 +550,7 @@ class _BorrowPageState extends State<BorrowPage> {
                   color: Colors.red,
                 ),
                 Text(
-                  'The requested lender is not on Sortikaf',
+                  'The requested lender is not on Sortika',
                   style: GoogleFonts.muli(
                       textStyle: TextStyle(color: Colors.black, fontSize: 16)),
                   textAlign: TextAlign.center,
