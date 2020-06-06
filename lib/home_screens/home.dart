@@ -2474,7 +2474,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 curve: Curves.ease);
                           });
                         },
-                        children: [SortikaSavings(), SortikaLottery()])),
+                        children: [SortikaSavings(user: userData,), SortikaLottery()])),
                 SizedBox(
                   height: 5,
                 ),

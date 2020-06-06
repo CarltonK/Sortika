@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/models/usermodel.dart';
 
 class SortikaSavings extends StatefulWidget {
+  final User user;
+
+  SortikaSavings({@required this.user});
+
   @override
   _SortikaSavingsState createState() => _SortikaSavingsState();
 }
@@ -25,7 +30,7 @@ class _SortikaSavingsState extends State<SortikaSavings> {
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(color: Colors.black))),
             TextSpan(
-                text: '100 Points',
+                text: '${widget.user.points} Points',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.black,
@@ -106,7 +111,7 @@ class _SortikaSavingsState extends State<SortikaSavings> {
     return Container(
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: EdgeInsets.symmetric(horizontal: 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -123,7 +128,7 @@ class _SortikaSavingsState extends State<SortikaSavings> {
           ),
           _introText(),
           SizedBox(
-            height: 20,
+            height: 10,
           ),
           Text(
             'Here\'s what you can redeem',

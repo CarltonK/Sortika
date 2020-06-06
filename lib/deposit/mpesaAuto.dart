@@ -47,6 +47,11 @@ class _MpesaAutoState extends State<MpesaAuto> {
     print('Amount: ' + _amount.toString());
   }
 
+  void _handleSubmittedPhone(String value) {
+    _phone = value.trim();
+    print('Phone: ' + _phone);
+  }
+
   Widget _depositPhone(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

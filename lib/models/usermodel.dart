@@ -15,6 +15,7 @@ class User {
   Timestamp registerDate;
   String designation;
   var passiveSavingsRate;
+  int points;
   //Firebase user metadata
   String uid;
   //Account Page
@@ -54,6 +55,7 @@ class User {
       this.natId,
       this.dob,
       this.gender,
+      this.points,
       this.natIDURL,
       this.kraURL,
       this.platform,
@@ -80,6 +82,7 @@ class User {
       designation: json['designation'],
       uid: json["uid"],
       photoURL: json["photoURL"],
+      points: json['points'],
       natId: json["natId"],
       dob: json["dob"],
       gender: json["gender"],
@@ -116,6 +119,7 @@ class User {
         "gender": gender,
         "natIDURL": natIDURL,
         "kraURL": kraURL,
+        "points": points,
         "platform": platform,
         "phoneVerified": phoneVerified,
         "token": token,

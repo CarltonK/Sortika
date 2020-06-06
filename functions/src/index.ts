@@ -631,8 +631,8 @@ export const promptLoanRevision = functions.firestore
             //Send to all tenants in the topic "landlord_code"
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
-                console.error('promptLoanRevised FCM Error',error)
-            })
+                    console.error('promptLoanRevised FCM Error',error)
+                })
         }
     })
 
@@ -696,8 +696,8 @@ export const promptReceiveNegotiation = functions.firestore
             //Send to all tenants in the topic "landlord_code"
             return fcm.sendToDevice(token, payload)
                 .catch(error => {
-                console.error('promptLoanRevised FCM Error',error)
-            }) 
+                    console.error('promptLoanRevised FCM Error',error)
+                }) 
         }
         else {
             // inviteeUid.forEach(async (element) => {
@@ -1283,23 +1283,21 @@ export const loanLimitCalculator = functions.firestore
     })
 
 
-// //Welcome a user
-// export const welcomeUser = functions.firestore
-//     .document('users/{user}')
-//     .onCreate(async snapshot => {
-//         //Send the user a welcome notification
-//         const token: string = snapshot.get('token')
-//         const fullName: string = snapshot.get('fullName')
-//         const fname: string = fullName.split(' ')[0]
-//         const payload = {
-//             notification: {
-//                 title: `It\'s time to Sortika`,
-//                 body: `We are glad to have you on board ${fname}`,
-//                 clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-//             }
-//         }
-//     return fcm.sendToDevice(token, payload)
-//         .catch(error => {
-//             console.error('welcomeUser FCM Error',error)
-//     })
-// })
+/*
+Sortika Points
+Record Points every time a transaction is carried out
+*/
+exports.sortikaPoints = functions.firestore
+    .document('/transactions/{transaction}')
+    .onCreate(async snapshot => {
+        //Retrieve amount and uid
+        const amount: number = snapshot.get('transactionAmount')
+        const uid: string = snapshot.get('transactionUid')
+        //Check if the amount is greater than or equal to 10
+        if (amount >= 10) {
+            const points: number = Math.floor(amount / 10)
+            await db.collection('users').doc(uid).update({
+                points: superadmin.firestore.FieldValue.increment(points)
+            })
+        }
+    })

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wealth/deposit/bankcard.dart';
 import 'package:wealth/deposit/mpesaAuto.dart';
 import 'package:wealth/deposit/mpesaManual.dart';
 import 'package:wealth/models/depositmethods.dart';
@@ -15,9 +14,10 @@ class PayLoan extends StatefulWidget {
 
 class _PayLoanState extends State<PayLoan> {
   Map<String, dynamic> loanData;
+  double totalAmount;
 
   Widget _balanceText() {
-    double totalAmount = loanData["totalAmountToPay"];
+    totalAmount = loanData["totalAmountToPay"];
 
     return Container(
       child: Column(
@@ -30,13 +30,18 @@ class _PayLoanState extends State<PayLoan> {
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(color: Colors.white))),
             TextSpan(
-                text: '${totalAmount.toInt().toString()}',
+                text: '${totalAmount.ceilToDouble()} KES',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 18),
                     decoration: TextDecoration.underline)),
+                    TextSpan(
+                text: '\nOverpayments will be credited back to you',
+                style: GoogleFonts.muli(
+                  fontSize: 11,
+                    textStyle: TextStyle(color: Colors.white)))
           ])),
         ],
       ),
@@ -138,7 +143,7 @@ class _PayLoanState extends State<PayLoan> {
   }
 
   //List of pages
-  List<Widget> _pages = [MpesaAuto(), MpesaManual(), MpesaAuto(), BankCard()];
+  List<Widget> _pages = [MpesaAuto(), MpesaManual()];
 
   @override
   Widget build(BuildContext context) {
