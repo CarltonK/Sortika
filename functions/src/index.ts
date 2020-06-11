@@ -5,7 +5,6 @@ superadmin.initializeApp()
 
 import * as express from 'express'
 import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
-//import * as auth from './authentication'
 import * as mpesa from './mpesa'
 import * as sms from './sms'
 import * as loan from './loan'
@@ -30,8 +29,6 @@ main.use(express.json())
 // API
 // */
 export const sortikaMain = functions.region('europe-west1').https.onRequest(main)
-// Registration
-// app.post('/users', auth.createUser)
 
 // M-PESA Endpoints
 // 1) Lipa Na Mpesa Online CallbackURL
