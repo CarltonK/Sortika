@@ -297,7 +297,7 @@ export const LoanCreate = functions.firestore
                                     //Send Notifications
                                     await notification.singleNotificationSend(inviteeTokens,`You have received a loan request for ${amount} KES but you do not qualify to be a lender. Continue to top up to take advantage of such opportunities`,'Loan Request')
                                     await db.collection('users').doc(inviteeID).collection('notifications').doc().set({
-                                        'message': `You have received a loan request for ${amount} KES but you do not qualify to be a lender. Continue to top up to take advantage of such opportunities`,
+                                        'message': `You have received a loan request for ${amount} KES but you do not qualify to be a lender. Continue to top up your Loan Fund Goal to take advantage of such opportunities`,
                                         'time': superadmin.firestore.FieldValue.serverTimestamp()
                                     })
                                 }
@@ -308,5 +308,171 @@ export const LoanCreate = functions.firestore
             }
         } catch (error) {
             console.error('LoanCreateError: ',error)
+        }
+    })
+
+
+export const LoanAcceptance = functions.firestore
+    .document('loans/{loan}')
+    .onUpdate(async snapshot => {
+        const loanData = snapshot.after.data()
+        const loanModel: Loan = loanData as Loan 
+
+        const borrowerUid: string = loanModel.loanBorrower
+        const borrowerToken: string = loanModel.tokenBorrower
+        const amount: number = loanModel.loanAmountTaken
+        const due: number = loanModel.totalAmountToPay
+        const lenderUid: string = loanModel.loanLender
+        const time: FirebaseFirestore.Timestamp = loanModel.loanEndDate
+
+        //Send notifications to relavant parties
+        //Send only when p2p - hence why we check if lender === borrower
+        if (snapshot.before.get('loanStatus') === false && loanModel.loanStatus === true) {
+            try {
+                if (borrowerUid !== lenderUid) {
+                    //Check if indeed the lender can satisfy the requirement
+                    const lenderLFGQuery = await db.collection('users').doc(lenderUid).collection('goals').where('goalCategory','==','Loan Fund')
+                        .limit(1).get()
+                    const lenderGoals: FirebaseFirestore.DocumentSnapshot[] = lenderLFGQuery.docs
+                    if (lenderGoals.length === 1) {
+                        const glDoc: FirebaseFirestore.DocumentSnapshot = lenderGoals[0]
+                        const amtSaved: number = glDoc.get('goalAmountSaved')
+                        if (amtSaved >= amount) {
+                            //The user can satisfy this requirement
+                            //Transfer money from Loan Fund Goal to your wallet
+                            const lenderLoanFundDoc: FirebaseFirestore.DocumentReference = db.collection('users').doc(lenderUid).collection('goals').doc(glDoc.id)
+                            //Borrowers Wallet Reference
+                            const borrowerWalletDoc: FirebaseFirestore.DocumentReference = db.collection('users').doc(borrowerUid).collection('wallet').doc(borrowerUid)
+                            db.runTransaction(async transact => {
+                                return transact.get(lenderLoanFundDoc)
+                                    .then(value => {
+                                        console.log(`Loan Fund Goal update begin for user: ${lenderUid}`)
+                                        transact.update(lenderLoanFundDoc, {goalAmountSaved: superadmin.firestore.FieldValue.increment(-amount)})
+                                        console.log(`Loan Fund Goal update end for user: ${lenderUid}`)
+    
+                                        db.runTransaction(async transaction => {
+                                            return transaction.get(borrowerWalletDoc)
+                                                .then(val => {
+                                                    console.log(`Wallet update begin for user: ${borrowerUid}`)
+                                                    transaction.update(borrowerWalletDoc, {amount: superadmin.firestore.FieldValue.increment(amount)})
+                                                    console.log(`Wallet update end for user: ${borrowerUid}`)
+                                                })
+                                        })
+                                        .then(async thenVal => {
+                                            console.log('The wallet has beeen updated successfully after the loan')
+                                            //Send a success notification to both lender and borrower
+                                            const borrowerTokens: string[] = [borrowerToken]
+                                            await notification.singleNotificationSend(borrowerTokens,`Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${time.toDate().toString()}. The transaction is being processed`,`Good News`)
+                                            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                                                'message': `Your loan request of ${amount} KES has been accepted. You will payback ${due} KES. You have until ${time.toDate().toString()}. The transaction is being processed`,
+                                                'time': superadmin.firestore.FieldValue.serverTimestamp()
+                                            })
+                                        })
+                                        .catch(error => {
+                                            console.error(`Wallet update transaction error: ${error}`)
+                                        })
+                                    })
+                                    .catch(error => {
+                                        console.error(`Fetch Loan Fund Goal Error: ${error}`)
+                                    })
+                            })
+                            .then(value => {
+                                console.log(`P2P Loan Transaction completed`)
+                            })
+                            .catch(error => {
+                                console.error(`P2P Loan Transaction Error: ${error}`)
+                            })
+                        }
+                        else {
+                            //Send a notification to the borrower and then delete the goal
+                            const borrowerTokens: string[] = [borrowerToken]
+                            await notification.singleNotificationSend(borrowerTokens,`Unfortunately your request could not be fullfilled due to insuffient funds. Send another request, people are waiting for your offer`,`Bad News`)
+                            await db.collection('loans').doc(snapshot.after.id).delete()
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('loanAcceptanceError', error)
+            }
+        }
+    })
+
+
+export const LoanRevision = functions.firestore
+    .document('loans/{loan}')
+    .onUpdate(async snapshot => {
+        const loanData = snapshot.after.data()
+        const loanModel: Loan = loanData as Loan 
+
+        const token: string = loanModel.tokenBorrower
+        const amount: number = loanModel.loanAmountTaken
+        const interest: number = loanModel.loanInterest
+        const due: number = loanModel.totalAmountToPay
+        const borrowerUid: string = loanModel.loanBorrower
+
+        if (loanData.loanStatus == 'Revised') {
+            try {
+                const borrowerTokens: string[] = [token]
+                await notification.singleNotificationSend(borrowerTokens,`Your loan request submission has been revised. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. You will pay back ${due} KES`,`Loan Revision`)
+                await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                    'message': `Your loan request submission has been revised. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. You will pay back ${due} KES`,
+                    'time': superadmin.firestore.FieldValue.serverTimestamp()
+                })
+            } catch (error) {
+                console.error('loanRevisionError', error)
+            }
+        }
+    })
+
+
+export const LoanNegotiation = functions.firestore
+    .document('loans/{loan}')
+    .onUpdate(async snapshot => {
+        const loanData = snapshot.after.data()
+        const loanModel: Loan = loanData as Loan 
+
+        const token: string = loanModel.tokenBorrower
+        const borrowerUid: string = loanModel.loanBorrower
+
+        if (loanData.loanStatus == 'Revised2') {
+            try {
+                const borrowerTokens: string[] = [token]
+                await notification.singleNotificationSend(borrowerTokens,`You have sent a revised loan request submission`,`Loan Revision`)
+                await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                    'message': `You have sent a revised loan request submission`,
+                    'time': superadmin.firestore.FieldValue.serverTimestamp()
+                })
+            } catch (error) {
+                console.error('loanNegotiationError', error)
+            }
+        }
+    })
+
+
+export const LoanRejected = functions.firestore
+    .document('loans/{loan}')
+    .onUpdate(async snapshot => {
+
+        const loanData = snapshot.after.data()
+        const loanModel: Loan = loanData as Loan
+
+        const token: string = loanModel.tokenBorrower
+        const amount: number = loanModel.loanAmountTaken
+        const interest: number = loanModel.loanInterest
+        const borrowerUid: string = loanModel.loanBorrower
+        //Retrieve the token (If exists)
+        if (loanModel.loanStatus === 'Rejected') {
+            try {
+                const borrowerTokens: string[] = [token]
+                await notification.singleNotificationSend(borrowerTokens,`Your loan request of ${amount} KES at ${interest} % has been rejected`,`Bad News`)
+                await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+                    'message': `Your loan request of ${amount} KES at ${interest} % has been rejected`,
+                    'time': superadmin.firestore.FieldValue.serverTimestamp()
+                })
+                //Delete the Document
+                await db.collection('loans').doc(snapshot.after.id).delete()
+            } catch (error) {
+                console.error('loanRejectedError', error)
+            }
         }
     })
