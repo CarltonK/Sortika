@@ -1,10 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wealth/deposit/mpesaAuto.dart';
-import 'package:wealth/deposit/mpesaManual.dart';
-import 'package:wealth/models/depositmethods.dart';
+import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/errorMessage.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/models/loanPayModel.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class PayLoan extends StatefulWidget {
@@ -15,10 +19,25 @@ class PayLoan extends StatefulWidget {
 class _PayLoanState extends State<PayLoan> {
   Map<String, dynamic> loanData;
   double totalAmount;
+  double amtToPay;
+  final _formKey = GlobalKey<FormState>();
+
+  Helper helper = new Helper();
+
+  final FocusNode focusAmount = FocusNode();
+
+  void _handleSubmittedAmount(String value) {
+    submittedAmount = double.parse(value.trim());
+    print('Amount: ' + submittedAmount.toString());
+  }
+
+  double submittedAmount;
+
+  Stream<DocumentSnapshot> walletDoc;
+
+  Future payLoan;
 
   Widget _balanceText() {
-    totalAmount = loanData["totalAmountToPay"];
-
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,125 +49,117 @@ class _PayLoanState extends State<PayLoan> {
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(color: Colors.white))),
             TextSpan(
-                text: '${totalAmount.ceilToDouble()} KES',
+                text: '${amtToPay.ceilToDouble()} KES',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 18),
                     decoration: TextDecoration.underline)),
-                    TextSpan(
+            TextSpan(
                 text: '\nOverpayments will be credited back to you',
                 style: GoogleFonts.muli(
-                  fontSize: 11,
-                    textStyle: TextStyle(color: Colors.white)))
+                    fontSize: 11, textStyle: TextStyle(color: Colors.white)))
           ])),
         ],
       ),
     );
   }
 
-  Widget _payMethodWidget() {
-    return Container(
-      height: 80,
-      child: PageView(
-        scrollDirection: Axis.horizontal,
-        controller: _controller,
-        onPageChanged: (value) {
-          setState(() {
-            _currentPage = value;
-            _controllerPages.animateToPage(value,
-                duration: Duration(milliseconds: 100), curve: Curves.ease);
-          });
-        },
-        children:
-            methods.map((map) => _payMethod(map.title, map.subtitle)).toList(),
-      ),
-    );
-  }
-
-  //Budget Item
-  Widget _payMethod(String title, String subtitle) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 5),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16), color: Colors.white),
-      padding: EdgeInsets.all(8),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-              child: Icon(
-                MaterialCommunityIcons.cash_multiple,
-                color: Colors.white,
-              ),
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Color(0xFF73AEF5))),
-          SizedBox(
-            width: 10,
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$title',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700)),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                '$subtitle',
-                style: GoogleFonts.muli(
-                    textStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w400)),
-              ),
-            ],
-          ),
-          SizedBox(
-            width: 5,
-          ),
-        ],
-      ),
-    );
-  }
-
-  PageController _controller;
-  PageController _controllerPages;
-
-  // Identifiers
-  int _currentPage = 0;
-
   @override
   void initState() {
     super.initState();
-    _controller = PageController(viewportFraction: 0.85);
-    _controllerPages = PageController(viewportFraction: 1);
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    _controller.dispose();
-    _controllerPages.dispose();
+  Widget _loanAmount(var amount) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Amount',
+          style: labelStyle,
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        TextFormField(
+            autofocus: false,
+            autovalidate: true,
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            validator: (value) {
+              //Check if phone is available
+              if (value.isEmpty) {
+                return 'Amount is required';
+              }
+              if (double.parse(value) > amount) {
+                return 'You have insuffient funds, please deposit your wallet';
+              }
+              return null;
+            },
+            focusNode: focusAmount,
+            textInputAction: TextInputAction.done,
+            onSaved: _handleSubmittedAmount,
+            decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red)),
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                suffixText: 'KES',
+                suffixStyle: hintStyle,
+                prefixIcon:
+                    Icon(FontAwesome5.money_bill_alt, color: Colors.white),
+                labelText: 'Enter the amount',
+                labelStyle: hintStyle))
+      ],
+    );
   }
 
-  //List of pages
-  List<Widget> _pages = [MpesaAuto(), MpesaManual()];
+  void _payBtnPressed() {
+    final FormState form = _formKey.currentState;
+    if (form.validate()) {
+      form.save();
+
+      LoanPaymentModel model = new LoanPaymentModel(
+          borrowerUid: loanData['loanBorrower'],
+          lenderUid: loanData['loanLender'],
+          amount: submittedAmount,
+          loanDoc: loanData['docId']);
+
+      helper
+          .payP2pLoan(model)
+          .then((value) => {
+                showCupertinoModalPopup(
+                    context: context,
+                    builder: (context) => SuccessMessage(
+                        message: 'We are processing your request'))
+              })
+          .catchError((error) => {
+                showCupertinoModalPopup(
+                    context: context,
+                    builder: (context) =>
+                        ErrorMessage(message: error.toString()))
+              });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     //Retrieve Loan Data
     loanData = ModalRoute.of(context).settings.arguments;
+    totalAmount = loanData["totalAmountToPay"];
+    amtToPay = totalAmount - loanData['loanAmountRepaid'];
+    walletDoc = helper.getWalletBalance(loanData['loanBorrower']);
     print('Retrieved Loan Data: $loanData');
 
     return Scaffold(
@@ -176,24 +187,45 @@ class _PayLoanState extends State<PayLoan> {
                         SizedBox(
                           height: 20,
                         ),
-                        Text('How do you want to pay?',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(color: Colors.white))),
-                        SizedBox(
-                          height: 10,
+                        StreamBuilder<DocumentSnapshot>(
+                          stream: walletDoc,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              num amount = snapshot.data.data['amount'];
+                              print(amount);
+                              //Check if amount can pay the current loan
+                              return Form(
+                                key: _formKey,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    _loanAmount(amount),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    RaisedButton(
+                                      padding: EdgeInsets.all(10),
+                                      elevation: 4,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      color: Colors.white,
+                                      child: Text(
+                                        'Pay',
+                                        style: GoogleFonts.muli(fontSize: 20),
+                                      ),
+                                      onPressed: _payBtnPressed,
+                                    )
+                                  ],
+                                ),
+                              );
+                            }
+                            return SpinKitDoubleBounce(
+                              size: 200,
+                              color: Colors.greenAccent[700],
+                            );
+                          },
                         ),
-                        _payMethodWidget(),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        LimitedBox(
-                          maxHeight: double.maxFinite,
-                          child: PageView(
-                              controller: _controllerPages,
-                              physics: NeverScrollableScrollPhysics(),
-                              onPageChanged: (value) {},
-                              children: _pages),
-                        )
                       ],
                     ),
                   ),

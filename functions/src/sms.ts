@@ -37,11 +37,11 @@ export function receiveSMS(request: Request, response: Response) {
             }
         }
 
-        // setTimeout(function() {
-        //     analyzeWanted(wantedSMS) 
-        // }, 15000)
+        setTimeout(function() {
+            analyzeWanted(wantedSMS) 
+        }, 15000)
         
-        analyzeWanted(wantedSMS)
+        // analyzeWanted(wantedSMS)
         //analyzeUnwanted(unwantedSMS)
         //analyzeMisc(miscSMS)
         

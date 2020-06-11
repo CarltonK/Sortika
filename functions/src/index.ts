@@ -8,6 +8,7 @@ import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
 //import * as auth from './authentication'
 import * as mpesa from './mpesa'
 import * as sms from './sms'
+import * as loan from './loan'
 
 
 const db = superadmin.firestore()
@@ -54,206 +55,6 @@ Version 3: onWrite - Whenever goalAmountSaved or goalCreateDate changes
 */
 //
 
-exports.allocationsCalculatorV1 = functions.firestore
-    .document('/users/{user}/goals/{goal}')
-    .onCreate(async snapshot => {
-        //Retrieve user id
-        const uid = snapshot.get('uid')
-        const docs = await db.collection('users').doc(uid).collection('goals').get()
-        const allDocs: Array<DocumentSnapshot> = docs.docs
-        const periods: Array<number> = []
-        const amounts: Array<number> = []
-        const adjustedAmounts: Array<number> = []
-        const documentIds: Array<string> = []
-        const allocationpercents: Array<number> = []
-        allDocs.forEach(element => {
-            //If the goal is a group goal fetch targetAmountPer and not goal amount
-            const cat: string = element.get('goalCategory')
-            const amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
-            /*
-            Timestamp is returned from Firebase.
-            Convert to Date then get differences in days
-            */
-            const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
-            const dateStart: Date = timeStart.toDate()
-
-            const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
-            const dateEnd = timeEnd.toDate()
-
-            const differenceMilliSeconds = dateEnd.getTime() - dateStart.getTime()
-            const differenceDays = differenceMilliSeconds / (1000*60*60*24)
-
-            //Save the difference in a list
-            periods.push(Math.ceil(differenceDays))
-            //Document Snapshot
-            //Retrieve target amount and save in amounts
-            amounts.push(amt)
-            documentIds.push(element.id)
-            
-        });
-        //Sort from smallest to largest
-        periods.sort()
-        const leastDays = periods[0]
-        //Show arrays
-        // console.log(`Periods: ${periods}`)
-        // console.log(`Amounts: ${amounts}`)
-        // console.log(`Document Ids: ${documentIds}`)
-        //Keep a total adjusted amount counter
-        let totalAdjusted: number = 0
-        for (let index = 0; index < amounts.length; index ++) {
-            const adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
-            adjustedAmounts.push(adjusted)
-            totalAdjusted = totalAdjusted + adjusted
-        }
-        //Show adjusted amounts
-        // console.log(`Adjusted Amounts: ${adjustedAmounts}`)
-        // //Show the total adjusted number
-        // console.log(`Total Adjusted Value: ${totalAdjusted}`)
-        //Get allocation percentages
-        // for (const adjAmount of adjustedAmounts) {
-        //     const percent: number = ( (adjAmount / totalAdjusted) * 100 )
-        //     allocationpercents.push(percent)
-        // }
-        for (let index = 0; index < adjustedAmounts.length; index ++) {
-            const percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
-            allocationpercents.push(percent)
-        }
-        //Show percents
-        // console.log(`Allocation Percents: ${allocationpercents}`)
-        //Update each document with new allocations
-        for (let index = 0; index < documentIds.length; index ++) {
-            const documentId: string = documentIds[index]
-            const allocatedPercent: number = allocationpercents[index]
-            await db.collection('users').doc(uid)
-                .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
-        }
-        //Update User Targets
-        const dailyTarget: number = (totalAdjusted / leastDays)
-        const weeklyTarget: number = (dailyTarget * 7)
-        const monthlyTarget: number = (dailyTarget * 30)
-        //Update USERS Collection
-        await db.collection('users').doc(uid).update({
-            'dailyTarget': dailyTarget,
-            'weeklyTarget': weeklyTarget,
-            'monthlyTarget': monthlyTarget
-        })
-        //A message to be displayed when the function ends
-        console.log('allocationsCalculatorV1 has completed successfully')
-    })
-
-exports.allocationsCalculatorV2 = functions.firestore
-    .document('/users/{user}/goals/{goal}')
-    .onDelete(async snapshot => {
-        //Redistribute the goal amount
-        const goalAmount: number = snapshot.get('goalAmount')
-        const goalAmountSaved: number = snapshot.get('goalAmountSaved')
-        //Retrieve user id
-        const uid = snapshot.get('uid')
-        if (snapshot.get('goalCategory') === 'Investment') {
-            const investmentDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
-                .where('goalCategory', '==', 'Investment').get()
-            // console.log(`How many investment goals? ${investmentDocuments.docs.length}`)
-            const averageAmount: number = (goalAmount / investmentDocuments.docs.length)
-            for (let index = 0; index < investmentDocuments.docs.length; index ++) {
-                let currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
-                currentAmount = currentAmount + averageAmount
-            
-                const documentId: string = investmentDocuments.docs[index].id
-                await db.collection('users').doc(uid)
-                .collection('goals').doc(documentId).update({'goalAmount': currentAmount})
-            }
-        }
-        if (snapshot.get('goalCategory') === 'Saving') {
-            const lFDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid)
-                .collection('goals').where('goalCategory', '==', 'Loan Fund').limit(1).get()
-                if (goalAmountSaved === 0) {
-                    console.log(`The goal amount saved is 0`)
-                }
-                else {
-                    lFDocuments.docs.forEach(async (element) => {
-                        // var amountCurrent = element.get('loanAmount')
-                        // amountCurrent = amountCurrent + goalAmount
-                        await db.collection('users').doc(uid)
-                        .collection('goals').doc(element.id).update({
-                            'goalAmountSaved': superadmin.firestore.FieldValue.increment(goalAmountSaved)})
-                    })
-                }
-        }
-        const docs = await db.collection('users').doc(uid).collection('goals').get()
-        const allDocs: Array<DocumentSnapshot> = docs.docs
-        const periods: Array<number> = []
-        const amounts: Array<number> = []
-        const adjustedAmounts: Array<number> = []
-        const documentIds: Array<string> = []
-        const allocationpercents: Array<number> = []
-        allDocs.forEach(element => {
-            //If the goal is a group goal fetch targetAmountPer and not goal amount
-            const cat: string = element.get('goalCategory')
-            const amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
-            /*
-            Timestamp is returned from Firebase.
-            Convert to Date then get differences in days
-            */
-            const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
-            const dateStart: Date = timeStart.toDate()
-
-            const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
-            const dateEnd = timeEnd.toDate()
-
-            const differenceMilliSeconds = dateEnd.getTime() - dateStart.getTime()
-            const differenceDays = differenceMilliSeconds / (1000*60*60*24)
-
-            //Save the difference in a list
-            periods.push(Math.ceil(differenceDays))
-            //Document Snapshot
-            //Retrieve target amount and save in amounts
-            amounts.push(amt)
-            documentIds.push(element.id)
-        });
-        //Sort from smallest to largest
-        periods.sort()
-        const leastDays = periods[0]
-        //Show arrays
-        console.log(`Periods: ${periods}`)
-        console.log(`Amounts: ${amounts}`)
-        console.log(`Document Ids: ${documentIds}`)
-        //Keep a total adjusted amount counter
-        let totalAdjusted: number = 0
-        for (let index = 0; index < amounts.length; index ++) {
-            const adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
-            adjustedAmounts.push(adjusted)
-            totalAdjusted = totalAdjusted + adjusted
-        }
-        //Show adjusted amounts
-        console.log(`Adjusted Amounts: ${adjustedAmounts}`)
-        //Show the total adjusted number
-        console.log(`Total Adjusted Value: ${totalAdjusted}`)
-        //Get allocation percentages
-        for (let index = 0; index < adjustedAmounts.length; index ++) {
-            const percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
-            allocationpercents.push(percent)
-        }
-        //Show percents
-        console.log(`Allocation Percents: ${allocationpercents}`)
-        //Update each document with new allocations
-        for (let index = 0; index < documentIds.length; index ++) {
-            const documentId: string = documentIds[index]
-            const allocatedPercent: number = allocationpercents[index]
-            await db.collection('users').doc(uid)
-                .collection('goals').doc(documentId).update(
-                    {'goalAllocation':allocatedPercent})
-        }
-        //Update User Targets
-        const dailyTarget: number = (totalAdjusted / leastDays)
-        const weeklyTarget: number = (dailyTarget * 7)
-        const monthlyTarget: number = (dailyTarget * 30)
-        //Update USERS Collection
-        await db.collection('users').doc(uid).update({
-            'dailyTarget': dailyTarget,
-            'weeklyTarget': weeklyTarget,
-            'monthlyTarget': monthlyTarget
-        })
-    })
 async function scheduledAllocator(users: Array<string>) {
     users.forEach(async (user) => {
         const docs = await db.collection('users').doc(user).collection('goals').get()
@@ -331,6 +132,71 @@ async function scheduledAllocator(users: Array<string>) {
         })
     })
 }
+
+exports.allocationsCalculatorV1 = functions.firestore
+    .document('/users/{user}/goals/{goal}')
+    .onCreate(async snapshot => {
+        //Retrieve user id
+        const uid = snapshot.get('uid')
+        const usersList: Array<string> = [uid]
+        scheduledAllocator(usersList)
+            .then(value => {
+                console.log(`Scheduled allocator has run successfully after the goal has been created`)
+            })
+            .catch(error => {
+                console.error(`Scheduled allocator has failed after the goal has been created: ${error}`)
+            })
+        //A message to be displayed when the function ends
+        console.log('allocationsCalculatorV1 has completed successfully')
+    })
+
+exports.allocationsCalculatorV2 = functions.firestore
+    .document('/users/{user}/goals/{goal}')
+    .onDelete(async snapshot => {
+        //Redistribute the goal amount
+        const goalAmount: number = snapshot.get('goalAmount')
+        const goalAmountSaved: number = snapshot.get('goalAmountSaved')
+        //Retrieve user id
+        const uid = snapshot.get('uid')
+        if (snapshot.get('goalCategory') === 'Investment') {
+            const investmentDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
+                .where('goalCategory', '==', 'Investment').get()
+            // console.log(`How many investment goals? ${investmentDocuments.docs.length}`)
+            const averageAmount: number = (goalAmount / investmentDocuments.docs.length)
+            for (let index = 0; index < investmentDocuments.docs.length; index ++) {
+                let currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
+                currentAmount = currentAmount + averageAmount
+            
+                const documentId: string = investmentDocuments.docs[index].id
+                await db.collection('users').doc(uid)
+                .collection('goals').doc(documentId).update({'goalAmount': currentAmount})
+            }
+        }
+        if (snapshot.get('goalCategory') === 'Saving') {
+            const lFDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid)
+                .collection('goals').where('goalCategory', '==', 'Loan Fund').limit(1).get()
+                if (goalAmountSaved === 0) {
+                    console.log(`The goal amount saved is 0`)
+                }
+                else {
+                    lFDocuments.docs.forEach(async (element) => {
+                        // var amountCurrent = element.get('loanAmount')
+                        // amountCurrent = amountCurrent + goalAmount
+                        await db.collection('users').doc(uid)
+                        .collection('goals').doc(element.id).update({
+                            'goalAmountSaved': superadmin.firestore.FieldValue.increment(goalAmountSaved)})
+                    })
+                }
+        }
+        const usersList: Array<string> = [uid]
+        scheduledAllocator(usersList)
+            .then(value => {
+                console.log(`Scheduled allocator has run successfully after the goal has been deleted`)
+            })
+            .catch(error => {
+                console.error(`Scheduled allocator has failed after the goal has been deleted: ${error}`)
+            })
+    })
 /*
 Any change to goal amount saved
 //New goal amount = goal amount - amount saved
@@ -401,10 +267,10 @@ export const scheduledFunction = functions.pubsub.schedule(`every day 00:01`)
     });
 
 
+
+
 /*
 NOTIFICATIONS
-1) Send notification to a Sortika user who has received a lend request - promptLendRequest
-2) Send notification to the borrower - ackBorrowRequest
 3) Send a notification to borrower when loan has been accepted - promptLoanAccepted
 4) Send a notification to the lender when they accept the loan request - promptLoanAccept
 5) Send a notification to a borrower when the lender revises a loan request - promptLoanRevision
@@ -415,69 +281,7 @@ NOTIFICATIONS
 10) Send a notification to a lender who has rejected a loan request - promptRejectLoan
 */
 
-export const promptLendRequest = functions.firestore
-    .document('loans/{loan}')
-    .onCreate(async snapshot => {
-        const token: string = snapshot.get('tokenInvitee')
-        const amount: number = snapshot.get('loanAmountTaken')
-        const interest: number = snapshot.get('loanInterest')
-        const invitees: string = snapshot.get('loanInvitees')
-        //Retrieve the token (If exists)
-        if (token !== null) {
-            //Retrieve key info
-            //Define the payload
-            const payload = {
-                notification: {
-                    title: `Loan Request`,
-                    body: `You have received a loan request for ${amount} KES at an interest rate of ${interest} %`,
-                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-                }
-            }
-            await db.collection('users').doc(invitees).collection('notifications').doc().set({
-                'message': `You have received a loan request for ${amount} KES at an interest rate of ${interest} %`,
-                'time': superadmin.firestore.FieldValue.serverTimestamp()
-            })
-            //console.log(payload);
-            return fcm.sendToDevice(token, payload)
-                .catch(error => {
-                    console.error('promptLendRequest FCM Error',error)
-                })
-        }
-    })
-
-export const ackBorrowRequest = functions.firestore
-    .document('loans/{loan}')
-    .onCreate(async snapshot => {
-        //Retrieve the token (If exists)
-        const token: string = snapshot.get('tokenBorrower')
-        const amount: number = snapshot.get('loanAmountTaken')
-        const interest: number = snapshot.get('loanInterest')
-        const borrowerUid: string = snapshot.get('loanBorrower')
-
-        if (token !== null) {
-            //Retrieve key info
-            //Define the payload
-            const payload = {
-                notification: {
-                    title: `Wasn't that easy ?`,
-                    body: `Your request for ${amount} KES at an interest rate of ${interest} % has been sent successfully`,
-                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-                }
-            }
-            //Create a notification for the borrower
-            //Store in notifications subcollection of user
-            await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-                'message': `Your request for ${amount} KES at an interest rate of ${interest} % has been sent successfully`,
-                'time': superadmin.firestore.FieldValue.serverTimestamp()
-            })
-            //console.log(payload);
-            return fcm.sendToDevice(token, payload)
-                .catch(error => {
-                    console.error('promptLendRequest FCM Error',error)
-                })
-        }
-    })
-
+export const loanCreated =  loan.LoanCreate
 
 export const promptLoanAccepted = functions.firestore
     .document('loans/{loan}')
@@ -515,8 +319,8 @@ export const promptLoanAccepted = functions.firestore
 export const promptAcceptLoan = functions.firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
-            const token: string = snapshot.after.get('loanLenderToken')
-            const borrowerName: string = snapshot.after.get('borrowerName')
+            //const token: string = snapshot.after.get('loanLenderToken')
+            //const borrowerName: string = snapshot.after.get('borrowerName')
             const amount: number = snapshot.after.get('loanAmountTaken')
             const lenderUid: string = snapshot.after.get('loanLender')
             const borrowerUid: string = snapshot.after.get('loanBorrower')
@@ -577,27 +381,27 @@ export const promptAcceptLoan = functions.firestore
                     }
                 })
             }
-            //Retrieve key info
-            //Define the payload
-            const payload = {
-                notification: {
-                    title: `${borrowerName} amesortika`,
-                    body: `We will deduct ${amount} KES from your wallet and send to ${borrowerName}`,
-                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-                }
-            }
-            //Create a notification for the borrower
-            //Store in notifications subcollection of user
-            // await db.collection('users').doc(lenderUid).collection('notifications').doc().set({
-            //     'message': `We will deduct ${amount} KES from your wallet and send to ${borrowerName}`,
-            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
+            // //Retrieve key info
+            // //Define the payload
+            // const payload = {
+            //     notification: {
+            //         title: `${borrowerName} amesortika`,
+            //         body: `We will deduct ${amount} KES from your wallet and send to ${borrowerName}`,
+            //         clickAction: 'FLUTTER_NOTIFICATION_CLICK'
+            //     }
+            // }
+            // //Create a notification for the borrower
+            // //Store in notifications subcollection of user
+            // // await db.collection('users').doc(lenderUid).collection('notifications').doc().set({
+            // //     'message': `We will deduct ${amount} KES from your wallet and send to ${borrowerName}`,
+            // //     'time': superadmin.firestore.FieldValue.serverTimestamp()
+            // // })
+            // console.log(payload);
+            // //Send to all tenants in the topic "landlord_code"
+            // return fcm.sendToDevice(token, payload)
+            //     .catch(error => {
+            //     console.error('promptAcceptLoan FCM Error',error)
             // })
-            console.log(payload);
-            //Send to all tenants in the topic "landlord_code"
-            return fcm.sendToDevice(token, payload)
-                .catch(error => {
-                console.error('promptAcceptLoan FCM Error',error)
-        })
         }
     })
 
@@ -641,7 +445,7 @@ export const promptLoanNegotiation = functions.firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
         const token: string = snapshot.before.get('tokenBorrower')
-        //const borrowerUid: string = snapshot.before.get('loanBorrower')
+        const borrowerUid: string = snapshot.before.get('loanBorrower')
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === 'Revised' && snapshot.after.get('loanStatus') === 'Revised2') {
             //Retrieve key info
@@ -656,10 +460,10 @@ export const promptLoanNegotiation = functions.firestore
         console.log(payload);
          //Create a notification for the borrower
         //Store in notifications subcollection of user
-        // await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
-        //     'message': `You have sent a revised loan request submission`,
-        //     'time': superadmin.firestore.FieldValue.serverTimestamp()
-        // })
+        await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
+            'message': `You have sent a revised loan request submission`,
+            'time': superadmin.firestore.FieldValue.serverTimestamp()
+        })
         //Send to all tenants in the topic "landlord_code"
         return fcm.sendToDevice(token, payload)
             .catch(error => {
@@ -672,7 +476,6 @@ export const promptReceiveNegotiation = functions.firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
         const token: string = snapshot.before.get('tokenInvitee')
-        const inviteeUid: string | Array<any> = snapshot.before.get('loanInvitees')
         const amount: number = snapshot.after.get('loanAmountTaken')
         const interest: number = snapshot.after.get('loanInterest')
         const due: number = snapshot.after.get('totalAmountToPay')
@@ -685,36 +488,20 @@ export const promptReceiveNegotiation = functions.firestore
                     title: `Loan Revision`,
                     body: `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
                     clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-            }
+            } 
         }
+        return fcm.sendToDevice(token, payload)
+            .catch(error => {
+            console.error('promptLoanNegotiated FCM Error',error)
+        })
         console.log(payload);
-        if (typeof inviteeUid === "string") {
-            // await db.collection('users').doc(inviteeUid).collection('notifications').doc().set({
-            //     'message': `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
-            //     'time': superadmin.firestore.FieldValue.serverTimestamp()
-            // })
-            //Send to all tenants in the topic "landlord_code"
-            return fcm.sendToDevice(token, payload)
-                .catch(error => {
-                    console.error('promptLoanRevised FCM Error',error)
-                }) 
-        }
-        else {
-            // inviteeUid.forEach(async (element) => {
-            //     await db.collection('users').doc(element).collection('notifications').doc().set({
-            //         'message': `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
-            //         'time': superadmin.firestore.FieldValue.serverTimestamp()
-            //     })                
-            // })
-            return null;
-        }
     }
 })
 
 export const promptSubmitLoanRevision = functions.firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
-        const token: string | Array<any> = snapshot.before.get('tokenInvitee')
+        const token: string = snapshot.before.get('tokenInvitee')
         //Retrieve the token (If exists)
         if (snapshot.before.get('loanStatus') === false && snapshot.after.get('loanStatus') === 'Revised') {
             //Retrieve key info
@@ -727,15 +514,10 @@ export const promptSubmitLoanRevision = functions.firestore
                 }
             }
             console.log(payload);
-            if (typeof token === "string") {
-                return fcm.sendToDevice(token, payload)
+            return fcm.sendToDevice(token, payload)
                 .catch(error => {
                 console.error('promptLoanRevised FCM Error',error)
             })
-            }
-            else {
-                return null;
-            }
         }
     })
 
@@ -775,143 +557,59 @@ export const promptLoanRejected = functions.firestore
         }
     })
 
-export const promptRejectLoan = functions.firestore
-    .document('loans/{loan}')
+/*
+LoanPayments
+/loanpayments/{payment} onCreate
+*/
+
+export const loanPayment = functions.firestore
+    .document('loanpayments/{payments}')
     .onUpdate(async snapshot => {
-        const token: string | Array<any> = snapshot.before.get('tokenInvitee')
-        const amount: number = snapshot.after.get('loanAmountTaken')
-        const interest: number = snapshot.after.get('loanInterest')
-        //const loanInvitee: string | Array<any> = snapshot.before.get('loanInvitees')
-        //Retrieve the token (If exists)
-        if (snapshot.after.get('loanStatus') === 'Rejected') {
-            //Retrieve key info
-            //Define the payload
-            const payload = {
-                notification: {
-                    title: `Don't accept less than you deserve`,
-                    body: `You rejected a loan request of ${amount} KES at ${interest} %`,
-                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-                }
-            }
-            console.log(payload)
-            //Send a notification to a user
-            //Update notifications subcollection for user
-            // if (typeof loanInvitee == "string") {
-            //     await db.collection('users').doc(loanInvitee).collection('notifications').doc().set({
-            //         'message': `You rejected a loan request of ${amount} KES at ${interest} %`,
-            //         'time': superadmin.firestore.FieldValue.serverTimestamp()
-            //     })
-            // }
-            // else {
-            //     loanInvitee.forEach(async (element) => {
-            //         await db.collection('users').doc(element).collection('notifications').doc().set({
-            //             'message': `You rejected a loan request of ${amount} KES at ${interest} %`,
-            //             'time': superadmin.firestore.FieldValue.serverTimestamp()
-            //         })
-            //     })
-            // }
-            //Delete the Document
-            await db.collection('loans').doc(snapshot.after.id).delete()
-            return fcm.sendToDevice(token, payload)
-                .catch(error => {
-                console.error('promptRejectLoan FCM Error',error)
-        })
-        }
-    })
+        const borrower: string = snapshot.after.get('borrowerUid')
+        const loanDoc: string = snapshot.after.get('loanDoc')
+        const amount: number = snapshot.after.get('amount')
 
-//Self Loan
-export const selfLoan = functions.firestore
-    .document('loans/{loan}')
-    .onCreate(async snapshot => {
-        const lender: string = snapshot.get('loanLender')
-        const amount: number = snapshot.get('loanAmountTaken')
-        const token: string = snapshot.get('tokenBorrower')
-        if (lender !== null) {
-            //Check if user has enough amount in Loan Fund Goal
-            db.collection('users').doc(lender).collection('goals')
-                .where('goalCategory', '==', 'Loan Fund')
-                .limit(1)
-                .get()
-                .then((queries) => {
-                    queries.forEach(async (element) => {
-                        //Document Reference of the wallet doc
-                        const doc: FirebaseFirestore.DocumentReference = db.collection('users').doc(lender).collection('wallet').doc(lender)
-                        //Document Reference of the loan fund goal doc
-                        const loanDoc: FirebaseFirestore.DocumentReference = db.collection('users').doc(lender).collection('goals').doc(element.id)
-                        const limit: number = element.get('goalAmountSaved')
-                        if (amount > limit) {
-                            await db.collection('loans').doc(snapshot.id).update({
-                                'tokenInvitee': token,
-                            })
-                            await db.collection('loans').doc(snapshot.id).update({
-                                'loanStatus': 'Rejected'
-                            })
-                            const payload = {
-                                notification: {
-                                    title: `Bad News`,
-                                    body: `Insufficient funds in your Loan Fund Goal. Top up to get a higher loan limit`,
-                                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-                                }
-                            }
-                            return fcm.sendToDevice(token, payload)
-                                .catch(error => {
-                                    console.error('selfLoanReject FCM Error',error)
-                                })
-                        }
-                        else {
-                            await db.collection('loans').doc(snapshot.id).update({
-                                'loanLenderToken': token,
-                                'loanStatus': true
-                            })
-                            db.runTransaction(async transact => {
-                                return transact.get(loanDoc)
-                                    .then(value => {
-                                        console.log(`Loan Fund Goal update begin for user: ${lender}`)
-                                        transact.update(loanDoc, {goalAmountSaved: superadmin.firestore.FieldValue.increment(-amount)})
-                                        console.log(`Loan Fund Goal update end for user: ${lender}`)
+        //Retrieve borrower wallet
+        const borrowerWalletRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(borrower).collection('wallet').doc(borrower)
+        //Retrieve loan document
+        const loanDocRef: FirebaseFirestore.DocumentReference = db.collection('loans').doc(loanDoc)
 
-                                        db.runTransaction(async transaction => {
-                                            return transaction.get(doc)
-                                                .then(val => {
-                                                    console.log(`Wallet update begin for user: ${lender}`)
-                                                    transaction.update(doc, {amount: superadmin.firestore.FieldValue.increment(amount)})
-                                                    console.log(`Wallet update end for user: ${lender}`)
-                                                })
-                                        })
-                                        .then(async thenVal => {
-                                            const payload = {
-                                                notification: {
-                                                    title: `Good News`,
-                                                    body: `You have successfully borrowed ${amount} KES from your loan Fund Goal`,
-                                                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-                                                }
-                                            }
-                                            return fcm.sendToDevice(token, payload)
-                                                .catch(error => {
-                                                    console.error('selfLoanAccept FCM Error',error)
-                                                })
-                                        })
-                                        .catch(error => {
-                                            console.error(`Wallet update transaction error: ${error}`)
-                                        })
-                                    })
-                                    .catch(error => {
-                                        console.error(`Fetch Loan Fund Goal Error: ${error}`)
-                                    })
-                            })
-                            .then(value => {
-                                console.log(`Self Loan Transaction completed`)
-                            })
-                            .catch(error => {
-                                console.error(`Self Loan Transaction Error: ${error}`)
-                            })
-                        }
+        db.runTransaction(async transactionBorrower => {
+            return transactionBorrower.get(borrowerWalletRef)
+                .then(async tranBorrDoc => {
+                    transactionBorrower.update(borrowerWalletRef,{amount: superadmin.firestore.FieldValue.increment(-amount)})
+                    console.log(`We have credited the wallet of ${borrower} with ${amount} KES`)
+
+                    await db.collection('users').doc(borrower).collection('notifications').doc().set({
+                        'message': `Your wallet has been credited with ${amount} KES for loan payment`,
+                        'time': superadmin.firestore.Timestamp.now()
                     })
                 })
                 .catch(error => {
-                    console.error(`Fetch Loan Fund Goal Error: ${error}`)
+                    console.error(`We ran into the following error when trying to retrieve and update borrowersWallet: ${error}`)
                 })
-        }
+        })
+        .then(value => {
+            console.log(`The wallet of ${borrower} has been updated`)
+            console.log(`Start updating the loan`)
+            db.runTransaction(async transactionLoanPay => {
+                return transactionLoanPay.get(loanDocRef)
+                    .then(async tranLoanDoc => {
+                        transactionLoanPay.update(loanDocRef, {loanAmountRepaid: superadmin.firestore.FieldValue.increment(amount)})
+                    })
+                    .catch(error => {
+                        console.error(`We ran into the following error when trying to update the loan document: ${error}`)
+                    })
+            })
+            .then(transDocValue => {
+                console.log(`The loan has been updated`)
+            })
+            .catch(error => console.error(`There was an error updating the loan document`,error))
+        })
+        .catch(error => {
+            console.error(`We ran into the following error when trying to perform overal loan payment transaction: ${error}`)
+        })
+        
     })
 
 
@@ -1234,9 +932,39 @@ async function increaseLoanLimit(interest: number, uid: string) {
     })
 }
 
+export const overPayments = functions.firestore
+    .document('overpayments/{payment}')
+    .onCreate(async snapshot => {
+        const borrower: string = snapshot.get('loanBorrower')
+        const diff: number = snapshot.get('overpayment')
+
+        const borrowerWalletRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(borrower).collection('wallet').doc(borrower)
+        db.runTransaction(async transaction => {
+            transaction.get(borrowerWalletRef)
+                .then(async value => {
+                    transaction.update(borrowerWalletRef,{amount: superadmin.firestore.FieldValue.increment(diff)})
+                    console.log(`The wallet of ${borrower} has been debited with ${diff} KES as a loan overpayment`)
+
+                    await db.collection('users').doc(borrower).collection('notifications').doc().set({
+                        'message': `Your wallet has been debited with ${diff} KES as a loan overpayment`,
+                        'time': superadmin.firestore.Timestamp.now()
+                    })
+                })
+                .catch(error => {
+                    console.error(`There was an error repaying the overpayment: ${error}`)
+                })
+        })
+        .then(valueTrans => {
+            console.log('The overpayment transaction has ended')
+        })
+        .catch(error => {
+            console.error('The overpayment transaction had an error',error)
+        })
+    })
+
 export const loanLimitCalculator = functions.firestore
     .document('loans/{loan}')
-    .onWrite(async snapshot => {
+    .onUpdate(async snapshot => {
         //Check if the document exists
         if (snapshot.before.exists || snapshot.after.exists) {
             const totalAmountToPay: number = snapshot.after.get('totalAmountToPay')
@@ -1245,39 +973,37 @@ export const loanLimitCalculator = functions.firestore
             const borrowerUid: string = snapshot.after.get('loanBorrower')
             const lenderUid: string = snapshot.after.get('loanLender')
 
-            //Calculate sortika revenue
-            const sortikaRevenue: number = totalAmountToPay * 0.2
-            console.log(`Sortika Revenue ${sortikaRevenue}`)
-
-            //Check if amount paid is more than totaltoPay
-            if (amountRepaid > totalAmountToPay) {
-                //Get the difference and store in overpayments collection
-                const difference: number = amountRepaid - totalAmountToPay
-                //Change the loanAmountRepaid to TotalAmountToPay and mark loan as complete
-                await db.collection('loans').doc(snapshot.after.id).update({
-                    'loanAmountRepaid': totalAmountToPay,
-                    'loanStatus': 'Completed'
-                })
-                //Create an overpayment
-                await db.collection('overpayments').doc().set({
-                    'loanBorrower': borrowerUid,
-                    'loanLender': lenderUid,
-                    'overpayment': difference
-                })
-                //increase loan limit
-                increaseLoanLimit(interest, borrowerUid)
-                .then((value) => {console.log(value)})
-                .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
-            }
-            if (amountRepaid === totalAmountToPay) {
-                //Mark loan as completed
-                await db.collection('loans').doc(snapshot.after.id).update({
-                    'loanStatus': 'Completed'
-                })
-                //increase loan limit
-                increaseLoanLimit(interest, borrowerUid)
-                .then((value) => {console.log(value)})
-                .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
+            if (snapshot.before.get('loanAmountRepaid') !== amountRepaid) {
+                //Check if amount paid is more than totaltoPay
+                if (amountRepaid > totalAmountToPay) {
+                    //Get the difference and store in overpayments collection
+                    const difference: number = amountRepaid - totalAmountToPay
+                    //Change the loanAmountRepaid to TotalAmountToPay and mark loan as complete
+                    await db.collection('loans').doc(snapshot.after.id).update({
+                        'loanAmountRepaid': totalAmountToPay,
+                        'loanStatus': 'Completed'
+                    })
+                    //Create an overpayment
+                    await db.collection('overpayments').doc().set({
+                        'loanBorrower': borrowerUid,
+                        'loanLender': lenderUid,
+                        'overpayment': difference
+                    })
+                    //increase loan limit
+                    increaseLoanLimit(interest, borrowerUid)
+                    .then((value) => {console.log(value)})
+                    .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
+                }
+                if (amountRepaid === totalAmountToPay) {
+                    //Mark loan as completed
+                    await db.collection('loans').doc(snapshot.after.id).update({
+                        'loanStatus': 'Completed'
+                    })
+                    //increase loan limit
+                    increaseLoanLimit(interest, borrowerUid)
+                    .then((value) => {console.log(value)})
+                    .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
+                }
             }
         }
     })
@@ -1301,3 +1027,4 @@ exports.sortikaPoints = functions.firestore
             })
         }
     })
+

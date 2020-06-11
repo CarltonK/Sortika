@@ -8,8 +8,6 @@ class MpesaAutoLoanPayment extends StatefulWidget {
 class _MpesaAutoLoanPaymentState extends State<MpesaAutoLoanPayment> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
-    );
+    return Container();
   }
 }

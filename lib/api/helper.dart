@@ -5,6 +5,7 @@ import 'package:wealth/models/captureModel.dart';
 import 'package:wealth/models/depositModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/investmentModel.dart';
+import 'package:wealth/models/loanPayModel.dart';
 import 'package:wealth/models/reviewModel.dart';
 import 'package:wealth/models/phoneVerificationModel.dart';
 
@@ -84,7 +85,7 @@ class Helper {
         .collection('users')
         .document(uid)
         .collection('notifications')
-        .orderBy('time',descending: true)
+        .orderBy('time', descending: true)
         .getDocuments();
     return snapshot;
   }
@@ -436,6 +437,19 @@ class Helper {
     return data;
   }
 
+  Future<List<InvestmentModel>> getSavingsddData() async {
+    List<InvestmentModel> data = [];
+    QuerySnapshot queries =
+        await _firestore.collection('savings').getDocuments();
+    queries.documents.forEach((element) {
+      InvestmentModel model = InvestmentModel.fromJson(element.data);
+      print(model.types);
+      data.add(model);
+    });
+    print(data);
+    return data;
+  }
+
   //Manual Capture
   Future manualCapture(CaptureModel model) async {
     await _firestore.collection('captures').document().setData(model.toJson());
@@ -451,27 +465,44 @@ class Helper {
 
   //Creat a review
   Future createReview(ReviewModel model) async {
-    await _firestore.collection('reviews').document(model.uid)
-      .setData(model.toJson());
+    await _firestore
+        .collection('reviews')
+        .document(model.uid)
+        .setData(model.toJson());
   }
 
   //Request Phone Verification
   Future phoneVerify(PhoneVerificationModel model) async {
-    await _firestore.collection('verifications').document(model.uid).setData(model.toJson());
+    await _firestore
+        .collection('verifications')
+        .document(model.uid)
+        .setData(model.toJson());
   }
 
   //Verify OTP
   Future<dynamic> verifyOtp(PhoneVerificationModel model) async {
-    DocumentSnapshot snapshot = await _firestore.collection('verifications').document(model.uid).get();
+    DocumentSnapshot snapshot =
+        await _firestore.collection('verifications').document(model.uid).get();
     String code = snapshot.data['gen_code'];
     if (code == model.genCode) {
-      await _firestore.collection('verifications').document(snapshot.documentID).delete();
-      await _firestore.collection('users').document(model.uid).updateData({
-        'phoneVerified': true
-      });
+      await _firestore
+          .collection('verifications')
+          .document(snapshot.documentID)
+          .delete();
+      await _firestore
+          .collection('users')
+          .document(model.uid)
+          .updateData({'phoneVerified': true});
       return true;
     }
     return false;
   }
 
+  //Pay a p2p Loan
+  Future<void> payP2pLoan(LoanPaymentModel model) async {
+    await _firestore
+        .collection('loanpayments')
+        .document()
+        .setData(model.toJson());
+  }
 }

@@ -2474,7 +2474,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 curve: Curves.ease);
                           });
                         },
-                        children: [SortikaSavings(user: userData,), SortikaLottery()])),
+                        children: [
+                      SortikaSavings(
+                        user: userData,
+                      ),
+                      SortikaLottery()
+                    ])),
                 SizedBox(
                   height: 5,
                 ),
@@ -2623,9 +2628,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             color: Color(0xFF73AEF5),
             child: InkWell(
               splashColor: Colors.greenAccent[700],
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => Rate(uid: uid),)
-              ),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => Rate(uid: uid),
+              )),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 child: Column(
@@ -3039,7 +3044,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _fcm.configure(
       onMessage: (Map<String, dynamic> message) async {
         print('onMessage: $message');
-        //notificationPopup(message);
+        notificationPopup(message);
       },
       onLaunch: (Map<String, dynamic> message) async {
         print("onLaunch: $message");

@@ -44,9 +44,16 @@ service cloud.firestore {
       }
     }
     
+    //VERIFICATIONS Collection
+    match /verifications/{verify} {
+    	allow read, write: if isSignedInOwner(verify);
+    }
+    
     //TRANSACTIONS Collection
     match /transactions/{transaction} {
-    	allow read: if isUserAuthorised();
+    	allow read: if 
+        isUserAuthorised()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
     
     //LOANS Collection
@@ -72,10 +79,19 @@ service cloud.firestore {
     	allow read: if isUserAuthorised();
     }
     
+    //SAVINGS Collection
+    match /savings/{save=**} {
+    	allow read: if isUserAuthorised();
+    }
+    
     //DEPOSITS Collection
     match /deposits/{deposit} {
-    	allow read: if isUserAuthorised() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
-      allow create: if isUserAuthorised() && (request.resource.data.uid == request.auth.uid);
+    	allow read: if 
+        isUserAuthorised() 
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow create: if 
+        isUserAuthorised() 
+        && (request.resource.data.uid == request.auth.uid);
     }
     
     //AUTOCREATES Collection
@@ -90,8 +106,33 @@ service cloud.firestore {
     
     //CAPTURES Collection
     match /captures/{capture} {
-    	allow read: if isUserAuthorised() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+    	allow read: if 
+        isUserAuthorised() 
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow create: if 
+        isUserAuthorised()
+        && (request.resource.data.transaction_user == request.auth.uid);
     }
     
+    //REVIEWS Collection
+    match /reviews/{review} {
+    	allow write: if 
+        isSignedInOwner(review)
+        && request.resource.data.review != null;
+    }
+    
+    //LOANPAYMENTS Collection
+    match /loanpayments/{payment} {
+    	allow create: if 
+      	isUserAuthorised()
+        && (request.auth.uid == request.resource.data.borrowerUid)
+        && (request.resource.data.amount is number && request.resource.data.amount >= 1)
+        && request.resource.data.lenderUid != null
+        && request.resource.data.borrowerUid != null
+        && request.resource.data.loanDoc != null
+        && exists(/databases/$(database)/documents/loans/$(request.resource.data.loanDoc))
+        && exists(/databases/$(database)/documents/users/$(request.resource.data.lenderUid))
+        && exists(/databases/$(database)/documents/users/$(request.resource.data.borrowerUid));
+    }
   }
 }

@@ -8,10 +8,6 @@ class ReviewModel {
 
   ReviewModel({this.uid, this.title, this.review});
 
-  Map<String, dynamic> toJson() => {
-    "uid": uid, 
-    "title": title,
-    "review": review,
-    "date": date
-  };
+  Map<String, dynamic> toJson() =>
+      {"uid": uid, "title": title, "review": review, "date": date};
 }

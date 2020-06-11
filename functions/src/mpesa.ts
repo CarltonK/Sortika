@@ -12,7 +12,7 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
         const code: number = serverRequest['Body']['stkCallback']['ResultCode']
         //console.log(`Incoming Request Code: ${code}`)
         if (code === 0) {
-            const transactionAmount: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
+            let transactionAmount: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
             const transactionCode: string = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
             const transactionTime: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][3]['Value']
             const transactionPhone: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][4]['Value']
@@ -20,13 +20,26 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
             let transactionPhoneFormatted: string = transactionPhone.toString().slice(3)
             transactionPhoneFormatted = "0" + transactionPhoneFormatted
 
+            const sortikaAmount: number = transactionAmount * 0.02
+            transactionAmount = transactionAmount * 0.98
+
+            let uid: string
+
             const db = superadmin.firestore()
             db.collection('users').where('phone' ,'==', transactionPhoneFormatted).limit(1).get()
                 .then(async (value) => {
+
                     if (value.docs.length === 1) {
 
                         const document: DocumentSnapshot = value.docs[0]
-                        const uid: string = document.get('uid')
+                        uid = document.get('uid')
+
+                        await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc().set({
+                            type: 'Deposit',
+                            amount: sortikaAmount,
+                            uid: uid
+                        })
+                        console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
 
                         console.log(`transaction ${transactionCode} document create begin`)
                         await db.collection('transactions').doc(transactionCode).set({
@@ -61,12 +74,7 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
                                         transaction.update(docRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(newIncrement)})
                                     })
                             })
-                            .then(async result => {
-                                //Create a notification for the user
-                                await db.collection('users').doc(uid).collection('notifications').doc().set({
-                                    'message': `You have distributed ${transactionAmount} KES based on the goal allocations of each goal`,
-                                    'time': superadmin.firestore.Timestamp.now()
-                                })
+                            .then(result => {
                                 console.log('General update success!')
                                 console.log('notification update success')
                             })
@@ -75,6 +83,11 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
                             })
                         })
                     }
+                    //Create a notification for the user
+                    await db.collection('users').doc(uid).collection('notifications').doc().set({
+                        'message': `You have distributed ${transactionAmount} KES based on the goal allocations of each goal`,
+                        'time': superadmin.firestore.Timestamp.now()
+                    })
                 })
                 .catch(error => {
                     console.error(error)
@@ -99,7 +112,7 @@ export function mpesaLnmCallback(request: Request, response: Response) {
         //Get the ResponseCode
         const code: number = serverRequest['Body']['stkCallback']['ResultCode']
         if (code === 0) {
-            const transactionAmount: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
+            let transactionAmount: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][0]['Value']
             const transactionCode: string = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][1]['Value']
             const transactionTime: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][3]['Value']
             const transactionPhone: number = serverRequest['Body']['stkCallback']['CallbackMetadata']['Item'][4]['Value']
@@ -112,7 +125,10 @@ export function mpesaLnmCallback(request: Request, response: Response) {
             let transactionPhoneFormatted: string = transactionPhone.toString().slice(3)
             transactionPhoneFormatted = "0" + transactionPhoneFormatted
 
+            const sortikaAmount: number = transactionAmount * 0.02
+
             // console.log(transactionPhoneFormatted)
+            let uid: string
 
             const db = superadmin.firestore()
             //Search for user with matching phone number
@@ -121,7 +137,7 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                     if (value.docs.length === 1) {
 
                         const document: DocumentSnapshot = value.docs[0]
-                        const uid: string = document.get('uid')
+                        uid = document.get('uid')
 
                         //Check deposit => FieldValue = destination
                         const depositSnapshot: FirebaseFirestore.QuerySnapshot = await db.collection('deposits').where('uid','==',uid).orderBy('time', 'desc').limit(1).get()
@@ -171,6 +187,15 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                         }
                         if (destination === 'general') {
 
+                            await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc().set({
+                                type: 'Deposit',
+                                amount: sortikaAmount,
+                                uid: uid
+                            })
+                            console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
+
+                            transactionAmount = transactionAmount * 0.98
+
                             //Update transaction document, id - transaction code
                             console.log(`transaction ${transactionCode} document create begin`)
                             await db.collection('transactions').doc(transactionCode).set({
@@ -207,10 +232,6 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                                 .then(async result => {
                                     //Create a notification for the user
                                     console.log('notification update begin')
-                                    await db.collection('users').doc(uid).collection('notifications').doc().set({
-                                        'message': `You have distributed ${transactionAmount} KES based on the goal allocations of each goal`,
-                                        'time': superadmin.firestore.Timestamp.now()
-                                    })
                                     console.log('notification update end')
 
                                     console.log('Overal  General update success!')
@@ -219,10 +240,23 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                                     console.log('General update failure:', err)
                                 })
                             })
-                            
+                            await db.collection('users').doc(uid).collection('notifications').doc().set({
+                                'message': `You have distributed ${transactionAmount} KES based on the goal allocations of each goal`,
+                                'time': superadmin.firestore.Timestamp.now()
+                            })
                         }
                         if (destination === 'specific' && goal !== null) {
                             console.log(`Deposit to specific goal: ${goal}`)
+
+                            await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc().set({
+                                type: 'Deposit',
+                                amount: sortikaAmount,
+                                uid: uid
+                            })
+                            console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
+
+                            transactionAmount = transactionAmount * 0.98
+                            
                             if (goal === 'Loan Fund') {
                                 const userLoanFundQuery: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
                                     .where('goalCategory','==','Loan Fund')

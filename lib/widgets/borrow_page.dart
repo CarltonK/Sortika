@@ -4,11 +4,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/errorMessage.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/utilities/styles.dart';
@@ -52,9 +55,9 @@ class _BorrowPageState extends State<BorrowPage> {
   String _dateDay = oneMonthFromNow.day.toString();
   int _dateMonth = oneMonthFromNow.month;
   String _dateYear = oneMonthFromNow.year.toString();
-  String _loanInviteeName;
+  var _loanInviteeName;
   String _idInvitee;
-  String _loanInviteetoken;
+  var _loanInviteetoken;
 
   Firestore _firestore = Firestore.instance;
   AuthService authService = new AuthService();
@@ -158,9 +161,18 @@ class _BorrowPageState extends State<BorrowPage> {
             typeLoan = value;
             if (value == 'self') {
               lender = widget.uid;
+              lenderName = widget.name;
+              lenderToken = widget.mytoken;
+
+              _idInvitee = null;
+              takeLoanFrom = null;
+              _loanInviteeName = null;
+              _loanInviteetoken = null;
             }
             if (value == 'p2p') {
               lender = null;
+              lenderName = null;
+              lenderToken = null;
             }
           });
           print(lender);
@@ -337,7 +349,7 @@ class _BorrowPageState extends State<BorrowPage> {
     );
   }
 
-  Future _specificBtnPressed() async {
+  Future _specificBtnPressed() {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
@@ -415,8 +427,8 @@ class _BorrowPageState extends State<BorrowPage> {
     if (numDocs > 0) {
       DocumentSnapshot doc = query.documents.first;
       _phoneRetrieved = doc.data["phone"];
-      _loanInviteeName = doc.data["fullName"].split(' ')[0];
-      _loanInviteetoken = doc.data["token"];
+      _loanInviteeName = [doc.data["fullName"].split(' ')[0]];
+      _loanInviteetoken = [doc.data["token"]];
       _idInvitee = doc.data['uid'];
       // print(_loanInviteeName);
       // print(_loanInviteetoken);
@@ -434,7 +446,6 @@ class _BorrowPageState extends State<BorrowPage> {
     final FormState form = _formPhone.currentState;
     if (form.validate()) {
       form.save();
-      //Check if phone number exists in backend
 
       //Dismiss the form dialog first
       Navigator.of(context).pop();
@@ -451,7 +462,7 @@ class _BorrowPageState extends State<BorrowPage> {
           if (_phoneRetrieved == widget.phone) {
             //print('Retrieved \t${_phoneRetrieved}\nMine: \t${widget.phone}');
             lender = widget.uid;
-            takeLoanFrom = widget.uid;
+            takeLoanFrom = [widget.uid];
             lenderName = widget.name;
             lenderToken = widget.mytoken;
             setState(() {
@@ -459,7 +470,7 @@ class _BorrowPageState extends State<BorrowPage> {
             });
           } else {
             //print('Not Me');
-            takeLoanFrom = _idInvitee;
+            takeLoanFrom = [_idInvitee];
             lender = null;
             lenderName = null;
             lenderToken = null;
@@ -478,28 +489,9 @@ class _BorrowPageState extends State<BorrowPage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.sentiment_satisfied,
-                  size: 100,
-                  color: Colors.green,
-                ),
-                Text(
-                  'Your request will be sent to $_loanInviteeName',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(
+              message:
+                  'Your request will be sent to ${_loanInviteeName.first}');
         });
   }
 
@@ -507,28 +499,9 @@ class _BorrowPageState extends State<BorrowPage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.sentiment_satisfied,
-                  size: 100,
-                  color: Colors.green,
-                ),
-                Text(
-                  'Your request will be sent to everyone on Sortika who can fulfill your request',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(
+              message:
+                  'Your request will be sent to everyone on Sortika who can fulfill your request');
         });
   }
 
@@ -536,28 +509,8 @@ class _BorrowPageState extends State<BorrowPage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.sentiment_dissatisfied,
-                  size: 100,
-                  color: Colors.red,
-                ),
-                Text(
-                  'The requested lender is not on Sortika',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return ErrorMessage(
+              message: 'The requested lender is not on Sortika');
         });
   }
 
@@ -568,6 +521,9 @@ class _BorrowPageState extends State<BorrowPage> {
         FlatButton(
           onPressed: () {
             takeLoanFrom = 'All';
+            _idInvitee = null;
+            _loanInviteeName = null;
+            _loanInviteetoken = null;
             _promptSendToAll();
           },
           color: Colors.white70,
@@ -594,13 +550,7 @@ class _BorrowPageState extends State<BorrowPage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return CupertinoAlertDialog(
-            content: Text(
-              '$message',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-          );
+          return WarningMessage(message: message);
         });
   }
 
@@ -608,28 +558,8 @@ class _BorrowPageState extends State<BorrowPage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 100,
-                  color: Colors.green,
-                ),
-                Text(
-                  'Your loan application has been received',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(
+              message: 'Your loan application has been received');
         });
   }
 
@@ -637,30 +567,7 @@ class _BorrowPageState extends State<BorrowPage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Processing your request...',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                SpinKitDualRing(
-                  color: Colors.greenAccent[700],
-                  size: 100,
-                )
-              ],
-            ),
-          );
+          return CustomProgressDialog(message: "Processing your request...");
         });
   }
 
@@ -694,7 +601,6 @@ class _BorrowPageState extends State<BorrowPage> {
       _promptUser('The goal end date is too soon');
     } else {
       //Show a dialog
-      _showUserProgress();
       //First get the L+1C
       var cover = await _helper.getLoanInterestCover(widget.uid, amountLoan);
       if (cover == 'Infinity') {
@@ -702,7 +608,17 @@ class _BorrowPageState extends State<BorrowPage> {
       } else {
         interestCoverLoan = cover;
       }
-      //print('L + IC = $interestCoverLoan %');
+      print('L + IC = $interestCoverLoan %');
+
+      // Get the interest in amount
+      //Compute the sIc(sortikaInterestComputed), cIc(clientInterestComputed), lfRepayment and loan balance
+      var interestAmt = (amountLoan * (interestLoan / 100));
+      var sIc = (interestAmt * 20) / 100;
+      var cIc = (interestAmt * 80) / 100;
+      var lfRepaymentAmt = amountLoan;
+      var totalAmtToPay = (amountLoan * (1 + (interestLoan / 100)));
+      var amtRepaid = 0;
+      var loanBalance = totalAmtToPay -  amtRepaid;
       //Create an instance of a Loan
       LoanModel loanModel = new LoanModel(
         loanLender: lender,
@@ -714,36 +630,38 @@ class _BorrowPageState extends State<BorrowPage> {
         loanBorrower: widget.uid,
         tokenBorrower: widget.mytoken,
         borrowerName: widget.name,
+        sortikaInterestComputed: sIc,
+        clientInterestComputed: cIc,
+        lfrepaymentAmount: lfRepaymentAmt,
         loanAmountTaken: amountLoan,
-        loanAmountRepaid: 0,
+        loanAmountRepaid: amtRepaid,
+        loanBalance: loanBalance,
         loanInterest: interestLoan,
         loanEndDate: Timestamp.fromDate(_date),
         loanTakenDate: Timestamp.fromDate(rightNow),
         loanStatus: false,
         loanIC: interestCoverLoan,
-        totalAmountToPay: (amountLoan * (1 + (interestLoan / 100))),
+        totalAmountToPay: totalAmtToPay,
       );
+
+      print(loanModel.toJson());
 
       //Create an activity
       ActivityModel borrowAct = new ActivityModel(
-          activity: loanModel.loanInviteeName == null
-              ? 'You sent a loan request to yourself'
-              : 'You sent a loan request to ${loanModel.loanInviteeName}',
+          activity: loanModel.loanInvitees == "All"
+              ? 'You sent a loan request to everyone on sortika who can fulfill the request'
+              : loanModel.loanInviteeName == null
+                  ? 'You sent a loan request to yourself'
+                  : 'You sent a loan request to ${loanModel.loanInviteeName.first}',
           activityDate: Timestamp.fromDate(rightNow));
       await authService.postActivity(widget.uid, borrowAct);
 
       _applyForALoan(loanModel).whenComplete(() {
-        //Pop that dialog
-        Timer(Duration(seconds: 1), () => Navigator.of(context).pop());
-
         //Show a success message for two seconds
-        Timer(Duration(seconds: 2), () => _promptUserSuccess());
+        _promptUserSuccess();
       }).catchError((error) {
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 1), () => Navigator.of(context).pop());
-
-        //Show an erroe message
-        Timer(Duration(seconds: 2), () => _promptUser(error));
+        //Show an error message
+        _promptUser(error);
       });
     }
   }

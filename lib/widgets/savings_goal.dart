@@ -7,8 +7,10 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
+import 'package:wealth/models/investmentModel.dart';
 import 'package:wealth/utilities/styles.dart';
 
 class SavingsGoal extends StatefulWidget {
@@ -40,6 +42,12 @@ class _SavingsGoalState extends State<SavingsGoal> {
   //Set an average loan to be 30 days
   static DateTime rightNow = DateTime.now();
   static DateTime oneMonthFromNow = rightNow.add(Duration(days: 30));
+
+  Future<List<InvestmentModel>> fetchData;
+  Helper helper = new Helper();
+
+  List<InvestmentModel> _classes = [];
+  List<dynamic> _types = [];
 
   DateTime _date;
   String _dateDay = oneMonthFromNow.day.toString();
@@ -73,48 +81,6 @@ class _SavingsGoalState extends State<SavingsGoal> {
     });
     print('Goal Name: $goalName');
   }
-
-  List<DropdownMenuItem> itemsGoals = [
-    DropdownMenuItem(
-      value: 'utility',
-      child: Text(
-        'Utility goals',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'custom',
-      child: Text(
-        'Create my own goal',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
-
-  List<DropdownMenuItem> itemsTypes = [
-    DropdownMenuItem(
-      value: 'loan',
-      child: Text(
-        'Loan repayment',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: 'custom',
-      child: Text(
-        'I have a custom goal',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
 
   //Custom goal name
   Widget _customGoalName() {
@@ -374,51 +340,88 @@ class _SavingsGoalState extends State<SavingsGoal> {
 
   Widget _goalClass() {
     return Container(
-      alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6.0,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 12),
-      child: DropdownButton(
-        items: itemsGoals,
-        underline: Divider(
-          color: Colors.transparent,
+        alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6.0,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
-        value: classSavings,
-        hint: Text(
-          '',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600)),
-        ),
-        icon: Icon(
-          CupertinoIcons.down_arrow,
-          color: Colors.black,
-        ),
-        isExpanded: true,
-        onChanged: (value) {
-          setState(() {
-            classSavings = value;
-            //Change color according to value of goal
-            if (value == 'custom') {
-              //Show a popup to create a goal
-              addGoalName();
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        child: FutureBuilder<List<InvestmentModel>>(
+          future: fetchData,
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.active:
+              case ConnectionState.done:
+                if (snapshot.hasData) {
+                  _classes = snapshot.data;
+                  return DropdownButton(
+                    items: _classes
+                        .map((map) => DropdownMenuItem(
+                              value: map.title,
+                              child: Text(
+                                map.title,
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w600)),
+                              ),
+                            ))
+                        .toList(),
+                    underline: Divider(
+                      color: Colors.transparent,
+                    ),
+                    value: classSavings,
+                    hint: Text(
+                      '',
+                      style: GoogleFonts.muli(
+                          textStyle: TextStyle(
+                              color: Colors.black,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600)),
+                    ),
+                    icon: Icon(
+                      CupertinoIcons.down_arrow,
+                      color: Colors.black,
+                    ),
+                    isExpanded: true,
+                    onChanged: (value) => selectedChange(value),
+                  );
+                }
+                return LinearProgressIndicator();
+              case ConnectionState.waiting:
+                return LinearProgressIndicator();
+              default:
+                return LinearProgressIndicator();
             }
-          });
-        },
-      ),
-    );
+          },
+        ));
   }
+
+  void selectedChange(String value) {
+    setState(() {
+      typeSavings = ' ';
+      _types = [
+        {'name': ' '}
+      ];
+      classSavings = value;
+      _types = List.from(_types)..addAll(getgoalByTitle(value));
+      print(_types);
+    });
+  }
+
+  getgoalByTitle(String value) => _classes
+      .map((map) => map)
+      .where((item) => item.title == value)
+      .map((item) => item.types)
+      .expand((i) => i)
+      .toList();
 
   Widget _goalType() {
     return Container(
@@ -436,18 +439,26 @@ class _SavingsGoalState extends State<SavingsGoal> {
       ),
       padding: EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButton(
-        items: itemsTypes,
+        value: typeSavings,
+        disabledHint: Text(
+          'Please select a class',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(fontWeight: FontWeight.w600)),
+        ),
+        items: _types.map((map) {
+          String name = map['name'];
+          return DropdownMenuItem(
+            value: name,
+            child: Text(
+              name,
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.w600)),
+            ),
+          );
+        }).toList(),
         underline: Divider(
           color: Colors.transparent,
-        ),
-        value: typeSavings,
-        hint: Text(
-          '',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600)),
         ),
         icon: Icon(
           CupertinoIcons.down_arrow,
@@ -457,6 +468,7 @@ class _SavingsGoalState extends State<SavingsGoal> {
         onChanged: (value) {
           setState(() {
             typeSavings = value;
+            print(typeSavings);
           });
         },
       ),
@@ -575,6 +587,12 @@ class _SavingsGoalState extends State<SavingsGoal> {
             ))
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData = helper.getSavingsddData();
   }
 
   @override

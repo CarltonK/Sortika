@@ -105,13 +105,13 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
     animation.animateTo(slideValue.toDouble());
   }
 
-
   void submitBtnPressed(String text) {
     //print(text);
     //Show a Progress Dialog
     showCupertinoModalPopup(
-      context: context, 
-      builder: (context) => CustomProgressDialog(message: 'Sending your review...'),
+      context: context,
+      builder: (context) =>
+          CustomProgressDialog(message: 'Sending your review...'),
     );
     if (text == 'OK') {
       title = 'OK';
@@ -130,36 +130,33 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
       review = "I am not satisfied. Please do something about it";
     }
 
-    ReviewModel model = new ReviewModel(
-      title: title,
-      review: review,
-      uid: widget.uid
-    );
+    ReviewModel model =
+        new ReviewModel(title: title, review: review, uid: widget.uid);
 
-    helper.createReview(model)
-    .catchError((error) {
-       //Pop the dialog
+    helper.createReview(model).catchError((error) {
+      //Pop the dialog
       Navigator.of(context).pop();
       //Show the error message after a second
       Timer(Duration(seconds: 1), () {
         showCupertinoModalPopup(
-          context: context, 
-          builder: (context) => ErrorMessage(message: 'There was an error sending your review. This is the error: $error'),
+          context: context,
+          builder: (context) => ErrorMessage(
+              message:
+                  'There was an error sending your review. This is the error: $error'),
         );
       });
-    })
-    .then((value) {
+    }).then((value) {
       //Pop the dialog
       Navigator.of(context).pop();
       //Show a success message after a second
       Timer(Duration(seconds: 1), () {
         showCupertinoModalPopup(
-          context: context, 
-          builder: (context) => SuccessMessage(message: 'Thank you for your review'),
+          context: context,
+          builder: (context) =>
+              SuccessMessage(message: 'Thank you for your review'),
         );
       });
     });
-
   }
 
   @override
@@ -221,7 +218,8 @@ class _RateState extends State<Rate> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: GestureDetector(
-                    onTap: () => submitBtnPressed(arcItems[lastAnimPosition].text),
+                    onTap: () =>
+                        submitBtnPressed(arcItems[lastAnimPosition].text),
                     child: Material(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25.0)),

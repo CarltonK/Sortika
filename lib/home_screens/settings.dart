@@ -73,7 +73,7 @@ class _SettingsState extends State<Settings> {
     print('Phone: ' + _phone);
   }
 
-   void _handleSubmittedOtp(String value) {
+  void _handleSubmittedOtp(String value) {
     _otp = value.trim();
     print('OTP: ' + _otp);
   }
@@ -523,7 +523,7 @@ class _SettingsState extends State<Settings> {
     );
   }
 
-    Future _otpDialog() {
+  Future _otpDialog() {
     return showCupertinoModalPopup(
       context: context,
       builder: (context) {
@@ -595,22 +595,24 @@ class _SettingsState extends State<Settings> {
       Navigator.of(context).pop();
       //Show a progress dialog
       showCupertinoModalPopup(
-        context: context, 
-        builder: (context) => CustomProgressDialog(message: 'Processing your request'),
+        context: context,
+        builder: (context) =>
+            CustomProgressDialog(message: 'Processing your request'),
       );
-      PhoneVerificationModel model = new PhoneVerificationModel(
-        uid: user.uid,
-        phone: user.phone
-      );
+      PhoneVerificationModel model =
+          new PhoneVerificationModel(uid: user.uid, phone: user.phone);
 
-      helper.phoneVerify(model)
-      .catchError((error) => {
-        showCupertinoModalPopup(
-          context: context, 
-          builder: (context) => ErrorMessage(message: 'You had sent in a similar request. Please use the code we sent to you.'),
-        )
-      })
-      .whenComplete(() {
+      helper
+          .phoneVerify(model)
+          .catchError((error) => {
+                showCupertinoModalPopup(
+                  context: context,
+                  builder: (context) => ErrorMessage(
+                      message:
+                          'You had sent in a similar request. Please use the code we sent to you.'),
+                )
+              })
+          .whenComplete(() {
         Navigator.of(context).pop();
         //Show OTP Popup
         _otpDialog();
@@ -618,45 +620,42 @@ class _SettingsState extends State<Settings> {
     }
   }
 
-    void _setOtp() {
+  void _setOtp() {
     final form = _formOtp.currentState;
     if (form.validate()) {
       form.save();
       //Show a progress dialog
       showCupertinoModalPopup(
-        context: context, 
-        builder: (context) => CustomProgressDialog(message: 'Processing your request'),
+        context: context,
+        builder: (context) =>
+            CustomProgressDialog(message: 'Processing your request'),
       );
       PhoneVerificationModel model = new PhoneVerificationModel(
-        uid: user.uid,
-        phone: user.phone,
-        genCode: _otp
-      );
-      helper.verifyOtp(model)
-      .catchError((error) {
+          uid: user.uid, phone: user.phone, genCode: _otp);
+      helper.verifyOtp(model).catchError((error) {
         Navigator.of(context).pop();
         showCupertinoModalPopup(
-          context: context, 
-          builder: (context) => ErrorMessage(message: 'Your request could not be completed. Please try again'),
+          context: context,
+          builder: (context) => ErrorMessage(
+              message: 'Your request could not be completed. Please try again'),
         );
-      })
-      .then((value) async{
+      }).then((value) async {
         if (value) {
           Navigator.of(context).pop();
           showCupertinoModalPopup(
-            context: context, 
-            builder: (context) => SuccessMessage(message: 'You have verified your phone number successfully'),
+            context: context,
+            builder: (context) => SuccessMessage(
+                message: 'You have verified your phone number successfully'),
           );
-        }
-        else if (value == false) {
+        } else if (value == false) {
           showCupertinoModalPopup(
-            context: context, 
-            builder: (context) => ErrorMessage(message: 'You have entered a wrong code'),
+            context: context,
+            builder: (context) =>
+                ErrorMessage(message: 'You have entered a wrong code'),
           );
-        }
-        else {
+        } else {
           showCupertinoModalPopup(
-            context: context, 
+            context: context,
             builder: (context) => ErrorMessage(message: value.toString()),
           );
         }

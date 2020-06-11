@@ -65,7 +65,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
     'Dec'
   ];
 
-    Widget _investClassWidget() {
+  Widget _investClassWidget() {
     return Container(
         alignment: Alignment.centerLeft,
         decoration: BoxDecoration(
@@ -131,10 +131,12 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         ));
   }
 
-    void selectedChange(String value) {
+  void selectedChange(String value) {
     setState(() {
       goalInvestment = 'Choose a goal';
-      _types = [{'name':'Choose a goal','return':0}];
+      _types = [
+        {'name': 'Choose a goal', 'return': 0}
+      ];
       classInvestment = value;
       _types = List.from(_types)..addAll(getgoalByTitle(value));
       print(_types);
@@ -142,11 +144,11 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
   }
 
   getgoalByTitle(String value) => _classes
-    .map((map) => map)
-    .where((item) => item.title == value)
-    .map((item) => item.types)
-    .expand((i) => i)
-    .toList();
+      .map((map) => map)
+      .where((item) => item.title == value)
+      .map((item) => item.types)
+      .expand((i) => i)
+      .toList();
 
   Widget _investTypeWidget() {
     return Container(
