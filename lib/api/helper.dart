@@ -505,4 +505,28 @@ class Helper {
         .document()
         .setData(model.toJson());
   }
+
+
+  //Join the Lottery
+  Future joinLottery(String club, String uid, String phone) async {
+    await _firestore.collection('lottery').document(club).collection('participants').document(uid).setData({
+      'uid': uid,
+      'phone': phone,
+      'club': club
+    });
+  }
+
+  //Get Lottery Club Members
+  Future<QuerySnapshot> getLotteryClubMembers(String club) async {
+    QuerySnapshot queries = await _firestore.collection('lottery').document(club).collection('participants').limit(10).getDocuments();
+    return queries;
+  }
+
+
+  Future redeemItem(String docID, String uid) async {
+    await _firestore.collection('redeemables').document(docID).collection('requests').document(uid).setData({
+      'uid': uid,
+      'redeemableID': docID
+    });
+  }
 }

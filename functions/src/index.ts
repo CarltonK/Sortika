@@ -672,23 +672,15 @@ export const loanLimitCalculator = functions.firestore
             const amountRepaid: number = snapshot.after.get('loanAmountRepaid')
             const interest: number = snapshot.after.get('loanInterest')
             const borrowerUid: string = snapshot.after.get('loanBorrower')
-            const lenderUid: string = snapshot.after.get('loanLender')
 
             if (snapshot.before.get('loanAmountRepaid') !== amountRepaid) {
                 //Check if amount paid is more than totaltoPay
                 if (amountRepaid > totalAmountToPay) {
                     //Get the difference and store in overpayments collection
-                    const difference: number = amountRepaid - totalAmountToPay
                     //Change the loanAmountRepaid to TotalAmountToPay and mark loan as complete
                     await db.collection('loans').doc(snapshot.after.id).update({
                         'loanAmountRepaid': totalAmountToPay,
                         'loanStatus': 'Completed'
-                    })
-                    //Create an overpayment
-                    await db.collection('overpayments').doc().set({
-                        'loanBorrower': borrowerUid,
-                        'loanLender': lenderUid,
-                        'overpayment': difference
                     })
                     //increase loan limit
                     increaseLoanLimit(interest, borrowerUid)
@@ -728,4 +720,5 @@ exports.sortikaPoints = functions.firestore
             })
         }
     })
+
 

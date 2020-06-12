@@ -31,6 +31,8 @@ import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/investmentPortfolio.dart';
 import 'package:wealth/widgets/my_groups.dart';
 import 'package:wealth/widgets/portfolio.dart';
+import 'package:wealth/global/errorMessage.dart';
+import 'package:wealth/global/successMessage.dart';
 import 'package:wealth/widgets/networkSensitive.dart';
 import 'package:http/http.dart' as http;
 
@@ -50,6 +52,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   AnalyticsFunnel funnel = AnalyticsFunnel();
   //Form Key
   final _formKey = GlobalKey<FormState>();
+  final _formWithdrawWallet = GlobalKey<FormState>();
 
   double _withdrawAmt;
   void _handleSubmittedWithdrawAmt(String value) {
@@ -1934,7 +1937,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         code,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
-                                color: Colors.green,
+                                color: greenColorItems.contains(action) ? Colors.green : Colors.red,
                                 fontWeight: FontWeight.w600)),
                       ),
                       Text(
@@ -2015,122 +2018,76 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ));
   }
 
-  Widget _walletWithdrawTF() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        TextFormField(
-            autofocus: false,
-            keyboardType: TextInputType.number,
-            style: GoogleFonts.muli(
-                textStyle: TextStyle(
-              color: Colors.black,
-            )),
-            onFieldSubmitted: (value) {
-              FocusScope.of(context).unfocus();
-            },
-            validator: (value) {
-              //Check if password is empty
-              if (value.isEmpty) {
-                return 'Amount is required';
-              }
-              return null;
-            },
-            textInputAction: TextInputAction.done,
-            onSaved: _handleSubmittedWithdrawAmt,
-            obscureText: false,
-            decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue)),
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue)),
-                errorBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.red)),
-                border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue))))
-      ],
+  Widget _walletWithdrawTF(int amount) {
+    return Form(
+      key: _formWithdrawWallet,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          TextFormField(
+              autofocus: false,
+              keyboardType: TextInputType.number,
+              style: GoogleFonts.muli(
+                  textStyle: TextStyle(
+                color: Colors.black,
+              )),
+              onFieldSubmitted: (value) {
+                FocusScope.of(context).unfocus();
+              },
+              validator: (value) {
+                //Check if password is empty
+                if (value.isEmpty) {
+                  return 'Amount is required';
+                }
+                if (value.contains('-') || value.contains('.')) {
+                  return 'Please enter a valid number';
+                }
+                if (double.parse(value) < 10) {
+                  return 'You cannot withdraw less than 10 KES';
+                }
+                if (double.parse(value) > (amount - 79)) {
+                  return 'Minimum withdrawable amount is ${amount-79}';
+                }
+                return null;
+              },
+              autovalidate: true,
+              textInputAction: TextInputAction.done,
+              onSaved: _handleSubmittedWithdrawAmt,
+              obscureText: false,
+              decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue)),
+                  focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue)),
+                  errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red)),
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue))))
+        ],
+      ),
     );
   }
 
-  Future _promptNotEnoughFunds() {
-    return showCupertinoModalPopup(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.sentiment_dissatisfied,
-                  size: 100,
-                  color: Colors.red,
-                ),
-                Text(
-                  'You do not have sufficient funds',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
-        });
-  }
-
-  Future _promptWithdrawWalletSuccess() {
-    return showCupertinoModalPopup(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.sentiment_satisfied,
-                  size: 100,
-                  color: Colors.blue,
-                ),
-                Text(
-                  'Your withdrawal request has been submitted successfully',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
-        });
-  }
 
   void _withdrawBtnPressed(var amount) async {
-    final FormState form = _formKey.currentState;
+    final FormState form = _formWithdrawWallet.currentState;
     if (form.validate()) {
       form.save();
       //Dismiss the keyboard
       SystemChannels.textInput.invokeMethod('TextInput.hide');
       //Dismiss the dialog
       Navigator.of(context).pop();
-      //Show a progress dialog
-      _showUserProgress('Submitting your request');
       //Check if money can be withdrawn
-      if (_withdrawAmt > amount) {
-        //print('Not enough money in wallet');
-        Navigator.of(context).pop();
-        _promptNotEnoughFunds();
-      } else {
-        //Money can be withdrawn
-        await helper.withdrawMoney(uid, userData.phone, _withdrawAmt);
-        Navigator.of(context).pop();
-        _promptWithdrawWalletSuccess();
-      }
+      helper.withdrawMoney(userData.uid, userData.phone, _withdrawAmt)
+        .then((value) => showCupertinoModalPopup(
+          context: context,
+          builder: (context) => SuccessMessage(message: 'We have received your withdrawal request. We are processing it.',),
+        ))
+        .catchError((error) => showCupertinoModalPopup(
+          context: context,
+          builder: (context) => ErrorMessage(message: error.toString().contains('PERMISSION_DENIED') ? 'A withdrawal request is being processed, please wait while we process it. This should not take long' : error.toString()),
+        ));
+      
     }
   }
 
@@ -2145,12 +2102,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               'Enter Amount',
               style: GoogleFonts.muli(textStyle: TextStyle()),
             ),
-            content: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [_walletWithdrawTF()],
-                )),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [_walletWithdrawTF(amount)],
+            ),
             actions: [
               FlatButton(
                   onPressed: () => _withdrawBtnPressed(amount),
@@ -2238,7 +2193,16 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 IconButton(
                                   tooltip: 'Withdraw',
                                   icon: Icon(Icons.redeem),
-                                  onPressed: () => _withdrawFromWallet(amount),
+                                  onPressed: () {
+                                    if (userData.phoneVerified) {
+                                      _withdrawFromWallet(amount);
+                                    }
+                                    else {
+                                      showCupertinoModalPopup(
+                                        context: context,
+                                        builder: (context) => ErrorMessage(message: 'Please verify your phone number by setting your preffered withdrawal or deposit method in settings. If you have done so, please Login again'));
+                                    }
+                                  },
                                 )
                               ],
                             );
@@ -2478,7 +2442,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       SortikaSavings(
                         user: userData,
                       ),
-                      SortikaLottery()
+                      SortikaLottery(
+                        user: userData,
+                      )
                     ])),
                 SizedBox(
                   height: 5,

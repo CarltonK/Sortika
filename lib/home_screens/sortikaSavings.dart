@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/errorMessage.dart';
+import 'package:wealth/global/successMessage.dart';
 import 'package:wealth/models/usermodel.dart';
 
 class SortikaSavings extends StatefulWidget {
@@ -43,58 +46,88 @@ class _SortikaSavingsState extends State<SortikaSavings> {
     );
   }
 
+  void _redeemPressed(DocumentSnapshot doc) {
+    int itemPoints = doc.data['points'];
+    String itemName = doc.data['name'];
+
+    if (widget.user.points >= itemPoints) {
+      helper.redeemItem(doc.documentID, widget.user.uid)
+        .whenComplete(() {
+          showCupertinoModalPopup(
+            context: context, 
+            builder: (context) => SuccessMessage(message: 'Your request to redeem $itemName has been received. Continue transacting on Sortika to earn more points and redeem them for goodies'),
+          );
+        })
+        .catchError((error) {
+          showCupertinoModalPopup(
+            context: context, 
+            builder: (context) => ErrorMessage(message: 'There was an error redeeming $itemName. $error'),
+          );
+        });
+    }
+    else {
+      showCupertinoModalPopup(
+        context: context, 
+        builder: (context) => ErrorMessage(message: 'You do not have enough points to redeem this item. Continue depositing and transacting on Sortika to earn more points'),
+      );
+    }
+  }
+
   Widget _cardRedeemItem(DocumentSnapshot doc) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-      child: Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16), color: Colors.blue),
-        padding: EdgeInsets.all(8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-                child: Icon(
-                  Icons.label,
-                  color: Colors.white,
-                ),
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Color(0xFF73AEF5))),
-            SizedBox(
-              width: 10,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  doc.data['name'],
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700)),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Text(
-                  '${doc.data['points']} Points',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w400)),
-                ),
-              ],
-            ),
-            SizedBox(
-              width: 5,
-            ),
-          ],
+    return GestureDetector(
+      onTap: () => _redeemPressed(doc),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+        child: Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16), color: Colors.blue),
+          padding: EdgeInsets.all(8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                  child: Icon(
+                    Icons.label,
+                    color: Colors.white,
+                  ),
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: Color(0xFF73AEF5))),
+              SizedBox(
+                width: 10,
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    doc.data['name'],
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Text(
+                    '${doc.data['points']} Points',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400)),
+                  ),
+                ],
+              ),
+              SizedBox(
+                width: 5,
+              ),
+            ],
+          ),
         ),
       ),
     );

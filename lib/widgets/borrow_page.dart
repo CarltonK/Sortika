@@ -618,7 +618,7 @@ class _BorrowPageState extends State<BorrowPage> {
       var lfRepaymentAmt = amountLoan;
       var totalAmtToPay = (amountLoan * (1 + (interestLoan / 100)));
       var amtRepaid = 0;
-      var loanBalance = totalAmtToPay -  amtRepaid;
+      var loanBalance = totalAmtToPay - amtRepaid;
       //Create an instance of a Loan
       LoanModel loanModel = new LoanModel(
         loanLender: lender,

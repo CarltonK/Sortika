@@ -410,7 +410,7 @@ export const LoanRevision = functions.firestore
         const due: number = loanModel.totalAmountToPay
         const borrowerUid: string = loanModel.loanBorrower
 
-        if (loanData.loanStatus == 'Revised') {
+        if (loanData.loanStatus === 'Revised') {
             try {
                 const borrowerTokens: string[] = [token]
                 await notification.singleNotificationSend(borrowerTokens,`Your loan request submission has been revised. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. You will pay back ${due} KES`,`Loan Revision`)
@@ -434,7 +434,7 @@ export const LoanNegotiation = functions.firestore
         const token: string = loanModel.tokenBorrower
         const borrowerUid: string = loanModel.loanBorrower
 
-        if (loanData.loanStatus == 'Revised2') {
+        if (loanData.loanStatus === 'Revised2') {
             try {
                 const borrowerTokens: string[] = [token]
                 await notification.singleNotificationSend(borrowerTokens,`You have sent a revised loan request submission`,`Loan Revision`)

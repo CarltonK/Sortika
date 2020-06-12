@@ -1,6 +1,7 @@
-import { Request, Response } from "express";
+import { Request, Response } from "express"
 import * as superadmin from 'firebase-admin'
-import { DocumentSnapshot } from "firebase-functions/lib/providers/firestore";
+import { DocumentSnapshot } from "firebase-functions/lib/providers/firestore"
+import * as notification from './notification'
 
 
 export function mpesaLnmCallbackForCapture(request: Request, response: Response) {
@@ -400,12 +401,132 @@ export function mpesaLnmCallback(request: Request, response: Response) {
 }
 
 export function mpesaB2cTimeout(request: Request, response: Response) {
-    console.log('---Received Safaricom M-PESA Webhook For B2C Timeout---')
-    console.log(`---B2C Timeout---\n${request.body}`)
+    try {
+        console.log('---Received Safaricom M-PESA Webhook For B2C Timeout---')
+        console.log(`---B2C Timeout---\n${request.body}`)
+        const message = {
+            "ResponseCode": "00000000",
+	        "ResponseDesc": "success"
+        }
+        response.json(message)
+    } catch (error) {
+        console.error('There was an error in mpesaB2cTimeout',error)
+    }
 }
 
 export function mpesaB2cResult(request: Request, response: Response) {
-    console.log('---Received Safaricom M-PESA Webhook For B2C---')
-    console.log(`---B2C Result---\n${request.body['Result']['ResultCode']}`)
-    console.log(`---B2C Result---\n${request.body['Result']['ResultDesc']}`)
+    try {
+        console.log('---Received Safaricom M-PESA Webhook For B2C---')
+        const serverRequest = request.body
+        // console.log(serverRequest)
+        const code: number = serverRequest['Result']['ResultCode']
+        if (code === 0) {
+            const transactionCode: string = serverRequest['Result']['TransactionID']
+            let transactionAmount: number = 0
+            let transactionTime: string = ''
+            let transactionUser: string = ''
+            // console.log(transactionCode)
+            const params: any[] = serverRequest['Result']['ResultParameters']['ResultParameter']
+            params.forEach(singleParam => {
+                //console.log(singleParam)
+                if (singleParam['Key'] === 'TransactionAmount') {
+                    transactionAmount = singleParam['Value']
+                }
+                if (singleParam['Key'] === 'ReceiverPartyPublicName') {
+                    transactionUser = singleParam['Value']
+                }
+                if (singleParam['Key'] === 'TransactionCompletedDateTime') {
+                    transactionTime = singleParam['Value']
+                }
+            })
+
+            const phoneNumSecStr: string = transactionUser.split(' - ')[0]
+            let transactionPhone: string = phoneNumSecStr.slice(3)
+            transactionPhone = "0" + transactionPhone
+
+            //Modify time to match string in transactions
+            const transactionTimeDate: string = transactionTime.split(' ')[0]
+            const transactionTimeTime: string = transactionTime.split(' ')[1]
+
+            const transactionTimeDateSplit = transactionTimeDate.split('.')
+            const transactionTimeTimeSplit = transactionTimeTime.split(':')
+
+            let transactionTimeString: string = ''
+            transactionTimeString += transactionTimeDateSplit[2]
+            transactionTimeString += transactionTimeDateSplit[1]
+            transactionTimeString += transactionTimeDateSplit[0]
+            transactionTimeString += transactionTimeTimeSplit[0]
+            transactionTimeString += transactionTimeTimeSplit[1]
+            transactionTimeString += transactionTimeTimeSplit[2]
+
+            const transactionTimeNumber: number = Number(transactionTimeString)
+
+            // console.log(`Transaction amount ${transactionAmount}`)
+            // console.log(`Transaction time ${transactionTime}`)
+            // console.log(`Transaction phone ${transactionPhone}`)
+
+            let uid: string
+            let token: string
+
+            const db = superadmin.firestore()
+
+            //Check if a user with the phone exists
+            db.collection('users').where('phone','==',transactionPhone).limit(1).get()
+                .then((userQuerySnap: superadmin.firestore.QuerySnapshot) => {
+                    const userDocs: DocumentSnapshot[] = userQuerySnap.docs
+                    //Only one result should be found
+                    if (userDocs.length === 1) {
+                        const userDoc: DocumentSnapshot = userDocs[0]
+                        uid = userDoc.get('uid')
+                        token = userDoc.get('token')
+
+                        const walletRef: superadmin.firestore.DocumentReference = db.collection('users').doc(uid).collection('wallet').doc(uid)
+                        db.runTransaction(async walletTrans => {
+                            return walletTrans.get(walletRef)
+                                .then(async walletTransValue => {
+                                    const walletAmt: number = walletTransValue.get('amount')
+                                    const totalWithdrawAmount: number = transactionAmount + 79
+                                    if (walletAmt >= totalWithdrawAmount) {
+                                        walletTrans.update(walletRef, {amount: superadmin.firestore.FieldValue.increment(-totalWithdrawAmount)})
+                                        console.log(`Updating the wallet of ${uid} after a withdrawal transaction`)
+
+                                        //Send notifications
+                                        const tokens: string[] = [token]
+                                        await notification.singleNotificationSend(tokens,`Your withdrawal request was successful. Your wallet balance is ${walletAmt - totalWithdrawAmount} KES as at ${superadmin.firestore.Timestamp.now().toDate().toString()}`,`Umesortika`)
+                                        await db.collection('users').doc(uid).collection('notifications').doc().set({
+                                            'message': `Your withdrawal request was successful. Your wallet balance is ${walletAmt - totalWithdrawAmount} KES as at ${superadmin.firestore.Timestamp.now().toDate().toString()}`,
+                                            'time': superadmin.firestore.FieldValue.serverTimestamp()
+                                        })
+                                        
+                                        //Create a transaction
+                                        await db.collection('transactions').doc(transactionCode).set({
+                                            'transactionAction': 'Withdrawal',
+                                            'transactionCategory': 'Wallet',
+                                            'transactionCode': transactionCode,
+                                            'transactionAmount': transactionAmount,
+                                            'transactionPhone': phoneNumSecStr,
+                                            'transactionUid': uid,
+                                            'transactionTime': transactionTimeNumber
+                                        })
+
+                                        //Delete the relevant withdrawals document
+                                        await db.collection('withdrawals').doc(uid).delete()
+                                    }
+                                })
+                                .catch(error => console.error(`There was an error updating the wallet of ${uid}`))
+                        })
+                        .then(value => console.log('Wallet credit transaction has completed'))
+                        .catch(error => console.error(`wallet credit transaction error`,error))
+                    }
+                })
+                .catch(error => console.error('There was an error retrieveing user',error))
+        }
+        const message = {
+            "ResponseCode": "00000000",
+	        "ResponseDesc": "success"
+        }
+        response.json(message) 
+    } catch (error) {
+        console.error('There was an error in mpesaB2cResult',error)
+    }
 }
