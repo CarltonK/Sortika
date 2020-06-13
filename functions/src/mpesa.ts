@@ -428,7 +428,7 @@ export function mpesaB2cResult(request: Request, response: Response) {
             // console.log(transactionCode)
             const params: any[] = serverRequest['Result']['ResultParameters']['ResultParameter']
             params.forEach(singleParam => {
-                //console.log(singleParam)
+                // console.log(singleParam)
                 if (singleParam['Key'] === 'TransactionAmount') {
                     transactionAmount = singleParam['Value']
                 }
@@ -441,8 +441,7 @@ export function mpesaB2cResult(request: Request, response: Response) {
             })
 
             const phoneNumSecStr: string = transactionUser.split(' - ')[0]
-            let transactionPhone: string = phoneNumSecStr.slice(3)
-            transactionPhone = "0" + transactionPhone
+            const transactionPhone: string = (phoneNumSecStr.startsWith('0')) ? phoneNumSecStr : ('0' + phoneNumSecStr.slice(3))
 
             //Modify time to match string in transactions
             const transactionTimeDate: string = transactionTime.split(' ')[0]
@@ -485,16 +484,16 @@ export function mpesaB2cResult(request: Request, response: Response) {
                             return walletTrans.get(walletRef)
                                 .then(async walletTransValue => {
                                     const walletAmt: number = walletTransValue.get('amount')
-                                    const totalWithdrawAmount: number = transactionAmount + 79
+                                    const totalWithdrawAmount: number = (transactionAmount < 1000) ? transactionAmount + 40 : transactionAmount + 79
                                     if (walletAmt >= totalWithdrawAmount) {
                                         walletTrans.update(walletRef, {amount: superadmin.firestore.FieldValue.increment(-totalWithdrawAmount)})
                                         console.log(`Updating the wallet of ${uid} after a withdrawal transaction`)
 
                                         //Send notifications
                                         const tokens: string[] = [token]
-                                        await notification.singleNotificationSend(tokens,`Your withdrawal request was successful. Your wallet balance is ${walletAmt - totalWithdrawAmount} KES as at ${superadmin.firestore.Timestamp.now().toDate().toString()}`,`Umesortika`)
+                                        await notification.singleNotificationSend(tokens,`Your withdrawal request was successful. Your wallet balance is ${walletAmt - totalWithdrawAmount} KES as at ${superadmin.firestore.Timestamp.now().toDate().toUTCString()}`,`Umesortika`)
                                         await db.collection('users').doc(uid).collection('notifications').doc().set({
-                                            'message': `Your withdrawal request was successful. Your wallet balance is ${walletAmt - totalWithdrawAmount} KES as at ${superadmin.firestore.Timestamp.now().toDate().toString()}`,
+                                            'message': `Your withdrawal request was successful. Your wallet balance is ${walletAmt - totalWithdrawAmount} KES as at ${superadmin.firestore.Timestamp.now().toDate().toUTCString()}`,
                                             'time': superadmin.firestore.FieldValue.serverTimestamp()
                                         })
                                         

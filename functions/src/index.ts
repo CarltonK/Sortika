@@ -8,6 +8,7 @@ import { DocumentSnapshot } from 'firebase-functions/lib/providers/firestore'
 import * as mpesa from './mpesa'
 import * as sms from './sms'
 import * as loan from './loan'
+import * as ratecalc from './savings_rate_calculator'
 
 
 const db = superadmin.firestore()
@@ -263,8 +264,7 @@ export const scheduledFunction = functions.pubsub.schedule(`every day 00:01`)
         return null;
     });
 
-
-
+export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
 
 /*
 NOTIFICATIONS
@@ -638,9 +638,14 @@ export const deleteGroup = functions.firestore
     .onDelete(async snapshot => {
         const uid: string = snapshot.id
         const queries: FirebaseFirestore.QuerySnapshot = await db.collection('groups').doc(uid).collection('members').get()
-        queries.forEach(async (element) => {
-            await db.collection('groups').doc(uid).collection('members').doc(element.id).delete()
-        })
+        try {
+            queries.forEach(async (element) => {
+                await db.collection('groups').doc(uid).collection('members').doc(element.id).delete()
+            })
+        } catch (error) {
+            throw error
+            
+        }
     })
 
 
@@ -658,46 +663,54 @@ async function increaseLoanLimit(interest: number, uid: string) {
     const doc: DocumentSnapshot = await db.collection('users').doc(uid).get()
     const limit: number = doc.get('loanLimitRatio')
     const newLimit: number = limit + rate
-    await db.collection('users').doc(uid).update({
-        'loanLimitRatio': newLimit
-    })
+    try {
+        await db.collection('users').doc(uid).update({
+            'loanLimitRatio': newLimit
+        })
+    } catch (error) {
+        throw error
+    }
 }
 
 export const loanLimitCalculator = functions.firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
         //Check if the document exists
-        if (snapshot.before.exists || snapshot.after.exists) {
-            const totalAmountToPay: number = snapshot.after.get('totalAmountToPay')
-            const amountRepaid: number = snapshot.after.get('loanAmountRepaid')
-            const interest: number = snapshot.after.get('loanInterest')
-            const borrowerUid: string = snapshot.after.get('loanBorrower')
-
-            if (snapshot.before.get('loanAmountRepaid') !== amountRepaid) {
-                //Check if amount paid is more than totaltoPay
-                if (amountRepaid > totalAmountToPay) {
-                    //Get the difference and store in overpayments collection
-                    //Change the loanAmountRepaid to TotalAmountToPay and mark loan as complete
-                    await db.collection('loans').doc(snapshot.after.id).update({
-                        'loanAmountRepaid': totalAmountToPay,
-                        'loanStatus': 'Completed'
-                    })
-                    //increase loan limit
-                    increaseLoanLimit(interest, borrowerUid)
-                    .then((value) => {console.log(value)})
-                    .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
-                }
-                if (amountRepaid === totalAmountToPay) {
-                    //Mark loan as completed
-                    await db.collection('loans').doc(snapshot.after.id).update({
-                        'loanStatus': 'Completed'
-                    })
-                    //increase loan limit
-                    increaseLoanLimit(interest, borrowerUid)
-                    .then((value) => {console.log(value)})
-                    .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
+        try {
+            if (snapshot.before.exists || snapshot.after.exists) {
+                const totalAmountToPay: number = snapshot.after.get('totalAmountToPay')
+                const amountRepaid: number = snapshot.after.get('loanAmountRepaid')
+                const interest: number = snapshot.after.get('loanInterest')
+                const borrowerUid: string = snapshot.after.get('loanBorrower')
+    
+                if (snapshot.before.get('loanAmountRepaid') !== amountRepaid) {
+                    //Check if amount paid is more than totaltoPay
+                    if (amountRepaid > totalAmountToPay) {
+                        //Get the difference and store in overpayments collection
+                        //Change the loanAmountRepaid to TotalAmountToPay and mark loan as complete
+                        await db.collection('loans').doc(snapshot.after.id).update({
+                            'loanAmountRepaid': totalAmountToPay,
+                            'loanStatus': 'Completed'
+                        })
+                        //increase loan limit
+                        increaseLoanLimit(interest, borrowerUid)
+                        .then((value) => {console.log(value)})
+                        .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
+                    }
+                    if (amountRepaid === totalAmountToPay) {
+                        //Mark loan as completed
+                        await db.collection('loans').doc(snapshot.after.id).update({
+                            'loanStatus': 'Completed'
+                        })
+                        //increase loan limit
+                        increaseLoanLimit(interest, borrowerUid)
+                        .then((value) => {console.log(value)})
+                        .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
+                    }
                 }
             }
+        } catch (error) {
+            throw error
         }
     })
 
@@ -713,12 +726,16 @@ exports.sortikaPoints = functions.firestore
         const amount: number = snapshot.get('transactionAmount')
         const uid: string = snapshot.get('transactionUid')
         //Check if the amount is greater than or equal to 10
-        if (amount >= 10) {
-            const points: number = Math.floor(amount / 10)
-            await db.collection('users').doc(uid).update({
-                points: superadmin.firestore.FieldValue.increment(points)
-            })
-        }
+        try {
+            if (amount >= 10) {
+                const points: number = Math.floor(amount / 10)
+                await db.collection('users').doc(uid).update({
+                    points: superadmin.firestore.FieldValue.increment(points)
+                })
+            }
+        } catch (error) {
+            throw error
+        }  
     })
 
 
