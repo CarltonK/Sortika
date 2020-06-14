@@ -350,7 +350,6 @@ class _ReviseLoanState extends State<ReviseLoan> {
       }).catchError((error) {
         _promptUser(error);
       });
-      ;
     }
   }
 

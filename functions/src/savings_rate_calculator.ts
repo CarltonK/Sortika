@@ -3,7 +3,7 @@ import * as superadmin from 'firebase-admin'
 
 const db = superadmin.firestore()
 
-export const scheduledRateCalculator = functions.pubsub.schedule(`every day 00:30`)
+export const scheduledRateCalculator = functions.region('europe-west1').pubsub.schedule(`every day 00:30`)
     .timeZone('Africa/Nairobi')
     .onRun(async (context: functions.EventContext) => {
         //every day 00:30

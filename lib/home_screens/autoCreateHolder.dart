@@ -36,6 +36,5 @@ class _AutoCreateHolderState extends State<AutoCreateHolder> {
         ),
       ),
     );
-    ;
   }
 }

@@ -339,7 +339,6 @@ class _LendPageState extends State<LendPage> {
                 labelStyle: hintStyle))
       ],
     );
-    ;
   }
 
   @override

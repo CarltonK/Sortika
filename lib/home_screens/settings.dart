@@ -1263,12 +1263,12 @@ class _SettingsState extends State<Settings> {
             child: Theme(
                 data: ThemeData(unselectedWidgetColor: Colors.white),
                 child: Checkbox(
-                    value: _isWithdrawByMpesa,
+                    value: _isPayByMpesa,
                     checkColor: Colors.blue,
                     activeColor: Colors.white,
                     onChanged: (bool value) {
                       setState(() {
-                        _isWithdrawByMpesa = value;
+                        _isPayByMpesa = value;
                       });
                       //Check if the box is selected
                       if (value) {

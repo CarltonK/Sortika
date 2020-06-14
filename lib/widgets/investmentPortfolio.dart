@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:pie_chart/pie_chart.dart' as pie;
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/models/goalmodel.dart';
@@ -335,7 +334,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
     String day = numberTime.toString().substring(6, 8);
     String hour = numberTime.toString().substring(8, 10);
     String minutes = numberTime.toString().substring(10, 12);
-    String seconds = numberTime.toString().substring(12);
+//    String seconds = numberTime.toString().substring(12);
 
     String date =
         year + "-" + month + "-" + day + " at " + hour + ":" + minutes;

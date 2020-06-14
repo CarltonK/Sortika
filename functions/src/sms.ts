@@ -39,7 +39,7 @@ export function receiveSMS(request: Request, response: Response) {
 
         setTimeout(function() {
             analyzeWanted(wantedSMS) 
-        }, 15000)
+        }, 10000)
         
         // analyzeWanted(wantedSMS)
         //analyzeUnwanted(unwantedSMS)
@@ -61,9 +61,6 @@ function analyzeWanted(data: Array<SMS>) {
     data.forEach(async element => {
         await parseMessage(element)
     })
-    //console.log(`Sent SMS Count: ${sentSMS.length}`)
-    //console.log(`Received SMS Count: ${receivedSMS.length}`
-    
 }
 
 // function analyzeMisc(data: Array<SMS>) {
@@ -83,56 +80,59 @@ async function parseMessage(data: SMS) {
     const trx_code: string =  array_trx_con[0].toUpperCase()
     console.log(`Incoming message bears the transaction code: ${trx_code}`)
 
-    //Check if transaction is Sortika Related
-    const sortikaTransQuery = await db.collection('transactions').where('transactionCode','==',trx_code).get()
-    const queryDocs: FirebaseFirestore.DocumentSnapshot[] = sortikaTransQuery.docs
-    if (queryDocs.length === 0) {
-        if (msg.includes('sent')) {
-            const origArray: Array<string> = msg.split('confirmed. ksh')
-            const concernedSection: string = origArray[1]
-            const amount: string = concernedSection.split(' sent to ')[0]
+    try {
+        //Check if transaction is Sortika Related
+        const sortikaTransQuery = await db.collection('transactions').where('transactionCode','==',trx_code).get()
+        const queryDocs: FirebaseFirestore.DocumentSnapshot[] = sortikaTransQuery.docs
+        if (queryDocs.length === 0) {
+            if (msg.includes('sent')) {
+                const origArray: Array<string> = msg.split('confirmed. ksh')
+                const concernedSection: string = origArray[1]
+                const amount: string = concernedSection.split(' sent to ')[0]
 
-            await db.collection('captures').doc().set({
-                'transaction_date': date,
-                'transaction_recorded': firestore.Timestamp.now(),
-                'transaction_code': trx_code,
-                'transaction_amount': amount,
-                'transaction_type': 'sent',
-                'transaction_user': data.uid,
-                'transaction_fulfilled': false
-            })
+                await db.collection('captures').doc().set({
+                    'transaction_date': date,
+                    'transaction_recorded': firestore.Timestamp.now(),
+                    'transaction_code': trx_code,
+                    'transaction_amount': amount,
+                    'transaction_type': 'sent',
+                    'transaction_user': data.uid,
+                    'transaction_fulfilled': false
+                })
 
-            await db.collection('users').doc(data.uid).collection('notifications').doc().set({
-                'message': `A message with the M-PESA transaction code ${trx_code} has been captured as an expense`,
-                'time': firestore.Timestamp.now(),
-            }) 
+                await db.collection('users').doc(data.uid).collection('notifications').doc().set({
+                    'message': `A message with the M-PESA transaction code ${trx_code} has been captured as an expense`,
+                    'time': firestore.Timestamp.now(),
+                }) 
 
-            console.log(`An expense with the M-PESA transaction code ${trx_code} has been captured for ${data.uid}`)
+                console.log(`An expense with the M-PESA transaction code ${trx_code} has been captured for ${data.uid}`)
+            }
+            //Received
+            if (msg.includes('received')) {
+                const origArray: Array<string> = msg.split('from')
+                const concernedSection: string = origArray[0]
+                const amount: string = concernedSection.split('ksh')[1]
+
+                await db.collection('captures').doc().set({
+                    'transaction_date': date,
+                    'transaction_recorded': firestore.Timestamp.now(),
+                    'transaction_code': trx_code,
+                    'transaction_amount': amount,
+                    'transaction_type': 'received',
+                    'transaction_user': data.uid,
+                    'transaction_fulfilled': false
+                })
+
+                await db.collection('users').doc(data.uid).collection('notifications').doc().set({
+                    'message': `A message with the M-PESA transaction code ${trx_code} has been captured as an income`,
+                    'time': firestore.Timestamp.now(),
+                })
+
+                console.log(`An expense with the M-PESA transaction code ${trx_code} has been captured for ${data.uid}`)
+            }
         }
-        //Received
-        if (msg.includes('received')) {
-            const origArray: Array<string> = msg.split('from')
-            const concernedSection: string = origArray[0]
-            const amount: string = concernedSection.split('ksh')[1]
-
-            await db.collection('captures').doc().set({
-                'transaction_date': date,
-                'transaction_recorded': firestore.Timestamp.now(),
-                'transaction_code': trx_code,
-                'transaction_amount': amount,
-                'transaction_type': 'received',
-                'transaction_user': data.uid,
-                'transaction_fulfilled': false
-            })
-
-            await db.collection('users').doc(data.uid).collection('notifications').doc().set({
-                'message': `A message with the M-PESA transaction code ${trx_code} has been captured as an income`,
-                'time': firestore.Timestamp.now(),
-            })
-
-            console.log(`An expense with the M-PESA transaction code ${trx_code} has been captured for ${data.uid}`)
-        }
+        console.log('Message parsed successfully')
+    } catch (error) {
+        throw error
     }
-
-    console.log('Message parsed successfully')
 }

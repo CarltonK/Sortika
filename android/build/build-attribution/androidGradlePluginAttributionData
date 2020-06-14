@@ -1,0 +1,1 @@
+{"taskNameToClassNameMap":[{"taskName":"clean","className":"org.gradle.api.tasks.Delete"}],"tasksSharingOutput":[]}

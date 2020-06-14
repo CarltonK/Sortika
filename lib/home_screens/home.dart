@@ -9,6 +9,7 @@ import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info/package_info.dart';
 import 'package:share/share.dart';
 import 'package:sms/sms.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
@@ -18,6 +19,7 @@ import 'package:wealth/home_screens/autoCreateHolder.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
+import 'package:wealth/home_screens/help.dart';
 import 'package:wealth/home_screens/insights.dart';
 import 'package:wealth/home_screens/notifications.dart';
 import 'package:wealth/home_screens/rate.dart';
@@ -51,8 +53,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Helper helper = new Helper();
   AnalyticsFunnel funnel = AnalyticsFunnel();
   //Form Key
-  final _formKey = GlobalKey<FormState>();
+//  final _formKey = GlobalKey<FormState>();
   final _formWithdrawWallet = GlobalKey<FormState>();
+
+  Future<PackageInfo> packageInfo;
 
   double _withdrawAmt;
   void _handleSubmittedWithdrawAmt(String value) {
@@ -1030,7 +1034,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       child: StreamBuilder<QuerySnapshot>(
                     stream: _firestore
                         .collection("loans")
-                        .where("loanInvitees", isEqualTo: uid)
+                        .where("loanInvitees", arrayContains: uid)
                         .snapshots(),
                     builder: (BuildContext context,
                         AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -2045,9 +2049,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 if (double.parse(value) < 10) {
                   return 'You cannot withdraw less than 10 KES';
                 }
-                if (double.parse(value) > (amount - 79)) {
-                  return 'Minimum withdrawable amount is ${amount-79}';
-                }
                 return null;
               },
               autovalidate: true,
@@ -2622,7 +2623,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             color: Color(0xFF73AEF5),
             child: InkWell(
               splashColor: Colors.greenAccent[700],
-              onTap: () => Navigator.of(context).pushNamed('/help'),
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Help(
+                      future: packageInfo,
+                    ),
+                  )),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
                 child: Column(
@@ -3019,6 +3026,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         print("onResume: $message");
       },
     );
+
+    packageInfo = PackageInfo.fromPlatform();
   }
 
   @override

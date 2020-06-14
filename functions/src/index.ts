@@ -55,100 +55,102 @@ Version 3: onWrite - Whenever goalAmountSaved or goalCreateDate changes
 
 async function scheduledAllocator(users: Array<string>) {
     users.forEach(async (user) => {
-        const docs = await db.collection('users').doc(user).collection('goals').get()
-        const allDocs: Array<DocumentSnapshot> = docs.docs
-        const periods: Array<number> = []
-        const amounts: Array<number> = []
-        const adjustedAmounts: Array<number> = []
-        const documentIds: Array<string> = []
-        const allocationpercents: Array<number> = []
-        allDocs.forEach(element => {
-            //If the goal is a group goal fetch targetAmountPer and not goal amount
-            const cat: string = element.get('goalCategory')
-            const amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
-            /*
-            Timestamp is returned from Firebase.
-            Convert to Date then get differences in days
-            */
-            const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
-            const dateStart: Date = timeStart.toDate()
+        try {
+            const docs = await db.collection('users').doc(user).collection('goals').get()
+            const allDocs: Array<DocumentSnapshot> = docs.docs
+            const periods: Array<number> = []
+            const amounts: Array<number> = []
+            const adjustedAmounts: Array<number> = []
+            const documentIds: Array<string> = []
+            const allocationpercents: Array<number> = []
+            allDocs.forEach(element => {
+                //If the goal is a group goal fetch targetAmountPer and not goal amount
+                const cat: string = element.get('goalCategory')
+                const amt:number = (cat === 'Group') ? element.get('targetAmountPerp') : element.get('goalAmount')
+                /*
+                Timestamp is returned from Firebase.
+                Convert to Date then get differences in days
+                */
+                const timeStart: FirebaseFirestore.Timestamp = element.get('goalCreateDate')
+                const dateStart: Date = timeStart.toDate()
 
-            const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
-            const dateEnd = timeEnd.toDate()
+                const timeEnd: FirebaseFirestore.Timestamp = element.get('goalEndDate')
+                const dateEnd = timeEnd.toDate()
 
-            const differenceMilliSeconds = dateEnd.getTime() - dateStart.getTime()
-            const differenceDays = differenceMilliSeconds / (1000*60*60*24)
+                const differenceMilliSeconds = dateEnd.getTime() - dateStart.getTime()
+                const differenceDays = differenceMilliSeconds / (1000*60*60*24)
 
-            //Save the difference in a list
-            periods.push(Math.ceil(differenceDays))
-            //Document Snapshot
-            //Retrieve target amount and save in amounts
-            amounts.push(amt)
-            documentIds.push(element.id)
-        });
-        //Sort from smallest to largest
-        periods.sort()
-        const leastDays = periods[0]
-        //Show arrays
-        // console.log(`Periods: ${periods}`)
-        // console.log(`Amounts: ${amounts}`)
-        // console.log(`Document Ids: ${documentIds}`)
-        //Keep a total adjusted amount counter
-        let totalAdjusted: number = 0
-        for (let index = 0; index < amounts.length; index ++) {
-            const adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
-            adjustedAmounts.push(adjusted)
-            totalAdjusted = totalAdjusted + adjusted
+                //Save the difference in a list
+                periods.push(Math.ceil(differenceDays))
+                //Document Snapshot
+                //Retrieve target amount and save in amounts
+                amounts.push(amt)
+                documentIds.push(element.id)
+            });
+            //Sort from smallest to largest
+            periods.sort()
+            const leastDays = periods[0]
+            //Show arrays
+            // console.log(`Periods: ${periods}`)
+            // console.log(`Amounts: ${amounts}`)
+            // console.log(`Document Ids: ${documentIds}`)
+            //Keep a total adjusted amount counter
+            let totalAdjusted: number = 0
+            for (let index = 0; index < amounts.length; index ++) {
+                const adjusted: number = ( (amounts[index] * leastDays) / periods[index] )
+                adjustedAmounts.push(adjusted)
+                totalAdjusted = totalAdjusted + adjusted
+            }
+            //Show adjusted amounts
+            // console.log(`Adjusted Amounts: ${adjustedAmounts}`)
+            // //Show the total adjusted number
+            // console.log(`Total Adjusted Value: ${totalAdjusted}`)
+            //Get allocation percentages
+            for (let index = 0; index < adjustedAmounts.length; index ++) {
+                const percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
+                allocationpercents.push(percent)
+            }
+            //Show percents
+            // console.log(`Allocation Percents: ${allocationpercents}`)
+            //Update each document with new allocations
+            for (let index = 0; index < documentIds.length; index ++) {
+                const documentId: string = documentIds[index]
+                const allocatedPercent: number = allocationpercents[index]
+                await db.collection('users').doc(user)
+                    .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
+            }
+            //Update User Targets
+            const dailyTarget: number = (totalAdjusted / leastDays)
+            const weeklyTarget: number = (dailyTarget * 7)
+            const monthlyTarget: number = (dailyTarget * 30)
+            //Update USERS Collection
+            await db.collection('users').doc(user).update({
+                'dailyTarget': dailyTarget,
+                'weeklyTarget': weeklyTarget,
+                'monthlyTarget': monthlyTarget
+            })
+        } catch (error) {
+            throw error
         }
-        //Show adjusted amounts
-        // console.log(`Adjusted Amounts: ${adjustedAmounts}`)
-        // //Show the total adjusted number
-        // console.log(`Total Adjusted Value: ${totalAdjusted}`)
-        //Get allocation percentages
-        for (let index = 0; index < adjustedAmounts.length; index ++) {
-            const percent: number = ( (adjustedAmounts[index] / totalAdjusted) * 100 )
-            allocationpercents.push(percent)
-        }
-        //Show percents
-        // console.log(`Allocation Percents: ${allocationpercents}`)
-        //Update each document with new allocations
-        for (let index = 0; index < documentIds.length; index ++) {
-            const documentId: string = documentIds[index]
-            const allocatedPercent: number = allocationpercents[index]
-            await db.collection('users').doc(user)
-                .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
-        }
-        //Update User Targets
-        const dailyTarget: number = (totalAdjusted / leastDays)
-        const weeklyTarget: number = (dailyTarget * 7)
-        const monthlyTarget: number = (dailyTarget * 30)
-        //Update USERS Collection
-        await db.collection('users').doc(user).update({
-            'dailyTarget': dailyTarget,
-            'weeklyTarget': weeklyTarget,
-            'monthlyTarget': monthlyTarget
-        })
     })
 }
 
-exports.allocationsCalculatorV1 = functions.firestore
+exports.allocationsCalculatorV1 = functions.region('europe-west1').firestore
     .document('/users/{user}/goals/{goal}')
     .onCreate(async snapshot => {
         //Retrieve user id
         const uid = snapshot.get('uid')
         const usersList: Array<string> = [uid]
-        scheduledAllocator(usersList)
-            .then(value => {
-                console.log(`Scheduled allocator has run successfully after the goal has been created`)
-            })
-            .catch(error => {
-                console.error(`Scheduled allocator has failed after the goal has been created: ${error}`)
-            })
+        try {
+            await scheduledAllocator(usersList)
+        } catch (error) {
+            throw error
+        }
         //A message to be displayed when the function ends
-        console.log('allocationsCalculatorV1 has completed successfully')
+        // console.log('allocationsCalculatorV1 has completed successfully')
     })
 
-exports.allocationsCalculatorV2 = functions.firestore
+exports.allocationsCalculatorV2 = functions.region('europe-west1').firestore
     .document('/users/{user}/goals/{goal}')
     .onDelete(async snapshot => {
         //Redistribute the goal amount
@@ -156,112 +158,111 @@ exports.allocationsCalculatorV2 = functions.firestore
         const goalAmountSaved: number = snapshot.get('goalAmountSaved')
         //Retrieve user id
         const uid = snapshot.get('uid')
-        if (snapshot.get('goalCategory') === 'Investment') {
-            const investmentDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
-                .where('goalCategory', '==', 'Investment').get()
-            // console.log(`How many investment goals? ${investmentDocuments.docs.length}`)
-            const averageAmount: number = (goalAmount / investmentDocuments.docs.length)
-            for (let index = 0; index < investmentDocuments.docs.length; index ++) {
-                let currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
-                currentAmount = currentAmount + averageAmount
-            
-                const documentId: string = investmentDocuments.docs[index].id
-                await db.collection('users').doc(uid)
-                .collection('goals').doc(documentId).update({'goalAmount': currentAmount})
+        try {
+            if (snapshot.get('goalCategory') === 'Investment') {
+                const investmentDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
+                    .where('goalCategory', '==', 'Investment').get()
+                // console.log(`How many investment goals? ${investmentDocuments.docs.length}`)
+                const averageAmount: number = (goalAmount / investmentDocuments.docs.length)
+                for (let index = 0; index < investmentDocuments.docs.length; index ++) {
+                    let currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
+                    currentAmount = currentAmount + averageAmount
+                
+                    const documentId: string = investmentDocuments.docs[index].id
+                    await db.collection('users').doc(uid)
+                    .collection('goals').doc(documentId).update({'goalAmount': currentAmount})
+                }
             }
+            if (snapshot.get('goalCategory') === 'Saving') {
+                const lFDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid)
+                    .collection('goals').where('goalCategory', '==', 'Loan Fund').limit(1).get()
+                    if (goalAmountSaved === 0) {
+                        console.log(`The goal amount saved is 0`)
+                    }
+                    else {
+                        lFDocuments.docs.forEach(async (element) => {
+                            // var amountCurrent = element.get('loanAmount')
+                            // amountCurrent = amountCurrent + goalAmount
+                            await db.collection('users').doc(uid)
+                            .collection('goals').doc(element.id).update({
+                                'goalAmountSaved': superadmin.firestore.FieldValue.increment(goalAmountSaved)})
+                        })
+                    }
+            }
+            const usersList: Array<string> = [uid]
+            await scheduledAllocator(usersList)   
+        } catch (error) {
+            throw error
         }
-        if (snapshot.get('goalCategory') === 'Saving') {
-            const lFDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid)
-                .collection('goals').where('goalCategory', '==', 'Loan Fund').limit(1).get()
-                if (goalAmountSaved === 0) {
-                    console.log(`The goal amount saved is 0`)
-                }
-                else {
-                    lFDocuments.docs.forEach(async (element) => {
-                        // var amountCurrent = element.get('loanAmount')
-                        // amountCurrent = amountCurrent + goalAmount
-                        await db.collection('users').doc(uid)
-                        .collection('goals').doc(element.id).update({
-                            'goalAmountSaved': superadmin.firestore.FieldValue.increment(goalAmountSaved)})
-                    })
-                }
-        }
-        const usersList: Array<string> = [uid]
-        scheduledAllocator(usersList)
-            .then(value => {
-                console.log(`Scheduled allocator has run successfully after the goal has been deleted`)
-            })
-            .catch(error => {
-                console.error(`Scheduled allocator has failed after the goal has been deleted: ${error}`)
-            })
     })
 /*
 Any change to goal amount saved
 //New goal amount = goal amount - amount saved
 */
-exports.allocationsCalculatorV3 = functions.firestore
+exports.allocationsCalculatorV3 = functions.region('europe-west1').firestore
     .document('/users/{user}/goals/{goal}')
     .onUpdate(async snapshot => {
         //To be on the safe side check if the document exists
         const uid: string = snapshot.after.get('uid')
-        if (snapshot.before.exists && snapshot.after.exists) {
-            //Check if either the goalAmountSaved or the goalCreateDate has changed
-            const usersList: Array<string> = []
-            const cond1: Boolean = snapshot.before.get('goalAmountSaved') !== snapshot.after.get('goalAmountSaved')
-            const cond2: Boolean = snapshot.before.get('goalCreateDate') !== snapshot.after.get('goalCreateDate')
-            if (cond1 || cond2) {
-                usersList.push(uid)
-                scheduledAllocator(usersList)
-                    .then(value => {
-                        console.log(`Scheduled allocator has run successfully after updating either goalAmountSaved or goalCreateDate`)
-                    })
-                    .catch(error => {
-                        console.error(`Scheduled allocator has failed after updating either goalAmountSaved or goalCreateDate: ${error}`)
-                    })
+        try {
+            if (snapshot.before.exists && snapshot.after.exists) {
+                //Check if either the goalAmountSaved or the goalCreateDate has changed
+                const usersList: Array<string> = []
+                const cond1: Boolean = snapshot.before.get('goalAmountSaved') !== snapshot.after.get('goalAmountSaved')
+                const cond2: Boolean = snapshot.before.get('goalCreateDate') !== snapshot.after.get('goalCreateDate')
+                if (cond1 || cond2) {
+                    usersList.push(uid)
+                    await scheduledAllocator(usersList)
+                }
             }
+        } catch (error) {
+            throw error
         }
     })
 
 //Run a task every night midnight. GoalCreateDate update to current date, then recalculate daily, weekly, monthly targets
 // every day 00:01
-export const scheduledFunction = functions.pubsub.schedule(`every day 00:01`)
+export const scheduledFunction = functions.region('europe-west1').pubsub.schedule(`every day 00:01`)
     .timeZone('Africa/Nairobi')
     .onRun(async (context: functions.EventContext) => {
         //every day 00:01
         // console.log(`This will run every day 00:01`)
         //Retrieve all user documents
-        const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
-        const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
+        try {
+            const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
+            const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
 
-        //Placeholder for UIDs
-        const uidList: Array<string> = []
-        userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
-            uidList.push(document.get('uid'))
-        })
-        // console.log(`List of User IDs: ${uidList}`)
+            //Placeholder for UIDs
+            const uidList: Array<string> = []
+            userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
+                uidList.push(document.get('uid'))
+            })
+            // console.log(`List of User IDs: ${uidList}`)
 
-        //Iterate through list of USER IDs
-        for (let index: number = 0; index < uidList.length; index ++) {
-            //Retrieve all user goals documents
-            const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
-            const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
+            //Iterate through list of USER IDs
+            for (let index: number = 0; index < uidList.length; index ++) {
+                //Retrieve all user goals documents
+                const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
+                const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
 
-            for (let i: number = 0; i < userGoalsDocuments.length; i++) {
-                //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
-                await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
-                    'goalCreateDate': superadmin.firestore.Timestamp.now()
-                })
+                for (let i: number = 0; i < userGoalsDocuments.length; i++) {
+                    //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
+                    await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
+                        'goalCreateDate': superadmin.firestore.Timestamp.now()
+                    })
+                }
+
             }
-
+            // console.log(`Finished updating Timestamps`)
+        } catch (error) {
+            throw error
         }
-        console.log(`Finished updating Timestamps`)
         //Perform changes
         // console.log('Perform allocation changes')
         // // scheduledAllocator(uidList)
         // //     .catch((error) => console.log(`Scheduled Allocator Error: ${error}`))
         // console.log('Finished updating allocations')
-        console.log('Midnight function has completed successfully')
-        return null;
+        // console.log('Midnight function has completed successfully')
     });
 
 export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
@@ -276,6 +277,8 @@ export const loanAcceptance = loan.LoanAcceptance
 export const loanRevision = loan.LoanRevision
 export const loanRejected = loan.LoanRejected
 export const loanNegotiation = loan.LoanNegotiation
+export const loanRepaid = loan.LoanRepaid
+export const loanPayment = loan.LoanPayment
     
 
 export const promptReceiveNegotiation = functions.firestore
@@ -305,335 +308,286 @@ export const promptReceiveNegotiation = functions.firestore
 })
 
 
-/*
-LoanPayments
-/loanpayments/{payment} onCreate
-*/
-
-export const loanPayment = functions.firestore
-    .document('loanpayments/{payments}')
-    .onUpdate(async snapshot => {
-        const borrower: string = snapshot.after.get('borrowerUid')
-        const loanDoc: string = snapshot.after.get('loanDoc')
-        const amount: number = snapshot.after.get('amount')
-
-        //Retrieve borrower wallet
-        const borrowerWalletRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(borrower).collection('wallet').doc(borrower)
-        //Retrieve loan document
-        const loanDocRef: FirebaseFirestore.DocumentReference = db.collection('loans').doc(loanDoc)
-
-        db.runTransaction(async transactionBorrower => {
-            return transactionBorrower.get(borrowerWalletRef)
-                .then(async tranBorrDoc => {
-                    transactionBorrower.update(borrowerWalletRef,{amount: superadmin.firestore.FieldValue.increment(-amount)})
-                    console.log(`We have credited the wallet of ${borrower} with ${amount} KES`)
-
-                    await db.collection('users').doc(borrower).collection('notifications').doc().set({
-                        'message': `Your wallet has been credited with ${amount} KES for loan payment`,
-                        'time': superadmin.firestore.Timestamp.now()
-                    })
-                })
-                .catch(error => {
-                    console.error(`We ran into the following error when trying to retrieve and update borrowersWallet: ${error}`)
-                })
-        })
-        .then(value => {
-            console.log(`The wallet of ${borrower} has been updated`)
-            console.log(`Start updating the loan`)
-            db.runTransaction(async transactionLoanPay => {
-                return transactionLoanPay.get(loanDocRef)
-                    .then(async tranLoanDoc => {
-                        transactionLoanPay.update(loanDocRef, {loanAmountRepaid: superadmin.firestore.FieldValue.increment(amount)})
-                    })
-                    .catch(error => {
-                        console.error(`We ran into the following error when trying to update the loan document: ${error}`)
-                    })
-            })
-            .then(transDocValue => {
-                console.log(`The loan has been updated`)
-            })
-            .catch(error => console.error(`There was an error updating the loan document`,error))
-        })
-        .catch(error => {
-            console.error(`We ran into the following error when trying to perform overal loan payment transaction: ${error}`)
-        })
-        
-    })
-
-
-export const goalAutoCreate = functions.firestore
+export const goalAutoCreate = functions.region('europe-west1').firestore
     .document('autocreates/{autocreate}')
     .onCreate(async snapshot => {
-        //Retrieve data from user
-        const amount: number = snapshot.get('amount')
-        const rate: string = snapshot.get('returnRate')
-        const endDate: FirebaseFirestore.Timestamp = snapshot.get('endDate')
-        const uid: string = snapshot.get('uid')
-        const documentId: string = snapshot.id
+        try {
+            //Retrieve data from user
+            const amount: number = snapshot.get('amount')
+            const rate: string = snapshot.get('returnRate')
+            const endDate: FirebaseFirestore.Timestamp = snapshot.get('endDate')
+            const uid: string = snapshot.get('uid')
+            const documentId: string = snapshot.id
 
-        //Retrieve top collection documents
-        const upperDocs = await db.collection('investments').get()
-        const upperDocsArray: Array<DocumentSnapshot> = upperDocs.docs
-        const chosenInvestments: Array<Map<any, any>> = []
+            //Retrieve top collection documents
+            const upperDocs = await db.collection('investments').get()
+            const upperDocsArray: Array<DocumentSnapshot> = upperDocs.docs
+            const chosenInvestments: Array<Map<any, any>> = []
 
-        //Placeholder for the data we want
-        const allInvestments: Array<FirebaseFirestore.DocumentData> = []
-        //const allInvestmentDocIds: Array<string> = []
-        //Iterate to get investment types in each
-        for (let index = 0; index < upperDocsArray.length; index ++) {
-            const currentDocId: string = upperDocsArray[index].get('title')
-            const lowerDocs = await db.collection('investments').doc(currentDocId)
-                .collection('types').get()
-            const lowerDocsArray = lowerDocs.docs
-            for (let i = 0; i < lowerDocsArray.length; i ++) {
-                const map = new Map()
-                map.set(`${currentDocId}`, lowerDocsArray[i].get('name'))
-                if (rate === 'low') {
-                    if (lowerDocsArray[i].get('return') <= 10.5) {
-                        chosenInvestments.push(map)
+            //Placeholder for the data we want
+            const allInvestments: Array<FirebaseFirestore.DocumentData> = []
+            //const allInvestmentDocIds: Array<string> = []
+            //Iterate to get investment types in each
+            for (let index = 0; index < upperDocsArray.length; index ++) {
+                const currentDocId: string = upperDocsArray[index].get('title')
+                const lowerDocs = await db.collection('investments').doc(currentDocId)
+                    .collection('types').get()
+                const lowerDocsArray = lowerDocs.docs
+                for (let i = 0; i < lowerDocsArray.length; i ++) {
+                    const map = new Map()
+                    map.set(`${currentDocId}`, lowerDocsArray[i].get('name'))
+                    if (rate === 'low') {
+                        if (lowerDocsArray[i].get('return') <= 10.5) {
+                            chosenInvestments.push(map)
+                        }
+                    } 
+                    if (rate === 'med') {
+                        if (lowerDocsArray[i].get('return') > 10.5 && lowerDocsArray[i].get('return') <= 18) {
+                            chosenInvestments.push(map)
+                        }
                     }
-                } 
-                if (rate === 'med') {
-                    if (lowerDocsArray[i].get('return') > 10.5 && lowerDocsArray[i].get('return') <= 18) {
-                        chosenInvestments.push(map)
+                    if (rate === 'high') {
+                        if (lowerDocsArray[i].get('return') >= 18) {
+                            chosenInvestments.push(map)
+                        }
                     }
-                }
-                if (rate === 'high') {
-                    if (lowerDocsArray[i].get('return') >= 18) {
-                        chosenInvestments.push(map)
-                    }
-                }
-                //allInvestmentDocIds.push(lowerDocsArray[i].id)
-                allInvestments.push(lowerDocsArray[i].data())
-            }
-        }
-        //console.log(`Document IDs: ${allInvestmentDocIds}`)
-        //Calculate Deviation
-        // This is based on user selected return rate
-        let deviation: number
-        const deviationList: Array<number> = []
-        if (rate === 'low') {
-            const staticFigure: number = 10.5
-            //Cycle through the investments
-            for (let index = 0; index < allInvestments.length; index ++) {
-                deviation = staticFigure - allInvestments[index]['return']
-                deviationList.push(deviation)
-            }
-        }
-        else if (rate === 'med') {
-            const staticFigure: number = 14.25
-            //Cycle through the investments
-            for (let index = 0; index < allInvestments.length; index ++) {
-                deviation = staticFigure - allInvestments[index]['return']
-                deviationList.push(deviation)
-            }
-        }
-        else {
-            const staticFigure: number = 18
-            //Cycle through the investments
-            for (let index = 0; index < allInvestments.length; index ++) {
-                deviation = staticFigure - allInvestments[index]['return']
-                deviationList.push(deviation)
-            }
-        }
-        //console.log(deviationList)
-        //Calculate the weights
-        //This is given by deviation * 0.1
-        const weightCalcs: Array<number> = []
-        //Iterate through the list of deviations
-        for (let index = 0; index < deviationList.length; index ++) {
-            const weight: number = deviationList[index] * 0.1
-            weightCalcs.push(weight)
-        }
-        //console.log(weightCalcs)
-        //Calculate the risk level weight estimates
-        //This is given by (1 - weight)
-        const weightEstimates: Array<number> = []
-        //Iterate through the list of weights
-        for (let index = 0; index < weightCalcs.length; index ++) {
-            const estimate = 1 - weightCalcs[index]
-            weightEstimates.push(estimate)
-        }
-        console.log(`Weight Estimates: ${weightEstimates}`)
-        //Calculate adjusted weight estimates
-        //These are the weightEstimates that are below 1
-        //Keep a running total of adjusted weight estimates
-        let weightEstimatesTotal: number  = 0
-        const adjustedWeightEstimates: Array<number> = []
-        //Iterate through the weight estimates list
-        for (let index = 0; index < weightEstimates.length; index ++) {
-            //convert weight estimate to 0 if it is greater that 1 - Low and Medium
-            //convert weight estimate to 0 if it is less than 1 - High
-            if (rate === 'high') {
-                if (weightEstimates[index] < 1) {
-                    weightEstimates[index] = 0
-                    //allInvestmentDocIds[index] = ''
+                    //allInvestmentDocIds.push(lowerDocsArray[i].id)
+                    allInvestments.push(lowerDocsArray[i].data())
                 }
             }
+            //console.log(`Document IDs: ${allInvestmentDocIds}`)
+            //Calculate Deviation
+            // This is based on user selected return rate
+            let deviation: number
+            const deviationList: Array<number> = []
             if (rate === 'low') {
-                if (weightEstimates[index] > 1) {
-                    weightEstimates[index] = 0
-                    //allInvestmentDocIds[index] = ''
+                const staticFigure: number = 10.5
+                //Cycle through the investments
+                for (let index = 0; index < allInvestments.length; index ++) {
+                    deviation = staticFigure - allInvestments[index]['return']
+                    deviationList.push(deviation)
                 }
             }
-            if (rate === 'med') {
-                if (weightEstimates[index] > 1) {
-                    weightEstimates[index] = 0
-                    //allInvestmentDocIds[index] = ''
+            else if (rate === 'med') {
+                const staticFigure: number = 14.25
+                //Cycle through the investments
+                for (let index = 0; index < allInvestments.length; index ++) {
+                    deviation = staticFigure - allInvestments[index]['return']
+                    deviationList.push(deviation)
                 }
-            }
-            weightEstimatesTotal = weightEstimatesTotal + weightEstimates[index]
-            adjustedWeightEstimates.push(weightEstimates[index])
-        }
-        //console.log(`Relevant Documents: ${allInvestmentDocIds}`)
-        console.log(`Adjusted Weight Estimates: ${adjustedWeightEstimates}`)
-        console.log(`Weight Estimates Total ${weightEstimatesTotal}`)
-        //Calculate the actual weight
-        //This is calculated by (adjustedWeight * (1/weightEstimatesTotal))
-        const actualWeights: Array<number> = []
-        for (let index = 0; index < adjustedWeightEstimates.length; index ++) {
-            const weightActual = adjustedWeightEstimates[index] * (1/weightEstimatesTotal)
-            actualWeights.push(weightActual)
-        }
-        console.log(`Actual Weights: ${actualWeights}`)
-        //Calculate expected return
-        //This is calculated by actual weight * asset return
-        const expectedReturns: Array<number> = []
-        //Keep a counter for total expected return
-        let expectedReturnTotal = 0
-        for (let index = 0; index < actualWeights.length; index ++) {
-            const calculatedReturn = allInvestments[index]['return'] * actualWeights[index]
-            expectedReturns.push(calculatedReturn)
-            expectedReturnTotal = expectedReturnTotal + calculatedReturn
-        }
-        console.log(`Total return rate: ${expectedReturnTotal}%`)
-        //Calculate allocation
-        //This is calculated by actual weight * amount
-        const allocation: Array<number> = []
-        for (let index = 0; index < actualWeights.length; index ++) {
-            const allocatedAmount = actualWeights[index] * amount
-            allocation.push(allocatedAmount)
-        }
-        console.log(`Respective Allocations: ${allocation}`)
-        //Total expected return on investment
-        const returnAmount: number = (1 + (expectedReturnTotal / 100)) * amount
-        console.log(`Expected Return Amount: ${returnAmount}`)
-        console.log(`Chosen Investments Count: ${chosenInvestments.length}`)
-
-        //Push changes to the document. Return Amount and Return Rate
-        await db.collection('autocreates').doc(documentId).update({
-            "returnInterestRate": expectedReturnTotal,
-            "returnAmount": returnAmount
-        })
-
-        //Finally create the goals
-        //Iterate over chosen investments
-        const category: string = 'Investment'
-        const created: Date = new Date
-        const deletable: boolean = true
-        const amountSaved: number = 0.0
-        let currentKey: string = ''
-        let currentValue: string = ''
-
-        //New List to store allocations without 0
-        const newAllocations: Array<number> = [];
-        //Remove values with '0' from 'allocation
-        for (let index = 0; index < allocation.length; index ++) {
-            if (allocation[index] > 0) {
-                newAllocations.push(allocation[index])
             }
             else {
-                continue
+                const staticFigure: number = 18
+                //Cycle through the investments
+                for (let index = 0; index < allInvestments.length; index ++) {
+                    deviation = staticFigure - allInvestments[index]['return']
+                    deviationList.push(deviation)
+                }
             }
-        }
-        console.log(`New Allocation: ${newAllocations}`)
+            //console.log(deviationList)
+            //Calculate the weights
+            //This is given by deviation * 0.1
+            const weightCalcs: Array<number> = []
+            //Iterate through the list of deviations
+            for (let index = 0; index < deviationList.length; index ++) {
+                const weight: number = deviationList[index] * 0.1
+                weightCalcs.push(weight)
+            }
+            //console.log(weightCalcs)
+            //Calculate the risk level weight estimates
+            //This is given by (1 - weight)
+            const weightEstimates: Array<number> = []
+            //Iterate through the list of weights
+            for (let index = 0; index < weightCalcs.length; index ++) {
+                const estimate = 1 - weightCalcs[index]
+                weightEstimates.push(estimate)
+            }
+            console.log(`Weight Estimates: ${weightEstimates}`)
+            //Calculate adjusted weight estimates
+            //These are the weightEstimates that are below 1
+            //Keep a running total of adjusted weight estimates
+            let weightEstimatesTotal: number  = 0
+            const adjustedWeightEstimates: Array<number> = []
+            //Iterate through the weight estimates list
+            for (let index = 0; index < weightEstimates.length; index ++) {
+                //convert weight estimate to 0 if it is greater that 1 - Low and Medium
+                //convert weight estimate to 0 if it is less than 1 - High
+                if (rate === 'high') {
+                    if (weightEstimates[index] < 1) {
+                        weightEstimates[index] = 0
+                        //allInvestmentDocIds[index] = ''
+                    }
+                }
+                if (rate === 'low') {
+                    if (weightEstimates[index] > 1) {
+                        weightEstimates[index] = 0
+                        //allInvestmentDocIds[index] = ''
+                    }
+                }
+                if (rate === 'med') {
+                    if (weightEstimates[index] > 1) {
+                        weightEstimates[index] = 0
+                        //allInvestmentDocIds[index] = ''
+                    }
+                }
+                weightEstimatesTotal = weightEstimatesTotal + weightEstimates[index]
+                adjustedWeightEstimates.push(weightEstimates[index])
+            }
+            //console.log(`Relevant Documents: ${allInvestmentDocIds}`)
+            console.log(`Adjusted Weight Estimates: ${adjustedWeightEstimates}`)
+            console.log(`Weight Estimates Total ${weightEstimatesTotal}`)
+            //Calculate the actual weight
+            //This is calculated by (adjustedWeight * (1/weightEstimatesTotal))
+            const actualWeights: Array<number> = []
+            for (let index = 0; index < adjustedWeightEstimates.length; index ++) {
+                const weightActual = adjustedWeightEstimates[index] * (1/weightEstimatesTotal)
+                actualWeights.push(weightActual)
+            }
+            console.log(`Actual Weights: ${actualWeights}`)
+            //Calculate expected return
+            //This is calculated by actual weight * asset return
+            const expectedReturns: Array<number> = []
+            //Keep a counter for total expected return
+            let expectedReturnTotal = 0
+            for (let index = 0; index < actualWeights.length; index ++) {
+                const calculatedReturn = allInvestments[index]['return'] * actualWeights[index]
+                expectedReturns.push(calculatedReturn)
+                expectedReturnTotal = expectedReturnTotal + calculatedReturn
+            }
+            console.log(`Total return rate: ${expectedReturnTotal}%`)
+            //Calculate allocation
+            //This is calculated by actual weight * amount
+            const allocation: Array<number> = []
+            for (let index = 0; index < actualWeights.length; index ++) {
+                const allocatedAmount = actualWeights[index] * amount
+                allocation.push(allocatedAmount)
+            }
+            console.log(`Respective Allocations: ${allocation}`)
+            //Total expected return on investment
+            const returnAmount: number = (1 + (expectedReturnTotal / 100)) * amount
+            console.log(`Expected Return Amount: ${returnAmount}`)
+            console.log(`Chosen Investments Count: ${chosenInvestments.length}`)
 
-        for (let index = 0; index < newAllocations.length; index ++) {
-            for (let i = 0; i < chosenInvestments.length; i ++) {
-                //Iterate over keys
-                
-                for (let key of chosenInvestments[index].keys()) {
-                    currentKey = key
+            //Push changes to the document. Return Amount and Return Rate
+            await db.collection('autocreates').doc(documentId).update({
+                "returnInterestRate": expectedReturnTotal,
+                "returnAmount": returnAmount
+            })
+
+            //Finally create the goals
+            //Iterate over chosen investments
+            const category: string = 'Investment'
+            const created: Date = new Date
+            const deletable: boolean = true
+            const amountSaved: number = 0.0
+            let currentKey: string = ''
+            let currentValue: string = ''
+
+            //New List to store allocations without 0
+            const newAllocations: Array<number> = [];
+            //Remove values with '0' from 'allocation
+            for (let index = 0; index < allocation.length; index ++) {
+                if (allocation[index] > 0) {
+                    newAllocations.push(allocation[index])
                 }
-                for (let value of chosenInvestments[index].values()) {
-                    currentValue = value
+                else {
+                    continue
                 }
-                //console.log(`Key: ${currentKey}, Value: ${currentValue}`)
             }
-            await db.collection('users').doc(uid)
-                .collection('goals').doc().set({
-                    "goalCategory": category,
-                    "goalClass": currentKey,
-                    "goalType": currentValue,
-                    "goalName": currentValue,
-                    "uid": uid,
-                    "goalAmount": newAllocations[index],
-                    "goalAmountSaved": amountSaved,
-                    "goalCreateDate": created,
-                    "goalEndDate": endDate,
-                    "goalAllocation": 0.0,
-                    "isGoalDeletable": deletable
-                })
+            console.log(`New Allocation: ${newAllocations}`)
+
+            for (let index = 0; index < newAllocations.length; index ++) {
+                for (let i = 0; i < chosenInvestments.length; i ++) {
+                    //Iterate over keys
+                    
+                    for (let key of chosenInvestments[index].keys()) {
+                        currentKey = key
+                    }
+                    for (let value of chosenInvestments[index].values()) {
+                        currentValue = value
+                    }
+                    //console.log(`Key: ${currentKey}, Value: ${currentValue}`)
+                }
+                await db.collection('users').doc(uid)
+                    .collection('goals').doc().set({
+                        "goalCategory": category,
+                        "goalClass": currentKey,
+                        "goalType": currentValue,
+                        "goalName": currentValue,
+                        "uid": uid,
+                        "goalAmount": newAllocations[index],
+                        "goalAmountSaved": amountSaved,
+                        "goalCreateDate": created,
+                        "goalEndDate": endDate,
+                        "goalAllocation": 0.0,
+                        "isGoalDeletable": deletable
+                    })
+            }
+        } catch (error) {
+            throw error
         }
-        
     })
 
 
-export const groupMembers = functions.firestore
+export const groupMembers = functions.region('europe-west1').firestore
     .document('groups/{group}')
     .onWrite(async snapshot => {
-        //const admin: string = snapshot.before.get('groupAdmin')
-        const membersBefore: Array<string> = snapshot.before.get('members')
-        const membersAfter: Array<string> = snapshot.after.get('members');
-        console.log(`Members Before: ${membersBefore}`)
-        console.log(`Members After: ${membersAfter}`)
+        try {
+            //const admin: string = snapshot.before.get('groupAdmin')
+            const membersBefore: Array<string> = snapshot.before.get('members')
+            const membersAfter: Array<string> = snapshot.after.get('members');
+            console.log(`Members Before: ${membersBefore}`)
+            console.log(`Members After: ${membersAfter}`)
 
-        if (!snapshot.before.exists) {
-            membersAfter.forEach(async (element) => {
-                const user: DocumentSnapshot = await db.collection('users').doc(element).get()
-                //console.log(`Requesting USER: ${user.get('uid')}`)
-                await db.collection('groups').doc(snapshot.after.id).collection('members').doc(element).set({
-                    "fullName": user.get('fullName'),
-                    "photoURL": user.get('photoURL'),
-                    "token": user.get('token'),
-                })
-            })
-        }
-        if (!snapshot.after.exists) {
-            deleteGroup
-        }
-        if (snapshot.before.exists && snapshot.after.exists) {
-            if (membersAfter.length > membersBefore.length) {
-                const diff: number = membersAfter.length - membersBefore.length
-                await db.collection('groups').doc(snapshot.after.id).update({
-                    'groupMembers': superadmin.firestore.FieldValue.increment(diff)
-                });
-            }
-            if (membersBefore.length > membersAfter.length) {
-                const diff: number = membersBefore.length - membersAfter.length
-                await db.collection('groups').doc(snapshot.after.id).update({
-                    'groupMembers': superadmin.firestore.FieldValue.increment(-diff)
-                });
-            }
-
-            for (let index = 0; index < membersAfter.length; index ++) {
-                if (membersBefore[index] === membersAfter[index]) {
-                    continue
-                }
-                else {
-                    const user: DocumentSnapshot = await db.collection('users').doc(membersAfter[index]).get()
-                    console.log(`Requesting USER: ${user.get('uid')}`)
-                    await db.collection('groups').doc(snapshot.after.id).collection('members').doc(membersAfter[index]).set({
+            if (!snapshot.before.exists) {
+                membersAfter.forEach(async (element) => {
+                    const user: DocumentSnapshot = await db.collection('users').doc(element).get()
+                    //console.log(`Requesting USER: ${user.get('uid')}`)
+                    await db.collection('groups').doc(snapshot.after.id).collection('members').doc(element).set({
                         "fullName": user.get('fullName'),
                         "photoURL": user.get('photoURL'),
                         "token": user.get('token'),
                     })
+                })
+            }
+            if (!snapshot.after.exists) {
+                deleteGroup
+            }
+            if (snapshot.before.exists && snapshot.after.exists) {
+                if (membersAfter.length > membersBefore.length) {
+                    const diff: number = membersAfter.length - membersBefore.length
+                    await db.collection('groups').doc(snapshot.after.id).update({
+                        'groupMembers': superadmin.firestore.FieldValue.increment(diff)
+                    });
+                }
+                if (membersBefore.length > membersAfter.length) {
+                    const diff: number = membersBefore.length - membersAfter.length
+                    await db.collection('groups').doc(snapshot.after.id).update({
+                        'groupMembers': superadmin.firestore.FieldValue.increment(-diff)
+                    });
+                }
+
+                for (let index = 0; index < membersAfter.length; index ++) {
+                    if (membersBefore[index] === membersAfter[index]) {
+                        continue
+                    }
+                    else {
+                        const user: DocumentSnapshot = await db.collection('users').doc(membersAfter[index]).get()
+                        console.log(`Requesting USER: ${user.get('uid')}`)
+                        await db.collection('groups').doc(snapshot.after.id).collection('members').doc(membersAfter[index]).set({
+                            "fullName": user.get('fullName'),
+                            "photoURL": user.get('photoURL'),
+                            "token": user.get('token'),
+                        })
+                    }
                 }
             }
+        } catch (error) {
+            throw error
         }
     })
 
-export const deleteGroup = functions.firestore
+export const deleteGroup = functions.region('europe-west1').firestore
     .document('groups/{group}')
     .onDelete(async snapshot => {
         const uid: string = snapshot.id
@@ -672,7 +626,7 @@ async function increaseLoanLimit(interest: number, uid: string) {
     }
 }
 
-export const loanLimitCalculator = functions.firestore
+export const loanLimitCalculator = functions.region('europe-west1').firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
         //Check if the document exists
@@ -719,7 +673,7 @@ export const loanLimitCalculator = functions.firestore
 Sortika Points
 Record Points every time a transaction is carried out
 */
-exports.sortikaPoints = functions.firestore
+exports.sortikaPoints = functions.region('europe-west1').firestore
     .document('/transactions/{transaction}')
     .onCreate(async snapshot => {
         //Retrieve amount and uid

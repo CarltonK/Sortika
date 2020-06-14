@@ -3,9 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info/package_info.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Help extends StatelessWidget {
+  final Future<PackageInfo> future;
+  Help({@required this.future});
+
   Widget _helpItem(
       IconData data, String title, String subtitle, GestureTapCallback tap) {
     return GestureDetector(
@@ -53,6 +57,11 @@ class Help extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String version;
+    future.then((value) {
+      version = value.version;
+    });
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF73AEF5),
@@ -62,6 +71,25 @@ class Help extends StatelessWidget {
           style: GoogleFonts.muli(
               textStyle: TextStyle(color: Colors.white, fontSize: 20)),
         ),
+        actions: <Widget>[
+          IconButton(
+              icon: Icon(Icons.info_outline),
+              onPressed: () => showAboutDialog(
+                  context: context,
+                applicationVersion: version,
+                applicationIcon: CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Image.asset('assets/logos/app.png'),
+                ),
+                children: [
+                  Image.network(
+                      'https://images.unsplash.com/photo-1559067096-49ebca3406aa?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1489&q=80',
+                    fit: BoxFit.cover,
+                  )
+                ]
+              ),
+          )
+        ],
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -104,8 +132,8 @@ class Help extends StatelessWidget {
                 throw 'Could not launch $termsUrl';
               }
             }),
-            _helpItem(Feather.info, 'Goal Descriptions',
-                'A walkthrough of Sortika', () {})
+//            _helpItem(Feather.info, 'Goal Descriptions',
+//                'A walkthrough of Sortika', () {})
           ],
         ),
       ),
@@ -131,7 +159,7 @@ class Help extends StatelessWidget {
           try {
             //Launch whatsapp with no message
             FlutterOpenWhatsapp.sendSingleMessage(
-                "254727286123", "Hello. I would like to have an app developed");
+                "254727286123", "Hello. I would like to have an app developed for me");
           } catch (e) {
             print('This is the exception $e');
           }

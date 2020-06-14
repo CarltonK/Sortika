@@ -38,7 +38,7 @@ What happens after a loan document is created
 
 const db = superadmin.firestore()
 
-export const LoanCreate = functions.firestore
+export const LoanCreate = functions.region('europe-west1').firestore
     .document('loans/{loan}')
     .onCreate(async snapshot => {
         const loanData = snapshot.data()
@@ -312,7 +312,7 @@ export const LoanCreate = functions.firestore
     })
 
 
-export const LoanAcceptance = functions.firestore
+export const LoanAcceptance = functions.region('europe-west1').firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
         const loanData = snapshot.after.data()
@@ -398,7 +398,7 @@ export const LoanAcceptance = functions.firestore
     })
 
 
-export const LoanRevision = functions.firestore
+export const LoanRevision = functions.region('europe-west1').firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
         const loanData = snapshot.after.data()
@@ -425,7 +425,7 @@ export const LoanRevision = functions.firestore
     })
 
 
-export const LoanNegotiation = functions.firestore
+export const LoanNegotiation = functions.region('europe-west1').firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
         const loanData = snapshot.after.data()
@@ -449,7 +449,7 @@ export const LoanNegotiation = functions.firestore
     })
 
 
-export const LoanRejected = functions.firestore
+export const LoanRejected = functions.region('europe-west1').firestore
     .document('loans/{loan}')
     .onUpdate(async snapshot => {
 
@@ -474,5 +474,117 @@ export const LoanRejected = functions.firestore
             } catch (error) {
                 console.error('loanRejectedError', error)
             }
+        }
+    })
+
+
+export const LoanRepaid = functions.region('europe-west1').firestore
+    .document('loans/{loan}')
+    .onUpdate(async snapshot => {
+        
+        const loanData = snapshot.after.data()
+        const loanModel: Loan = loanData as Loan
+
+        const borrower: string = loanModel.loanBorrower
+        const lender: string = loanModel.loanLender
+        const isP2P2Loan: boolean = (borrower !== lender) ? true : false
+
+        let sortikaInterest: number = 0
+        let clientInterest: number = 0
+        let principal: number = 0
+        let balance: number = 0
+        
+        const amtBefore: number = snapshot.before.get('loanAmountRepaid')
+        if (amtBefore !== loanModel.loanAmountRepaid) {
+            try {
+                console.log(isP2P2Loan)
+                const diff: number =  loanModel.loanAmountRepaid - amtBefore
+
+                if (diff >= loanModel.sortikaInterestComputed) {
+                    sortikaInterest = loanModel.sortikaInterestComputed
+                }
+                if (diff < loanModel.sortikaInterestComputed) {
+                    sortikaInterest = diff
+                }
+                if ((diff - loanModel.sortikaInterestComputed) >= loanModel.clientInterestComputed) {
+                    clientInterest = loanModel.clientInterestComputed
+                }
+                if ((diff - loanModel.sortikaInterestComputed) < loanModel.clientInterestComputed) {
+                    clientInterest = diff - loanModel.sortikaInterestComputed
+                }
+                if ((diff - loanModel.sortikaInterestComputed - loanModel.clientInterestComputed) >= loanModel.loanAmountTaken) {
+                    principal = loanModel.loanAmountTaken
+                }
+                if ((diff - loanModel.sortikaInterestComputed - loanModel.clientInterestComputed) < loanModel.loanAmountTaken) {
+                    principal = (loanModel.loanAmountTaken - loanModel.sortikaInterestComputed - loanModel.clientInterestComputed)
+                }
+
+                balance = loanModel.totalAmountToPay - diff
+
+                await db.collection('loans').doc(snapshot.after.id).update({
+                    'loanBalance': balance,
+                    'sortikaInterest': sortikaInterest,
+                    'clientInterest': clientInterest,
+                    'principal': principal
+                })
+
+            } catch (error) {
+                throw error
+            }
+        }
+    })
+
+
+export const LoanPayment = functions.region('europe-west1').firestore
+    .document('loanpayments/{payments}')
+    .onCreate(async snapshot => {
+        const borrower: string = snapshot.get('borrowerUid')
+        const loanDoc: string = snapshot.get('loanDoc')
+        const amount: number = snapshot.get('amount')
+
+        //Retrieve borrower wallet
+        const borrowerWalletRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(borrower).collection('wallet').doc(borrower)
+        //Retrieve loan document
+        const loanDocRef: FirebaseFirestore.DocumentReference = db.collection('loans').doc(loanDoc)
+
+        try {
+            db.runTransaction(async transactionBorrower => {
+                return transactionBorrower.get(borrowerWalletRef)
+                    .then(async tranBorrDoc => {
+                        transactionBorrower.update(borrowerWalletRef,{amount: superadmin.firestore.FieldValue.increment(-amount)})
+                        // console.log(`We have credited the wallet of ${borrower} with ${amount} KES`)
+    
+                        await db.collection('users').doc(borrower).collection('notifications').doc().set({
+                            'message': `Your wallet has been credited with ${amount} KES for loan payment`,
+                            'time': superadmin.firestore.Timestamp.now()
+                        })
+                    })
+                    .catch(error => {
+                        console.error(`We ran into the following error when trying to retrieve and update borrowersWallet: ${error}`)
+                    })
+            })
+            .then(value => {
+                // console.log(`The wallet of ${borrower} has been updated`)
+                // console.log(`Start updating the loan`)
+                db.runTransaction(async transactionLoanPay => {
+                    return transactionLoanPay.get(loanDocRef)
+                        .then(async tranLoanDoc => {
+                            transactionLoanPay.update(loanDocRef, {loanAmountRepaid: superadmin.firestore.FieldValue.increment(amount)})
+                        })
+                        .catch(error => {
+                            console.error(`We ran into the following error when trying to update the loan document: ${error}`)
+                        })
+                })
+                .then(transDocValue => {
+                    console.log(`The loan has been updated`)
+                })
+                .catch(error => console.error(`There was an error updating the loan document`,error))
+            })
+            .catch(error => {
+                console.error(`We ran into the following error when trying to perform overal loan payment transaction: ${error}`)
+            })
+            
+        } catch (error) {
+            throw error
         }
     })
