@@ -10,6 +10,9 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/utilities/styles.dart';
 
@@ -641,13 +644,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return CupertinoAlertDialog(
-            content: Text(
-              '$message',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-          );
+          return WarningMessage(message: message);
         });
   }
 
@@ -655,28 +652,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 100,
-                  color: Colors.green,
-                ),
-                Text(
-                  '$message',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(message: message);
         });
   }
 
@@ -684,26 +660,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  '$message...',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                ),
-                SpinKitDualRing(
-                  color: Colors.greenAccent[700],
-                  size: 100,
-                )
-              ],
-            ),
-          );
+          return CustomProgressDialog(message: message);
         });
   }
 

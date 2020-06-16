@@ -9,6 +9,7 @@ import * as mpesa from './mpesa'
 import * as sms from './sms'
 import * as loan from './loan'
 import * as ratecalc from './savings_rate_calculator'
+import * as lottery from './lottery'
 
 
 const db = superadmin.firestore()
@@ -113,22 +114,34 @@ async function scheduledAllocator(users: Array<string>) {
             //Show percents
             // console.log(`Allocation Percents: ${allocationpercents}`)
             //Update each document with new allocations
+            const batch = db.batch()
             for (let index = 0; index < documentIds.length; index ++) {
                 const documentId: string = documentIds[index]
                 const allocatedPercent: number = allocationpercents[index]
-                await db.collection('users').doc(user)
-                    .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
+
+                const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(user).collection('goals').doc(documentId)
+                batch.update(docRef, {goalAllocation:allocatedPercent})
+                // await db.collection('users').doc(user)
+                //     .collection('goals').doc(documentId).update({'goalAllocation':allocatedPercent})
             }
             //Update User Targets
             const dailyTarget: number = (totalAdjusted / leastDays)
             const weeklyTarget: number = (dailyTarget * 7)
             const monthlyTarget: number = (dailyTarget * 30)
             //Update USERS Collection
-            await db.collection('users').doc(user).update({
+            const userRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(user)
+            batch.update(userRef, {
                 'dailyTarget': dailyTarget,
                 'weeklyTarget': weeklyTarget,
                 'monthlyTarget': monthlyTarget
             })
+            // await db.collection('users').doc(user).update({
+            //     'dailyTarget': dailyTarget,
+            //     'weeklyTarget': weeklyTarget,
+            //     'monthlyTarget': monthlyTarget
+            // })
+            //Commit the batch
+            await batch.commit()
         } catch (error) {
             throw error
         }
@@ -142,7 +155,9 @@ exports.allocationsCalculatorV1 = functions.region('europe-west1').firestore
         const uid = snapshot.get('uid')
         const usersList: Array<string> = [uid]
         try {
-            await scheduledAllocator(usersList)
+            scheduledAllocator(usersList)
+                        .then(value => console.log('Allocations Calculator V1 Success'))
+                        .catch(error => console.error('Allocations Calculator V1 ERROR', error))
         } catch (error) {
             throw error
         }
@@ -164,14 +179,21 @@ exports.allocationsCalculatorV2 = functions.region('europe-west1').firestore
                     .where('goalCategory', '==', 'Investment').get()
                 // console.log(`How many investment goals? ${investmentDocuments.docs.length}`)
                 const averageAmount: number = (goalAmount / investmentDocuments.docs.length)
+                const batchInvest = db.batch()
                 for (let index = 0; index < investmentDocuments.docs.length; index ++) {
+                    if (snapshot.id === investmentDocuments.docs[index].id) {
+                        investmentDocuments.docs.splice(index, 1)
+                    }
                     let currentAmount: number = investmentDocuments.docs[index].get('goalAmount')
                     currentAmount = currentAmount + averageAmount
                 
                     const documentId: string = investmentDocuments.docs[index].id
-                    await db.collection('users').doc(uid)
-                    .collection('goals').doc(documentId).update({'goalAmount': currentAmount})
+                    const investDocRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(documentId)
+                    batchInvest.update(investDocRef,{'goalAmount': currentAmount})
+                    // await db.collection('users').doc(uid)
+                    // .collection('goals').doc(documentId).update({'goalAmount': currentAmount})
                 }
+                await batchInvest.commit()
             }
             if (snapshot.get('goalCategory') === 'Saving') {
                 const lFDocuments: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid)
@@ -190,7 +212,9 @@ exports.allocationsCalculatorV2 = functions.region('europe-west1').firestore
                     }
             }
             const usersList: Array<string> = [uid]
-            await scheduledAllocator(usersList)   
+            scheduledAllocator(usersList)
+                        .then(value => console.log('Allocations Calculator V2 Success'))
+                        .catch(error => console.error('Allocations Calculator V2 ERROR', error))   
         } catch (error) {
             throw error
         }
@@ -212,7 +236,9 @@ exports.allocationsCalculatorV3 = functions.region('europe-west1').firestore
                 const cond2: Boolean = snapshot.before.get('goalCreateDate') !== snapshot.after.get('goalCreateDate')
                 if (cond1 || cond2) {
                     usersList.push(uid)
-                    await scheduledAllocator(usersList)
+                    scheduledAllocator(usersList)
+                        .then(value => console.log('Allocations Calculator V3 Success'))
+                        .catch(error => console.error('Allocations Calculator V3 ERROR', error))
                 }
             }
         } catch (error) {
@@ -266,6 +292,7 @@ export const scheduledFunction = functions.region('europe-west1').pubsub.schedul
     });
 
 export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
+export const joinLottery = lottery.joinALottery
 
 /*
 NOTIFICATIONS

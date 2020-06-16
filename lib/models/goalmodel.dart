@@ -12,6 +12,8 @@ class GoalModel {
   String goalClass;
   String goalType;
   String uid;
+  var interest;
+  var growth;
   var goalAmount;
   var goalAmountSaved;
   Timestamp goalCreateDate;
@@ -25,6 +27,8 @@ class GoalModel {
       this.goalClass,
       this.goalType,
       this.uid,
+      this.interest,
+      this.growth,
       this.goalAmount,
       this.goalAmountSaved,
       this.goalCreateDate,
@@ -38,6 +42,8 @@ class GoalModel {
       goalClass: json["goalClass"],
       goalType: json["goalType"],
       uid: json["uid"],
+      interest: json['interest'],
+      growth: json['growth'],
       goalAmount: json["goalAmount"],
       goalAmountSaved: json["goalAmountSaved"],
       goalCreateDate: json["goalCreateDate"],
@@ -52,6 +58,8 @@ class GoalModel {
         "goalType": goalType,
         "uid": uid,
         "goalAmount": goalAmount,
+        "interest": interest,
+        "growth": growth,
         "goalAmountSaved": goalAmountSaved,
         "goalCreateDate": goalCreateDate,
         "goalEndDate": goalEndDate,

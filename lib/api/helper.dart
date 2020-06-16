@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/captureModel.dart';
 import 'package:wealth/models/depositModel.dart';
 import 'package:wealth/models/goalmodel.dart';
@@ -8,12 +10,15 @@ import 'package:wealth/models/investmentModel.dart';
 import 'package:wealth/models/loanPayModel.dart';
 import 'package:wealth/models/reviewModel.dart';
 import 'package:wealth/models/phoneVerificationModel.dart';
+import 'package:wealth/models/lotteryModel.dart';
 
 class Helper {
   //create instance of Firestore
   final Firestore _firestore = Firestore.instance;
   //Instance of authentication
   AuthService authService = new AuthService();
+  //Instance of Analytics
+  AnalyticsFunnel funnel = new AnalyticsFunnel();
 
   //Initialize class
   Helper() {
@@ -146,10 +151,17 @@ class Helper {
 
   //Deposit Money
   Future withdrawMoney(String uid, String phone, double amount) async {
+    ActivityModel withdrawAct = new ActivityModel(
+        activity: 'You have submitted a request to withdraw',
+        activityDate: Timestamp.now());
+    await authService.postActivity(uid, withdrawAct);
+
     await _firestore
         .collection('withdrawals')
         .document(uid)
         .setData({'uid': uid, 'phone': phone, 'amount': amount});
+
+    await funnel.logEvent('Withdrawal', uid);
   }
 
   //Get Wallet Balance
@@ -161,6 +173,18 @@ class Helper {
         .document(uid)
         .snapshots();
     return doc;
+  }
+
+  Future<num> getWalletBalanceNumber(String uid) async {
+    DocumentSnapshot doc = await _firestore
+        .collection('users')
+        .document(uid)
+        .collection('wallet')
+        .document(uid)
+        .get();
+
+    num amount = doc.data['amount'];
+    return amount;
   }
 
   //Get Redeemables
@@ -239,30 +263,44 @@ class Helper {
   }
 
   //Retrieve user investment summary
-  Future<Map<String, dynamic>> investmentSummaryData(
+  Future<Map<String, dynamic>> goalSummaryData(
       String category, String uid) async {
-    //Transactions pertaining users investement goals
-    QuerySnapshot querySnapshot = await _firestore
-        .collection('transactions')
-        .where('transactionUid', isEqualTo: uid)
-        .where('transactionCategory', isEqualTo: category)
-        .getDocuments();
+    try {
+      //final placeholder
+      Map<String, dynamic> allData = {};
+      //All investments
+      QuerySnapshot queryInvestments =
+          await _firestore.collection('investments').getDocuments();
+      List<DocumentSnapshot> investmentDocs = queryInvestments.documents;
 
-    QuerySnapshot queriesAmounts = await _firestore
-        .collection('users')
-        .document(uid)
-        .collection('goals')
-        .where('goalCategory', isEqualTo: category)
-        .getDocuments();
+      //All user goals
+      QuerySnapshot userGoalQuery = await _firestore
+          .collection('users')
+          .document(uid)
+          .collection('goals')
+          .where('goalCategory', isEqualTo: category)
+          .getDocuments();
+      List<DocumentSnapshot> goalDocs = userGoalQuery.documents;
 
-    int totalDocs =
-        querySnapshot.documents.length + queriesAmounts.documents.length;
+      for (int i = 0; i < investmentDocs.length; i++) {
+        DocumentSnapshot currentInvestDoc = investmentDocs[i];
+        String title = currentInvestDoc.data['title'];
+        List<dynamic> types = currentInvestDoc.data['types'];
+        // print(types);
 
-    return {
-      'total': totalDocs,
-      'transactions': querySnapshot,
-      'goals': queriesAmounts
-    };
+        for (int index = 0; index < goalDocs.length; index++) {
+          DocumentSnapshot currentGoalDoc = goalDocs[index];
+          GoalModel model = GoalModel.fromJson(currentGoalDoc.data);
+          if (model.goalClass == title) {}
+        }
+      }
+      // return allData;
+    } catch (e) {
+      print(
+        'Error ${e.toString()}',
+      );
+      return null;
+    }
   }
 
   //Retrieve Active Savings vs Incomes
@@ -280,7 +318,7 @@ class Helper {
         .where('transaction_type', isEqualTo: 'sent')
         .orderBy('transaction_date', descending: true)
         .getDocuments();
-    print('Expenses count: ${queriesSent.documents.length}');
+    // print('Expenses count: ${queriesSent.documents.length}');
 
     int totalDocs =
         queriesPassive.documents.length + queriesSent.documents.length;
@@ -329,7 +367,7 @@ class Helper {
         .where('transaction_type', isEqualTo: 'received')
         .orderBy('transaction_date', descending: true)
         .getDocuments();
-    print('Incomes count: ${queriesReceived.documents.length}');
+    // print('Incomes count: ${queriesReceived.documents.length}');
 
     int totalDocs =
         queriesActive.documents.length + queriesReceived.documents.length;
@@ -506,27 +544,37 @@ class Helper {
         .setData(model.toJson());
   }
 
-
   //Join the Lottery
-  Future joinLottery(String club, String uid, String phone) async {
-    await _firestore.collection('lottery').document(club).collection('participants').document(uid).setData({
-      'uid': uid,
-      'phone': phone,
-      'club': club
-    });
+  Future joinLottery(
+      String club, String uid, String ticket, String name, var total, String token) async {
+    await _firestore
+        .collection('lottery')
+        .document(club)
+        .collection('participants')
+        .document(uid)
+        .setData({'uid': uid, 'ticket': ticket, 'name': name, 'club': club, 'fee': total, 'token': token});
   }
 
   //Get Lottery Club Members
-  Future<QuerySnapshot> getLotteryClubMembers(String club) async {
-    QuerySnapshot queries = await _firestore.collection('lottery').document(club).collection('participants').limit(10).getDocuments();
+  Future<QuerySnapshot> getLottery() async {
+    QuerySnapshot queries =
+        await _firestore.collection('lottery').getDocuments();
     return queries;
   }
 
+  Future<LotteryModel> getSingleLottery(String docID) async {
+    DocumentSnapshot lotDoc =
+        await _firestore.collection('lottery').document(docID).get();
+    LotteryModel model = LotteryModel.fromJson(lotDoc.data);
+    return model;
+  }
 
   Future redeemItem(String docID, String uid) async {
-    await _firestore.collection('redeemables').document(docID).collection('requests').document(uid).setData({
-      'uid': uid,
-      'redeemableID': docID
-    });
+    await _firestore
+        .collection('redeemables')
+        .document(docID)
+        .collection('requests')
+        .document(uid)
+        .setData({'uid': uid, 'redeemableID': docID});
   }
 }

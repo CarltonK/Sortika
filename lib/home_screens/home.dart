@@ -833,7 +833,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         textStyle: TextStyle(color: Colors.black))),
             diff >= 2
                 ? TextSpan(
-                    text: '${userData.dailySavingsTarget.toStringAsFixed(1)}%',
+                    text: '${userData.dailySavingsTarget.toStringAsFixed(2)}%',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.black,
@@ -1941,7 +1941,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         code,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
-                                color: greenColorItems.contains(action) ? Colors.green : Colors.red,
+                                color: greenColorItems.contains(action)
+                                    ? Colors.green
+                                    : Colors.red,
                                 fontWeight: FontWeight.w600)),
                       ),
                       Text(
@@ -2069,7 +2071,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-
   void _withdrawBtnPressed(var amount) async {
     final FormState form = _formWithdrawWallet.currentState;
     if (form.validate()) {
@@ -2079,16 +2080,22 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       //Dismiss the dialog
       Navigator.of(context).pop();
       //Check if money can be withdrawn
-      helper.withdrawMoney(userData.uid, userData.phone, _withdrawAmt)
-        .then((value) => showCupertinoModalPopup(
-          context: context,
-          builder: (context) => SuccessMessage(message: 'We have received your withdrawal request. We are processing it.',),
-        ))
-        .catchError((error) => showCupertinoModalPopup(
-          context: context,
-          builder: (context) => ErrorMessage(message: error.toString().contains('PERMISSION_DENIED') ? 'A withdrawal request is being processed, please wait while we process it. This should not take long' : error.toString()),
-        ));
-      
+      helper
+          .withdrawMoney(userData.uid, userData.phone, _withdrawAmt)
+          .then((value) => showCupertinoModalPopup(
+                context: context,
+                builder: (context) => SuccessMessage(
+                  message:
+                      'We have received your withdrawal request. We are processing it.',
+                ),
+              ))
+          .catchError((error) => showCupertinoModalPopup(
+                context: context,
+                builder: (context) => ErrorMessage(
+                    message: error.toString().contains('PERMISSION_DENIED')
+                        ? 'A withdrawal request is being processed, please wait while we process it. This should not take long'
+                        : error.toString()),
+              ));
     }
   }
 
@@ -2197,11 +2204,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                   onPressed: () {
                                     if (userData.phoneVerified) {
                                       _withdrawFromWallet(amount);
-                                    }
-                                    else {
+                                    } else {
                                       showCupertinoModalPopup(
-                                        context: context,
-                                        builder: (context) => ErrorMessage(message: 'Please verify your phone number by setting your preffered withdrawal or deposit method in settings. If you have done so, please Login again'));
+                                          context: context,
+                                          builder: (context) => ErrorMessage(
+                                              message:
+                                                  'Please verify your phone number by setting your preffered withdrawal or deposit method in settings. If you have done so, please Login again'));
                                     }
                                   },
                                 )

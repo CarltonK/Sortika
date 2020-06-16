@@ -7,6 +7,9 @@ import 'package:wealth/api/helper.dart';
 import 'package:wealth/global/errorMessage.dart';
 import 'package:wealth/global/successMessage.dart';
 import 'package:wealth/models/usermodel.dart';
+import 'package:wealth/utilities/styles.dart';
+import 'package:wealth/widgets/unsuccessfull_error.dart';
+import 'package:wealth/models/lotteryModel.dart';
 
 class SortikaLottery extends StatefulWidget {
   final User user;
@@ -21,81 +24,71 @@ class _SortikaLotteryState extends State<SortikaLottery> {
   final Helper helper = new Helper();
   num amount;
   String _selectedClub;
-  Stream<DocumentSnapshot> walletBalance;
+  Future getLottery;
+  Future<LotteryModel> getSingleLottery;
+  DocumentSnapshot myDoc;
 
-  List<DropdownMenuItem> itemsClubs = [
-    DropdownMenuItem(
-      value: '100',
-      child: Text(
-        'Club 100',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: '500',
-      child: Text(
-        'Club 500',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
-      value: '1000',
-      child: Text(
-        'Club 1000',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-  ];
-
-  void _acceptBtnPressed() {
+  void _acceptBtnPressed(DocumentSnapshot doc) async {
+    LotteryModel model = LotteryModel.fromJson(doc.data);
     //Dismiss the dialog first
     Navigator.of(context).pop();
     //Check if the wallet amount can cover the selcted club - 100 for subscription
-    double club = double.parse(_selectedClub);
-    //Minimum amount
-    double minAmt = amount.toDouble() - 100;
-    if (minAmt >= club) {
+    num walletAmount = await helper.getWalletBalanceNumber(widget.user.uid);
+    int totalToJoin = model.subscriptionFee + model.ticketFee;
+    if (walletAmount >= totalToJoin) {
+      String ticket = codeGenerator();
       //Join the club
-      helper.joinLottery(_selectedClub, widget.user.uid, widget.user.phone)
-        .whenComplete(() {
+      helper
+          .joinLottery(doc.documentID, widget.user.uid, ticket, model.name, totalToJoin, widget.user.token)
+          .then((value) {
+        showCupertinoModalPopup(
+          context: context,
+          builder: (context) => SuccessMessage(
+              message: 'You have successfully joined ${model.name}'),
+        );
+      }).catchError((error) {
+        print(error.toString());
+        if (error.toString().contains('PERMISSION_DENIED')) {
           showCupertinoModalPopup(
-            context: context, 
-            builder: (context) => SuccessMessage(message: 'You have successfully joined Club $_selectedClub'),
-          );
-        })
-        .catchError((error) {
+          context: context,
+          builder: (context) =>
+              ErrorMessage(message: 'You are a participant in ${model.name}'),
+        );
+        }
+        else {
           showCupertinoModalPopup(
-            context: context, 
-            builder: (context) => ErrorMessage(message: 'There was an error joining Club $_selectedClub'),
-          );
-        });
-    }
-    else {
+          context: context,
+          builder: (context) =>
+              ErrorMessage(message: 'There was an error joining ${model.name}'),
+        );
+        }
+      });
+    } else {
       showCupertinoModalPopup(
-        context: context, 
-        builder: (context) => ErrorMessage(message: 'You do not have enough funds to join Club $_selectedClub. Please topup to ensure you can cover the club fee plus subscription fee(100).'),
+        context: context,
+        builder: (context) => ErrorMessage(
+            message:
+                'You do not have enough funds to join ${model.name}. Please topup.'),
       );
     }
   }
 
-  Future _depositMoney() {
+  Future _depositMoney(DocumentSnapshot doc) {
+    LotteryModel model = LotteryModel.fromJson(doc.data);
     return showCupertinoModalPopup(
       context: context,
       builder: (context) {
         return CupertinoActionSheet(
-          title: Text('Request to deduct $_selectedClub KES from you wallet',
+          title: Text(
+              'The subscription fee is ${model.subscriptionFee} KES and a single ticket costs ${model.ticketFee} KES',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                       color: Colors.black, fontWeight: FontWeight.normal))),
+          message: Text(
+              '${model.subscriptionFee + model.ticketFee} KES will be deducted from your wallet'),
           actions: [
             CupertinoActionSheetAction(
-                onPressed: _acceptBtnPressed,
+                onPressed: () => _acceptBtnPressed(doc),
                 child: Text(
                   'ACCEPT',
                   style: GoogleFonts.muli(
@@ -116,7 +109,7 @@ class _SortikaLotteryState extends State<SortikaLottery> {
     );
   }
 
-  Widget _lotClub() {
+  Widget _lotClub(List<DocumentSnapshot> docs) {
     return Container(
       alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
@@ -125,7 +118,19 @@ class _SortikaLotteryState extends State<SortikaLottery> {
       ),
       padding: EdgeInsets.symmetric(horizontal: 12),
       child: DropdownButton(
-        items: itemsClubs,
+        items: docs
+            .map(
+              (club) => DropdownMenuItem(
+                value: club.data['name'],
+                child: Text(
+                  club.data['name'],
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            )
+            .toList(),
         underline: Divider(
           color: Colors.transparent,
         ),
@@ -142,15 +147,18 @@ class _SortikaLotteryState extends State<SortikaLottery> {
         onChanged: (value) {
           setState(() {
             _selectedClub = value;
-            print(_selectedClub);
-            _depositMoney();
+            DocumentSnapshot doc = docs
+                .where((element) => element.data['name'] == _selectedClub)
+                .toList()[0];
+            getSingleLottery = helper.getSingleLottery(doc.documentID);
+            myDoc = doc;
           });
         },
       ),
     );
   }
 
-  Widget _clubSlectWidget() {
+  Widget _clubSelectWidget(List<DocumentSnapshot> docs) {
     return Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,48 +173,16 @@ class _SortikaLotteryState extends State<SortikaLottery> {
           SizedBox(
             height: 5,
           ),
-          _lotClub()
+          _lotClub(docs)
         ],
       ),
     );
   }
 
-  Widget _viewMembers() {
-    return Container(
-        child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'See whos\'s playing',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-            color: Colors.black,
-          )),
-        ),
-        SizedBox(
-          height: 5,
-        ),
-        Card(
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          child: ExpansionTile(
-            leading: Icon(Icons.people),
-            title: Text(
-              'Members',
-              style: GoogleFonts.muli(textStyle: TextStyle()),
-            ),
-          ),
-        ),
-      ],
-    ));
-  }
-
   @override
   void initState() {
     super.initState();
-    walletBalance = helper.getWalletBalance(widget.user.uid);
+    getLottery = helper.getLottery();
   }
 
   @override
@@ -215,59 +191,163 @@ class _SortikaLotteryState extends State<SortikaLottery> {
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
       padding: EdgeInsets.symmetric(horizontal: 20),
-      child: StreamBuilder<DocumentSnapshot>(
-        stream: walletBalance,
+      child: FutureBuilder<QuerySnapshot>(
+        future: getLottery,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            amount = snapshot.data.data['amount'];
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'Lottery',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          color: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                _clubSlectWidget(),
-                SizedBox(
-                  height: 30,
-                ),
-                _viewMembers(),
-                SizedBox(
-                  height: 30,
-                ),
-                Container(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Remaining Time',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                          color: Colors.black,
-                        )),
-                      ),
-                      Text(
-                        '02:24:30',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold)),
-                      )
-                    ],
+          switch (snapshot.connectionState) {
+            case ConnectionState.active:
+            case ConnectionState.done:
+              if (snapshot.data.documents.length == 0) {
+                return UnsuccessfullError(
+                    message: 'There are no active lotteries running');
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Lottery',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold)),
                   ),
-                )
-              ],
-            );
+                  SizedBox(
+                    height: 30,
+                  ),
+                  _clubSelectWidget(snapshot.data.documents),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  FutureBuilder<LotteryModel>(
+                    future: getSingleLottery,
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.none:
+                          return UnsuccessfullError(
+                            message: 'Please select a lottery club',
+                          );
+                        case ConnectionState.done:
+
+                        DateTime now = DateTime.now();
+                        DateTime end = snapshot.data.end.toDate();
+
+                        String minRemaining = now.difference(end).inMinutes.abs().toString() + ' MINS';
+                        if (now.difference(end).inMinutes.abs() < 1) {
+                          minRemaining = now.difference(end).inSeconds.abs().toString() + ' SECS';
+                        }
+
+                        
+                        if (end.compareTo(now).isNegative) {
+                          return UnsuccessfullError(
+                            message: 'This lottery is not active',
+                          );
+                          
+                        }
+                        return Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Text(
+                                      'How many people are playing ?',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                        color: Colors.black,
+                                      )),
+                                    ),
+                                    Text(
+                                      snapshot.data.participants.toString(),
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold)),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Text(
+                                      'Possible Winnings',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                        color: Colors.black,
+                                      )),
+                                    ),
+                                    Text(
+                                      '${snapshot.data.participants * snapshot.data.subscriptionFee} KES',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold)),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: <Widget>[
+                                    Text(
+                                      'Time remaining: ',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                        color: Colors.black,
+                                      )),
+                                    ),
+                                    Text(
+                                      minRemaining,
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold)),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Center(
+                                  child: RaisedButton(
+                                    elevation: 5,
+                                    padding: EdgeInsets.all(8),
+                                    child: Text('JOIN'),
+                                    onPressed: () => _depositMoney(myDoc),
+                                  ),
+                                )
+                              ],
+                            ),
+                          );
+                        case ConnectionState.active:
+                        case ConnectionState.waiting:
+                          return SpinKitDoubleBounce(
+                            color: Colors.greenAccent[700],
+                            size: 150,
+                          );
+                        default:
+                          return SpinKitDoubleBounce(
+                            color: Colors.greenAccent[700],
+                            size: 150,
+                          );
+                      }
+                    },
+                  )
+                ],
+              );
+              break;
+            default:
+              return SpinKitDoubleBounce(
+                color: Colors.greenAccent[700],
+                size: 150,
+              );
           }
-          return SpinKitDoubleBounce(size: 200, color: Colors.greenAccent[700]);
         },
       ),
     );

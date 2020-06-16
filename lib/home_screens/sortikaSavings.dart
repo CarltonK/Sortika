@@ -51,24 +51,26 @@ class _SortikaSavingsState extends State<SortikaSavings> {
     String itemName = doc.data['name'];
 
     if (widget.user.points >= itemPoints) {
-      helper.redeemItem(doc.documentID, widget.user.uid)
-        .whenComplete(() {
-          showCupertinoModalPopup(
-            context: context, 
-            builder: (context) => SuccessMessage(message: 'Your request to redeem $itemName has been received. Continue transacting on Sortika to earn more points and redeem them for goodies'),
-          );
-        })
-        .catchError((error) {
-          showCupertinoModalPopup(
-            context: context, 
-            builder: (context) => ErrorMessage(message: 'There was an error redeeming $itemName. $error'),
-          );
-        });
-    }
-    else {
+      helper.redeemItem(doc.documentID, widget.user.uid).whenComplete(() {
+        showCupertinoModalPopup(
+          context: context,
+          builder: (context) => SuccessMessage(
+              message:
+                  'Your request to redeem $itemName has been received. Continue transacting on Sortika to earn more points and redeem them for goodies'),
+        );
+      }).catchError((error) {
+        showCupertinoModalPopup(
+          context: context,
+          builder: (context) => ErrorMessage(
+              message: 'There was an error redeeming $itemName. $error'),
+        );
+      });
+    } else {
       showCupertinoModalPopup(
-        context: context, 
-        builder: (context) => ErrorMessage(message: 'You do not have enough points to redeem this item. Continue depositing and transacting on Sortika to earn more points'),
+        context: context,
+        builder: (context) => ErrorMessage(
+            message:
+                'You do not have enough points to redeem this item. Continue depositing and transacting on Sortika to earn more points'),
       );
     }
   }

@@ -6,6 +6,9 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/investmentModel.dart';
@@ -307,75 +310,23 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return CupertinoAlertDialog(
-            content: Text(
-              '$message',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-          );
+          return WarningMessage(message: message);
         });
   }
 
-  Future _promptUserSuccess() {
+  Future _promptUserSuccess(String message) {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 50,
-                  color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Your investment goal has been created successfully',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(message: message);
         });
   }
 
-  Future _showUserProgress() {
+  Future _showUserProgress(String message) {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Creating your goal...',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                SpinKitDualRing(
-                  color: Colors.greenAccent[700],
-                  size: 100,
-                )
-              ],
-            ),
-          );
+          return CustomProgressDialog(message: message);
         });
   }
 
@@ -418,13 +369,15 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
           goalCategory: 'Investment',
           goalClass: classInvestment,
           uid: widget.uid,
+          growth: 0,
+          interest: 0,
           goalType: goalInvestment,
           isGoalDeletable: true,
           goalAmountSaved: 0,
           goalAllocation: 0);
 
       //Show a dialog
-      _showUserProgress();
+      _showUserProgress('Creating your goal...');
 
       //Create an activity
       ActivityModel investmentAct = new ActivityModel(
@@ -439,7 +392,10 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => _promptUserSuccess());
+        Timer(
+            Duration(seconds: 4),
+            () => _promptUserSuccess(
+                'Your investment goal has been created successfully'));
 
         //Show a success message for two seconds
         Timer(Duration(seconds: 5), () => Navigator.of(context).pop());

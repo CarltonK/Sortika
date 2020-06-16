@@ -420,9 +420,11 @@ class _InsightsState extends State<Insights> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             //Incomes
-            singleColorKey(Colors.green, 'INCOMES', ''),
+            singleColorKey(Colors.green, 'INCOMES',
+                'This is any MPESA message with the keyword "received"'),
             //Expenses
-            singleColorKey(Colors.red, 'EXPENSES', ''),
+            singleColorKey(Colors.red, 'EXPENSES',
+                'This is any MPESA message with the keyword "sent"'),
             //PassiveSavings
             singleColorKey(Colors.blue, 'PASSIVE SAVINGS',
                 'These are savings you make when you complete the M-PESA prompt'),

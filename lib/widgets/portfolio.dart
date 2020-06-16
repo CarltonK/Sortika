@@ -470,38 +470,46 @@ class _PortfolioState extends State<Portfolio> {
 
   Widget _assetAllocation() {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.4,
+      height: MediaQuery.of(context).size.height * 0.5,
       child: FutureBuilder<Object>(
           future: _getPieChartData(),
           builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.hasData) {
-              if (snapshot.data.documents.length == 0) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.active:
+              case ConnectionState.none:
                 return UnsuccessfullError(
                     message: 'You do not have any savings');
-              }
-              return pie.PieChart(
-                dataMap: _retrieveAssets(snapshot.data.documents),
-                animationDuration: Duration(milliseconds: 500),
-                chartType: pie.ChartType.disc,
-                showChartValuesInPercentage: true,
-                showChartValueLabel: false,
-                showChartValues: false,
-                initialAngle: 0,
-                chartRadius: MediaQuery.of(context).size.width / 1.5,
-                chartValueStyle: pie.defaultChartValueStyle.copyWith(
-                  color: Colors.blueGrey[900].withOpacity(0.9),
-                ),
-                chartValueBackgroundColor: Colors.grey[200],
-                showLegends: true,
-              );
+              case ConnectionState.done:
+                if (snapshot.data.documents.length == 0) {
+                  return UnsuccessfullError(
+                      message: 'You do not have any savings');
+                }
+                return pie.PieChart(
+                  dataMap: _retrieveAssets(snapshot.data.documents),
+                  animationDuration: Duration(milliseconds: 500),
+                  chartType: pie.ChartType.disc,
+                  showChartValuesInPercentage: true,
+                  showChartValueLabel: false,
+                  showChartValues: false,
+                  initialAngle: 0,
+                  chartRadius: MediaQuery.of(context).size.width * 0.5,
+                  chartValueStyle: pie.defaultChartValueStyle.copyWith(
+                    color: Colors.blueGrey[900].withOpacity(0.9),
+                  ),
+                  chartValueBackgroundColor: Colors.grey[200],
+                  showLegends: true,
+                );
+              case ConnectionState.waiting:
+                return SpinKitDoubleBounce(
+                  size: 100,
+                  color: Colors.greenAccent[700],
+                );
+              default:
+                return SpinKitDoubleBounce(
+                  size: 100,
+                  color: Colors.greenAccent[700],
+                );
             }
-            if (!snapshot.hasData) {
-              return UnsuccessfullError(message: 'You do not have any savings');
-            }
-            return SpinKitDoubleBounce(
-              size: MediaQuery.of(context).size.height * 0.25,
-              color: Colors.blue,
-            );
           }),
     );
   }
@@ -511,7 +519,7 @@ class _PortfolioState extends State<Portfolio> {
     return Container(
       height: double.infinity,
       width: MediaQuery.of(context).size.width,
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: SingleChildScrollView(
         physics: AlwaysScrollableScrollPhysics(),
         child: Column(

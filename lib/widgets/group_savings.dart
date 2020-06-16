@@ -3,12 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/utilities/styles.dart';
+import 'package:uuid/uuid.dart';
 
 class GroupSavings extends StatefulWidget {
   final String uid;
@@ -29,6 +32,7 @@ class _GroupSavingsState extends State<GroupSavings> {
   //Identifiers
   String _name, _objective;
   double _amount, _amountpp;
+  String _groupCode;
 
   //Members
   double members = 1;
@@ -478,96 +482,46 @@ class _GroupSavingsState extends State<GroupSavings> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return CupertinoAlertDialog(
-            content: Text(
-              '$message',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-          );
+          return WarningMessage(message: message);
         });
   }
 
-  Future _promptUserSuccess() {
+  Future _promptUserSuccess(String message) {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 50,
-                  color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Your group has been created successfully',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(message: message);
         });
   }
 
-  Future _showUserProgress() {
+  Future _showUserProgress(String message) {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Creating your group...',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                SpinKitDualRing(
-                  color: Colors.greenAccent[700],
-                  size: 100,
-                )
-              ],
-            ),
-          );
+          return CustomProgressDialog(message: message);
         });
   }
 
   Future _createGroupGoal(GroupModel model) async {
-    /*
-    Before we go to the next page we need to auto create a investment goal
-    */
+    try {
+      //This is the name of the collection we will be reading
+      final String _collectionUpper = 'users';
+      final String _collectionLower = 'goals';
+      var document =
+          _firestore.collection(_collectionUpper).document(widget.uid);
 
-    //This is the name of the collection we will be reading
-    final String _collectionUpper = 'users';
-    final String _collectionLower = 'goals';
-    var document = _firestore.collection(_collectionUpper).document(widget.uid);
+      //Save goal to goals subcollection
+      await document
+          .collection(_collectionLower)
+          .document()
+          .setData(model.toJson());
 
-    //Save goal to goals subcollection
-    await document
-        .collection(_collectionLower)
-        .document()
-        .setData(model.toJson());
-
-    //Save group to groups collection
-    await _firestore.collection("groups").document().setData(model.toJson());
+      //Save group to groups collection
+      await _firestore.collection("groups").document().setData(model.toJson());
+    } catch (e) {
+      print(e.toString());
+      return e;
+    }
   }
 
   void createBtnPressed() async {
@@ -584,6 +538,8 @@ class _GroupSavingsState extends State<GroupSavings> {
 
         List<String> membersList = [widget.uid];
 
+        _groupCode = codeGenerator();
+
         GroupModel model = new GroupModel(
             groupAdmin: widget.uid,
             goalAmountSaved: 0,
@@ -593,6 +549,7 @@ class _GroupSavingsState extends State<GroupSavings> {
             goalName: _name,
             members: membersList,
             goalAllocation: 0,
+            groupCode: _groupCode,
             groupMembersTargeted: members.toInt(),
             groupMembers: 1,
             uid: widget.uid,
@@ -610,18 +567,18 @@ class _GroupSavingsState extends State<GroupSavings> {
         await authService.postActivity(widget.uid, groupSavingsAct);
 
         //Show a dialog
-        _showUserProgress();
+        _showUserProgress('Creating your group...');
 
         _createGroupGoal(model).whenComplete(() {
           //Pop that dialog
           //Show a success message for two seconds
-          Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
+          Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
 
           //Show a success message for two seconds
-          Timer(Duration(seconds: 4), () => _promptUserSuccess());
-
-          //Show a success message for two seconds
-          Timer(Duration(seconds: 5), () => Navigator.of(context).pop());
+          Timer(
+              Duration(seconds: 3),
+              () => _promptUserSuccess(
+                  'Your group has been created successfully'));
         }).catchError((error) {
           _promptUser(error);
         });
@@ -650,6 +607,11 @@ class _GroupSavingsState extends State<GroupSavings> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override

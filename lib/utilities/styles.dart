@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:uuid/uuid.dart';
 
 //LabelStyle
 final labelStyle = GoogleFonts.muli(
@@ -52,4 +53,9 @@ Widget backgroundWidget() {
           0.9
         ])),
   );
+}
+
+String codeGenerator() {
+  var uuid = Uuid();
+  return uuid.v1().split('-').first;
 }

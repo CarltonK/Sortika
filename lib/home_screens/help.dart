@@ -73,9 +73,9 @@ class Help extends StatelessWidget {
         ),
         actions: <Widget>[
           IconButton(
-              icon: Icon(Icons.info_outline),
-              onPressed: () => showAboutDialog(
-                  context: context,
+            icon: Icon(Icons.info_outline),
+            onPressed: () => showAboutDialog(
+                context: context,
                 applicationVersion: version,
                 applicationIcon: CircleAvatar(
                   backgroundColor: Colors.transparent,
@@ -83,11 +83,10 @@ class Help extends StatelessWidget {
                 ),
                 children: [
                   Image.network(
-                      'https://images.unsplash.com/photo-1559067096-49ebca3406aa?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1489&q=80',
+                    'https://images.unsplash.com/photo-1559067096-49ebca3406aa?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1489&q=80',
                     fit: BoxFit.cover,
                   )
-                ]
-              ),
+                ]),
           )
         ],
       ),
@@ -158,8 +157,8 @@ class Help extends StatelessWidget {
         onPressed: () {
           try {
             //Launch whatsapp with no message
-            FlutterOpenWhatsapp.sendSingleMessage(
-                "254727286123", "Hello. I would like to have an app developed for me");
+            FlutterOpenWhatsapp.sendSingleMessage("254727286123",
+                "Hello. I would like to have an app developed for me");
           } catch (e) {
             print('This is the exception $e');
           }

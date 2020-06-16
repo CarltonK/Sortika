@@ -8,6 +8,9 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/investmentModel.dart';
@@ -130,72 +133,23 @@ class _SavingsGoalState extends State<SavingsGoal> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return CupertinoAlertDialog(
-            content: Text(
-              '$message',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-          );
+          return WarningMessage(message: message);
         });
   }
 
-  Future _promptUserSuccess() {
+  Future _promptUserSuccess(String message) {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 100,
-                  color: Colors.green,
-                ),
-                Text(
-                  'Your savings goal has been created successfully',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(message: message);
         });
   }
 
-  Future _showUserProgress() {
+  Future _showUserProgress(String message) {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Creating your goal...',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                SpinKitDualRing(
-                  color: Colors.greenAccent[700],
-                  size: 100,
-                )
-              ],
-            ),
-          );
+          return CustomProgressDialog(message: message);
         });
   }
 
@@ -240,6 +194,8 @@ class _SavingsGoalState extends State<SavingsGoal> {
           goalCategory: 'Saving',
           goalClass: classSavings,
           goalName: goalName,
+          growth: 0,
+          interest: 0,
           goalType: typeSavings,
           uid: widget.uid,
           isGoalDeletable: true,
@@ -253,7 +209,7 @@ class _SavingsGoalState extends State<SavingsGoal> {
       await authService.postActivity(widget.uid, investmentAct);
 
       //Show a dialog
-      _showUserProgress();
+      _showUserProgress('Creating your goal...');
 
       //  //Retrieve USER DOC
       //   DocumentSnapshot userDoc = await _firestore.collection("users").document(widget.uid).get();
@@ -265,7 +221,10 @@ class _SavingsGoalState extends State<SavingsGoal> {
         Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
 
         //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => _promptUserSuccess());
+        Timer(
+            Duration(seconds: 4),
+            () => _promptUserSuccess(
+                'Your savings goal has been created successfully'));
       }).catchError((error) {
         //Show a success message for two seconds
         Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
@@ -413,6 +372,10 @@ class _SavingsGoalState extends State<SavingsGoal> {
       classSavings = value;
       _types = List.from(_types)..addAll(getgoalByTitle(value));
       print(_types);
+
+      if (value == 'Custom') {
+        addGoalName();
+      }
     });
   }
 

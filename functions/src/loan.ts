@@ -516,7 +516,7 @@ export const LoanRepaid = functions.region('europe-west1').firestore
                     principal = loanModel.loanAmountTaken
                 }
                 if ((diff - loanModel.sortikaInterestComputed - loanModel.clientInterestComputed) < loanModel.loanAmountTaken) {
-                    principal = (loanModel.loanAmountTaken - loanModel.sortikaInterestComputed - loanModel.clientInterestComputed)
+                    principal = (diff - loanModel.sortikaInterestComputed - loanModel.clientInterestComputed)
                 }
 
                 balance = loanModel.totalAmountToPay - diff

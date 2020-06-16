@@ -481,7 +481,7 @@ class _BorrowPageState extends State<BorrowPage> {
           _promptLenderNotFound();
           takeLoanFrom = null;
         }
-      });
+      }).catchError((error) => _promptUser(error.toString()));
     }
   }
 
