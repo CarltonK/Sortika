@@ -545,14 +545,21 @@ class Helper {
   }
 
   //Join the Lottery
-  Future joinLottery(
-      String club, String uid, String ticket, String name, var total, String token) async {
+  Future joinLottery(String club, String uid, String ticket, String name,
+      var total, String token) async {
     await _firestore
         .collection('lottery')
         .document(club)
         .collection('participants')
         .document(uid)
-        .setData({'uid': uid, 'ticket': ticket, 'name': name, 'club': club, 'fee': total, 'token': token});
+        .setData({
+      'uid': uid,
+      'ticket': ticket,
+      'name': name,
+      'club': club,
+      'fee': total,
+      'token': token
+    });
   }
 
   //Get Lottery Club Members

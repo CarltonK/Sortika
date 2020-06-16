@@ -39,28 +39,29 @@ class _SortikaLotteryState extends State<SortikaLottery> {
       String ticket = codeGenerator();
       //Join the club
       helper
-          .joinLottery(doc.documentID, widget.user.uid, ticket, model.name, totalToJoin, widget.user.token)
+          .joinLottery(doc.documentID, widget.user.uid, ticket, model.name,
+              totalToJoin, widget.user.token)
           .then((value) {
         showCupertinoModalPopup(
           context: context,
           builder: (context) => SuccessMessage(
-              message: 'You have successfully joined ${model.name}'),
+              message:
+                  'You have successfully joined ${model.name}. Check your notifications for your ticket number'),
         );
       }).catchError((error) {
         print(error.toString());
         if (error.toString().contains('PERMISSION_DENIED')) {
           showCupertinoModalPopup(
-          context: context,
-          builder: (context) =>
-              ErrorMessage(message: 'You are a participant in ${model.name}'),
-        );
-        }
-        else {
+            context: context,
+            builder: (context) =>
+                ErrorMessage(message: 'You are a participant in ${model.name}'),
+          );
+        } else {
           showCupertinoModalPopup(
-          context: context,
-          builder: (context) =>
-              ErrorMessage(message: 'There was an error joining ${model.name}'),
-        );
+            context: context,
+            builder: (context) => ErrorMessage(
+                message: 'There was an error joining ${model.name}'),
+          );
         }
       });
     } else {
@@ -228,23 +229,24 @@ class _SortikaLotteryState extends State<SortikaLottery> {
                             message: 'Please select a lottery club',
                           );
                         case ConnectionState.done:
+                          DateTime now = DateTime.now();
+                          DateTime end = snapshot.data.end.toDate();
 
-                        DateTime now = DateTime.now();
-                        DateTime end = snapshot.data.end.toDate();
+                          String minRemaining =
+                              end.difference(now).inMinutes.toString() +
+                                  ' MINS';
+                          if (end.difference(now).inMinutes < 1) {
+                            minRemaining =
+                                end.difference(now).inSeconds.toString() +
+                                    ' SECS';
+                          }
 
-                        String minRemaining = now.difference(end).inMinutes.abs().toString() + ' MINS';
-                        if (now.difference(end).inMinutes.abs() < 1) {
-                          minRemaining = now.difference(end).inSeconds.abs().toString() + ' SECS';
-                        }
-
-                        
-                        if (end.compareTo(now).isNegative) {
-                          return UnsuccessfullError(
-                            message: 'This lottery is not active',
-                          );
-                          
-                        }
-                        return Container(
+                          if (end.compareTo(now).isNegative) {
+                            return UnsuccessfullError(
+                              message: 'This lottery is not active',
+                            );
+                          }
+                          return Container(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
@@ -269,7 +271,9 @@ class _SortikaLotteryState extends State<SortikaLottery> {
                                     )
                                   ],
                                 ),
-                                SizedBox(height: 10,),
+                                SizedBox(
+                                  height: 10,
+                                ),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -291,7 +295,9 @@ class _SortikaLotteryState extends State<SortikaLottery> {
                                     )
                                   ],
                                 ),
-                                SizedBox(height: 10,),
+                                SizedBox(
+                                  height: 10,
+                                ),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -313,7 +319,21 @@ class _SortikaLotteryState extends State<SortikaLottery> {
                                     )
                                   ],
                                 ),
-                                SizedBox(height: 10,),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                snapshot.data.winner == null
+                                    ? Center(
+                                        child: Text(
+                                          'The winning ticket will be announced when the lottery ends',
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.muli(
+                                              textStyle: TextStyle(
+                                            color: Colors.black,
+                                          )),
+                                        ),
+                                      )
+                                    : Container(),
                                 Center(
                                   child: RaisedButton(
                                     elevation: 5,

@@ -293,6 +293,7 @@ export const scheduledFunction = functions.region('europe-west1').pubsub.schedul
 
 export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
 export const joinLottery = lottery.joinALottery
+export const announceLottery = lottery.announceLotteryCreation
 
 /*
 NOTIFICATIONS

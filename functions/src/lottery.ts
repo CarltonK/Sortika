@@ -4,6 +4,26 @@ import * as functions from 'firebase-functions'
 
 const db = superadmin.firestore()
 
+
+export const announceLotteryCreation = functions.region('europe-west1').firestore
+    .document('lottery/{lot}')
+    .onCreate(async snapshot => {
+        try {
+            const userQuery: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
+            const userDocumentsList: FirebaseFirestore.DocumentSnapshot[] = userQuery.docs
+
+            const tokens: string[] = []
+            userDocumentsList.forEach(element => {
+                tokens.push(element.get('token'))
+            })
+
+            await notification.singleNotificationSend(tokens,`A new lottery has been created. Topup now to participate and stand a chance to win`,'Its Time')
+
+        } catch (error) {
+            throw error
+        }
+    })
+
 export const joinALottery = functions.region('europe-west1').firestore
     .document('lottery/{lot}/participants/{user}')
     .onCreate(async snapshot => {
