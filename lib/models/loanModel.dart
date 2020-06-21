@@ -21,17 +21,20 @@ class LoanModel {
   String borrowerName;
   //Loan Details
   double sortikaInterestComputed;
+  final double sortikaInterest = 0;
   double clientInterestComputed;
+  final double clientInterest = 0;
+  final double principal = 0;
   double lfrepaymentAmount;
-  double loanAmountTaken;
+  var loanAmountTaken;
   var loanAmountRepaid;
   var loanBalance;
-  double loanInterest;
+  var loanInterest;
   Timestamp loanEndDate;
   Timestamp loanTakenDate;
   var loanStatus;
   double loanIC;
-  double totalAmountToPay;
+  var totalAmountToPay;
 
   /*
   sortika interest = 20% of interest
@@ -101,6 +104,9 @@ class LoanModel {
         "loanLenderName": loanLenderName,
         "loanLenderToken": loanLenderToken,
         "loanInvitees": loanInvitees,
+        'sortikaInterest': sortikaInterest,
+        'clientInterest': clientInterest,
+        'principal': principal,
         "loanInviteeName": loanInviteeName,
         "tokenInvitee": tokenInvitee,
         "loanBorrower": loanBorrower,

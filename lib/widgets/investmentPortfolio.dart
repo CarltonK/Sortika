@@ -37,6 +37,10 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
 
   DateTime rightNow = DateTime.now();
 
+  Widget entryItem(Map<String, dynamic> data) {
+    return Text(data['name']);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -48,153 +52,153 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
   Widget _portfolioSummary() {
     return Container(
       height: MediaQuery.of(context).size.height * 0.25,
-      child: FutureBuilder<Map<String, dynamic>>(
+      child: FutureBuilder<List<Map<String, dynamic>>>(
         future: summaryData,
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.active:
             case ConnectionState.done:
-            // return ListView.builder(
-            //   itemCount: snapshot.data.length,
-            //   scrollDirection: Axis.horizontal,
-            //   itemBuilder: (context, index) {
-            //     var currentItem = snapshot.data[index];
-            //     print(currentItem);
-            //     String type = currentItem['type'];
-            //     num amountSaved = currentItem['amount'];
-            //     num returnAsset = currentItem['return'];
-            //     num interest = (amountSaved * returnAsset) / 100;
-            //     num growth = (interest / (amountSaved - interest)) * 100;
+            return ListView.builder(
+              itemCount: snapshot.data.length,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                var currentItem = snapshot.data[index];
+                String title = currentItem['title'];
+                List<Map<String, dynamic>> entries = currentItem['data'];
+                Map<String, dynamic> map = entries[0];
 
-            //     growth.isNaN ? growth = 0 : growth = growth;
+                num interest = (map['amountSaved'] * map['booking']) / 100;
+                num growth = (interest / (map['amountSaved'] - interest)) * 100;
 
-            //     return Container(
-            //       margin: EdgeInsets.symmetric(horizontal: 8),
-            //       width: 250,
-            //       decoration: BoxDecoration(
-            //         borderRadius: BorderRadius.circular(12),
-            //         gradient: LinearGradient(
-            //             tileMode: TileMode.clamp,
-            //             begin: Alignment.topLeft,
-            //             end: Alignment.bottomRight,
-            //             colors: [Colors.red[300], Colors.yellow[700]],
-            //             stops: [0, 1.0]),
-            //       ),
-            //       child: Stack(
-            //         children: [
-            //           Align(
-            //             alignment: Alignment.topLeft,
-            //             child: Container(
-            //               padding: EdgeInsets.symmetric(
-            //                   vertical: 8, horizontal: 10),
-            //               decoration: BoxDecoration(
-            //                   borderRadius: BorderRadius.only(
-            //                       bottomRight: Radius.circular(20)),
-            //                   color: Colors.white),
-            //               child: Text(
-            //                 type,
-            //                 style: GoogleFonts.muli(
-            //                     textStyle:
-            //                         TextStyle(fontWeight: FontWeight.w600)),
-            //               ),
-            //             ),
-            //           ),
-            //           Align(
-            //               alignment: Alignment.center,
-            //               child: RichText(
-            //                 text: TextSpan(children: [
-            //                   TextSpan(
-            //                       text: 'You have saved ',
-            //                       style: GoogleFonts.muli(
-            //                           textStyle:
-            //                               TextStyle(color: Colors.white))),
-            //                   TextSpan(
-            //                       text: '${amountSaved.toStringAsFixed(0)} KES',
-            //                       style: GoogleFonts.muli(
-            //                         textStyle: TextStyle(
-            //                             color: Colors.white,
-            //                             fontWeight: FontWeight.bold,
-            //                             fontSize: 18),
-            //                       )),
-            //                 ]),
-            //               )),
-            //           Align(
-            //             alignment: Alignment.bottomLeft,
-            //             child: Container(
-            //               padding: EdgeInsets.symmetric(
-            //                   vertical: 5, horizontal: 10),
-            //               decoration: BoxDecoration(
-            //                   borderRadius: BorderRadius.only(
-            //                       topRight: Radius.circular(20)),
-            //                   color: Colors.transparent),
-            //               child: Column(
-            //                 crossAxisAlignment: CrossAxisAlignment.center,
-            //                 mainAxisSize: MainAxisSize.min,
-            //                 mainAxisAlignment: MainAxisAlignment.center,
-            //                 children: <Widget>[
-            //                   Text(
-            //                     'Interest Earned',
-            //                     style: GoogleFonts.muli(
-            //                         textStyle: TextStyle(
-            //                             color: Colors.white,
-            //                             fontWeight: FontWeight.w600)),
-            //                   ),
-            //                   SizedBox(
-            //                     height: 5,
-            //                   ),
-            //                   Text(
-            //                     '${interest.toStringAsFixed(1)}',
-            //                     style: GoogleFonts.muli(
-            //                         textStyle: TextStyle(
-            //                             fontSize: 16,
-            //                             color: Colors.white,
-            //                             fontWeight: FontWeight.bold)),
-            //                   )
-            //                 ],
-            //               ),
-            //             ),
-            //           ),
-            //           Align(
-            //             alignment: Alignment.bottomRight,
-            //             child: Container(
-            //               padding: EdgeInsets.symmetric(
-            //                   vertical: 5, horizontal: 10),
-            //               decoration: BoxDecoration(
-            //                   borderRadius: BorderRadius.only(
-            //                       topLeft: Radius.circular(20)),
-            //                   color: Colors.transparent),
-            //               child: Column(
-            //                 crossAxisAlignment: CrossAxisAlignment.center,
-            //                 mainAxisSize: MainAxisSize.min,
-            //                 mainAxisAlignment: MainAxisAlignment.center,
-            //                 children: <Widget>[
-            //                   Text(
-            //                     'Growth Rate',
-            //                     style: GoogleFonts.muli(
-            //                         textStyle: TextStyle(
-            //                             color: Colors.white,
-            //                             fontWeight: FontWeight.w600)),
-            //                   ),
-            //                   SizedBox(
-            //                     height: 5,
-            //                   ),
-            //                   Text(
-            //                     '${growth.toStringAsFixed(1)} %',
-            //                     style: GoogleFonts.muli(
-            //                         textStyle: TextStyle(
-            //                             fontSize: 16,
-            //                             color: Colors.white,
-            //                             fontWeight: FontWeight.bold)),
-            //                   )
-            //                 ],
-            //               ),
-            //             ),
-            //           )
-            //         ],
-            //       ),
-            //     );
-            //   },
-            // );
+                growth.isNaN ? growth = 0 : growth = growth;
+
+                return Container(
+                  margin: EdgeInsets.symmetric(horizontal: 8),
+                  width: 270,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                        tileMode: TileMode.clamp,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Colors.red[300], Colors.yellow[700]],
+                        stops: [0, 1.0]),
+                  ),
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                  bottomRight: Radius.circular(20)),
+                              color: Colors.white),
+                          child: Text(
+                            title,
+                            style: GoogleFonts.muli(
+                                textStyle:
+                                    TextStyle(fontWeight: FontWeight.w600)),
+                          ),
+                        ),
+                      ),
+                                            Align(
+                          alignment: Alignment.center,
+                          child: RichText(
+                            text: TextSpan(children: [
+                              TextSpan(
+                                  text: 'You have saved ',
+                                  style: GoogleFonts.muli(
+                                      textStyle:
+                                          TextStyle(color: Colors.white))),
+                              TextSpan(
+                                  text: '${map['amountSaved']} KES',
+                                  style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
+                                  )),
+                            ]),
+                          )),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(20)),
+                              color: Colors.transparent),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                'Interest Earned',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600)),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                '${interest.toStringAsFixed(1)} %',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold)),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 5, horizontal: 10),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(20)),
+                              color: Colors.transparent),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                'Growth Rate',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600)),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                '${growth.toStringAsFixed(1)} %',
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold)),
+                              )
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                );
+              },
+            );
             case ConnectionState.none:
               return UnsuccessfullError(
                   message: 'You have not made any investments');

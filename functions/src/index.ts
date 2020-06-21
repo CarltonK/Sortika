@@ -10,10 +10,11 @@ import * as sms from './sms'
 import * as loan from './loan'
 import * as ratecalc from './savings_rate_calculator'
 import * as lottery from './lottery'
+import * as groups from './groups'
+import * as redeem from './redeem'
 
 
 const db = superadmin.firestore()
-const fcm = superadmin.messaging()
 
 // Initialize Express Server
 const app = express()
@@ -33,14 +34,18 @@ main.use(express.json())
 export const sortikaMain = functions.region('europe-west1').https.onRequest(main)
 
 // M-PESA Endpoints
-// 1) Lipa Na Mpesa Online CallbackURL
+// 1) Lipa Na Mpesa Online Callback URL
 app.post('/nitumiekakitu/0CCX2LkvU7kG8cSHU2Ez', mpesa.mpesaLnmCallback)
-//2) Lipa Na Mpesa Online CallbackURL (Captures)
+//2) Lipa Na Mpesa Online Callback URL (Captures)
 app.post('/tumecapturekitu/CBCwudDBSn46CVuz1wnn', mpesa.mpesaLnmCallbackForCapture)
 // 2) B2C Timeout URL
 app.post('/oyab2cimetimeout/Mm6rm3JwcExVNFk82l9X', mpesa.mpesaB2cTimeout)
-// 3) B2C ResultURL
+// 3) B2C Result URL
 app.post('/wolandehb2cimeingia/SV02a3Lpqi883ZNfjIma', mpesa.mpesaB2cResult)
+// 4) C2B Validation URL
+app.post('/wolanvalidatec2b/eCcjec4GImjejAm9sfAz', mpesa.mpesaC2bValidation)
+// 5) C2B Confirmation URL
+app.post('/wolanconfirmationc2b/e1wlv2pVt0DheiDAPixv', mpesa.mpesaC2bConfirmation)
 
 // SMS ANALYSIS Endpoints
 app.post('/tusomerecords/9z5JjD9bGODXeSVpdNFW', sms.receiveSMS)
@@ -289,51 +294,7 @@ export const scheduledFunction = functions.region('europe-west1').pubsub.schedul
         // //     .catch((error) => console.log(`Scheduled Allocator Error: ${error}`))
         // console.log('Finished updating allocations')
         // console.log('Midnight function has completed successfully')
-    });
-
-export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
-export const joinLottery = lottery.joinALottery
-export const announceLottery = lottery.announceLotteryCreation
-
-/*
-NOTIFICATIONS
-7) Send a notification to lender when they receive a negotiation request - promptReceiveNegotiation
-*/
-
-export const loanCreated =  loan.LoanCreate
-export const loanAcceptance = loan.LoanAcceptance
-export const loanRevision = loan.LoanRevision
-export const loanRejected = loan.LoanRejected
-export const loanNegotiation = loan.LoanNegotiation
-export const loanRepaid = loan.LoanRepaid
-export const loanPayment = loan.LoanPayment
-    
-
-export const promptReceiveNegotiation = functions.firestore
-    .document('loans/{loan}')
-    .onUpdate(async snapshot => {
-        const token: string = snapshot.before.get('tokenInvitee')
-        const amount: number = snapshot.after.get('loanAmountTaken')
-        const interest: number = snapshot.after.get('loanInterest')
-        const due: number = snapshot.after.get('totalAmountToPay')
-        //Retrieve the token (If exists)
-        if (snapshot.before.get('loanStatus') === 'Revised' && snapshot.after.get('loanStatus') === 'Revised2') {
-            //Retrieve key info
-            //Define the payload
-            const payload = {
-                notification: {
-                    title: `Loan Revision`,
-                    body: `You have received a revised loan request. The new loan amount is ${amount} KES while the revised interest rate is ${interest} %. They will pay back ${due} KES`,
-                    clickAction: 'FLUTTER_NOTIFICATION_CLICK'
-            } 
-        }
-        return fcm.sendToDevice(token, payload)
-            .catch(error => {
-            console.error('promptLoanNegotiated FCM Error',error)
-        })
-        console.log(payload);
-    }
-})
+    })
 
 
 export const goalAutoCreate = functions.region('europe-west1').firestore
@@ -556,145 +517,25 @@ export const goalAutoCreate = functions.region('europe-west1').firestore
         }
     })
 
+//Midnight Function
+export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
 
-export const groupMembers = functions.region('europe-west1').firestore
-    .document('groups/{group}')
-    .onWrite(async snapshot => {
-        try {
-            //const admin: string = snapshot.before.get('groupAdmin')
-            const membersBefore: Array<string> = snapshot.before.get('members')
-            const membersAfter: Array<string> = snapshot.after.get('members');
-            console.log(`Members Before: ${membersBefore}`)
-            console.log(`Members After: ${membersAfter}`)
+//Lottery Functions
+export const joinLottery = lottery.joinALottery
+export const announceLottery = lottery.announceLotteryCreation
 
-            if (!snapshot.before.exists) {
-                membersAfter.forEach(async (element) => {
-                    const user: DocumentSnapshot = await db.collection('users').doc(element).get()
-                    //console.log(`Requesting USER: ${user.get('uid')}`)
-                    await db.collection('groups').doc(snapshot.after.id).collection('members').doc(element).set({
-                        "fullName": user.get('fullName'),
-                        "photoURL": user.get('photoURL'),
-                        "token": user.get('token'),
-                    })
-                })
-            }
-            if (!snapshot.after.exists) {
-                deleteGroup
-            }
-            if (snapshot.before.exists && snapshot.after.exists) {
-                if (membersAfter.length > membersBefore.length) {
-                    const diff: number = membersAfter.length - membersBefore.length
-                    await db.collection('groups').doc(snapshot.after.id).update({
-                        'groupMembers': superadmin.firestore.FieldValue.increment(diff)
-                    });
-                }
-                if (membersBefore.length > membersAfter.length) {
-                    const diff: number = membersBefore.length - membersAfter.length
-                    await db.collection('groups').doc(snapshot.after.id).update({
-                        'groupMembers': superadmin.firestore.FieldValue.increment(-diff)
-                    });
-                }
+//Redeem
+export const redeemGoal = redeem.RedeemGoal
 
-                for (let index = 0; index < membersAfter.length; index ++) {
-                    if (membersBefore[index] === membersAfter[index]) {
-                        continue
-                    }
-                    else {
-                        const user: DocumentSnapshot = await db.collection('users').doc(membersAfter[index]).get()
-                        console.log(`Requesting USER: ${user.get('uid')}`)
-                        await db.collection('groups').doc(snapshot.after.id).collection('members').doc(membersAfter[index]).set({
-                            "fullName": user.get('fullName'),
-                            "photoURL": user.get('photoURL'),
-                            "token": user.get('token'),
-                        })
-                    }
-                }
-            }
-        } catch (error) {
-            throw error
-        }
-    })
+//Loan Functions
+export const loanCreated =  loan.LoanCreate
+export const loanUpdate = loan.LoanStatusUpdate
+export const loanRepaid = loan.LoanRepaid
+export const loanPayment = loan.LoanPayment
 
-export const deleteGroup = functions.region('europe-west1').firestore
-    .document('groups/{group}')
-    .onDelete(async snapshot => {
-        const uid: string = snapshot.id
-        const queries: FirebaseFirestore.QuerySnapshot = await db.collection('groups').doc(uid).collection('members').get()
-        try {
-            queries.forEach(async (element) => {
-                await db.collection('groups').doc(uid).collection('members').doc(element.id).delete()
-            })
-        } catch (error) {
-            throw error
-            
-        }
-    })
-
-
-
-/*
-NB
-//Loan Limit Ratio = ((interest amount / limit ratio) * 100)
-1) Loan Limit Ratio only changes when loan has been fully paid
-2) Recoup sortika revenue before anything
-3) Sortika revenue is 20% of total amount to be paid
-*/
-
-async function increaseLoanLimit(interest: number, uid: string) {
-    const rate: number = interest * 0.75
-    const doc: DocumentSnapshot = await db.collection('users').doc(uid).get()
-    const limit: number = doc.get('loanLimitRatio')
-    const newLimit: number = limit + rate
-    try {
-        await db.collection('users').doc(uid).update({
-            'loanLimitRatio': newLimit
-        })
-    } catch (error) {
-        throw error
-    }
-}
-
-export const loanLimitCalculator = functions.region('europe-west1').firestore
-    .document('loans/{loan}')
-    .onUpdate(async snapshot => {
-        //Check if the document exists
-        try {
-            if (snapshot.before.exists || snapshot.after.exists) {
-                const totalAmountToPay: number = snapshot.after.get('totalAmountToPay')
-                const amountRepaid: number = snapshot.after.get('loanAmountRepaid')
-                const interest: number = snapshot.after.get('loanInterest')
-                const borrowerUid: string = snapshot.after.get('loanBorrower')
-    
-                if (snapshot.before.get('loanAmountRepaid') !== amountRepaid) {
-                    //Check if amount paid is more than totaltoPay
-                    if (amountRepaid > totalAmountToPay) {
-                        //Get the difference and store in overpayments collection
-                        //Change the loanAmountRepaid to TotalAmountToPay and mark loan as complete
-                        await db.collection('loans').doc(snapshot.after.id).update({
-                            'loanAmountRepaid': totalAmountToPay,
-                            'loanStatus': 'Completed'
-                        })
-                        //increase loan limit
-                        increaseLoanLimit(interest, borrowerUid)
-                        .then((value) => {console.log(value)})
-                        .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
-                    }
-                    if (amountRepaid === totalAmountToPay) {
-                        //Mark loan as completed
-                        await db.collection('loans').doc(snapshot.after.id).update({
-                            'loanStatus': 'Completed'
-                        })
-                        //increase loan limit
-                        increaseLoanLimit(interest, borrowerUid)
-                        .then((value) => {console.log(value)})
-                        .catch((error) => {console.error(`Increase Loan Limit Error: ${error}`)})
-                    }
-                }
-            }
-        } catch (error) {
-            throw error
-        }
-    })
+//Groups functions
+export const groupWrite = groups.groupMembers
+export const groupDeletion = groups.deleteGroup
 
 
 /*
@@ -719,5 +560,8 @@ exports.sortikaPoints = functions.region('europe-west1').firestore
             throw error
         }  
     })
+
+
+
 
 

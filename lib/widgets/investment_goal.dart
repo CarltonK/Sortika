@@ -345,6 +345,13 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         .collection(_collectionLower)
         .document()
         .setData(model.toJson());
+
+     //Create an activity
+    ActivityModel investmentAct = new ActivityModel(
+        activity:
+            'You created a new Investment Goal in the $classInvestment class',
+        activityDate: Timestamp.fromDate(rightNow));
+    await authService.postActivity(widget.uid, investmentAct);
   }
 
   void _setBtnPressed() async {
@@ -376,34 +383,11 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
           goalAmountSaved: 0,
           goalAllocation: 0);
 
-      //Show a dialog
-      _showUserProgress('Creating your goal...');
-
-      //Create an activity
-      ActivityModel investmentAct = new ActivityModel(
-          activity:
-              'You created a new Investment Goal in the $classInvestment class',
-          activityDate: Timestamp.fromDate(rightNow));
-      await authService.postActivity(widget.uid, investmentAct);
-
-      _createInvestmentGoal(goalModel).whenComplete(() {
-        //Pop that dialog
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
-
-        //Show a success message for two seconds
-        Timer(
-            Duration(seconds: 4),
-            () => _promptUserSuccess(
-                'Your investment goal has been created successfully'));
-
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 5), () => Navigator.of(context).pop());
-
-        // //Pop the dialog then redirect to home page
-        // Timer(Duration(milliseconds: 4500), () {
-        //   Navigator.of(context).popAndPushNamed('/home', arguments: widget.uid);
-        // });
+    
+      _createInvestmentGoal(goalModel).then((value) {
+        
+        _promptUserSuccess(
+                'Your investment goal has been created successfully');
       }).catchError((error) {
         _promptUser(error);
       });

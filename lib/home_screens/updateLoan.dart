@@ -4,11 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/utilities/styles.dart';
@@ -283,60 +285,12 @@ class _UpdateLoanState extends State<UpdateLoan> {
     );
   }
 
-  Future _showUserProgress() {
-    return showCupertinoModalPopup(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Updating Loan Terms...',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-                SpinKitDualRing(
-                  color: Colors.greenAccent[700],
-                  size: 100,
-                )
-              ],
-            ),
-          );
-        });
-  }
-
   Future _promptUserSuccess() {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 100,
-                  color: Colors.green,
-                ),
-                Text(
-                  'Your loan revision has been sent successfully',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(
+              message: 'Your loan revision has been sent successfully');
         });
   }
 
@@ -344,13 +298,7 @@ class _UpdateLoanState extends State<UpdateLoan> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return CupertinoAlertDialog(
-            content: Text(
-              '$message',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-          );
+          return WarningMessage(message: message);
         });
   }
 
@@ -359,23 +307,17 @@ class _UpdateLoanState extends State<UpdateLoan> {
     if (form.validate()) {
       form.save();
 
-      //Change Loan Updated
-      _showUserProgress();
       //Create an activity
       ActivityModel updateAct = new ActivityModel(
           activity: 'You updated a loan request',
           activityDate: Timestamp.fromDate(rightNow));
       await authService.postActivity(loanData['uid'], updateAct);
 
-      helper
-          .updateLoanDoc(loanData['docId'], _amount, _interest)
-          .whenComplete(() {
-        //Pop that dialog
-        Navigator.of(context).pop();
+      helper.updateLoanDoc(loanData, _amount, _interest).then((value) {
         //Show a success message for two seconds
         _promptUserSuccess();
       }).catchError((error) {
-        _promptUser(error);
+        _promptUser(error.toString());
       });
     }
   }
@@ -407,7 +349,7 @@ class _UpdateLoanState extends State<UpdateLoan> {
   Widget build(BuildContext context) {
     loanData = ModalRoute.of(context).settings.arguments;
     loan = LoanModel.fromJson(loanData);
-    //print(loanData);
+    // print(loanData);
 
     return Scaffold(
       appBar: AppBar(

@@ -145,13 +145,6 @@ class _SavingsGoalState extends State<SavingsGoal> {
         });
   }
 
-  Future _showUserProgress(String message) {
-    return showCupertinoModalPopup(
-        context: context,
-        builder: (BuildContext context) {
-          return CustomProgressDialog(message: message);
-        });
-  }
 
   Future _createSavingsGoal(GoalModel model) async {
     /*
@@ -168,13 +161,20 @@ class _SavingsGoalState extends State<SavingsGoal> {
         .collection(_collectionLower)
         .document()
         .setData(model.toJson());
+
+
+     //Create an activity
+    ActivityModel investmentAct = new ActivityModel(
+        activity: 'You created a new Savings Goal in the $classSavings class',
+        activityDate: Timestamp.fromDate(rightNow));
+    await authService.postActivity(widget.uid, investmentAct);
   }
 
   void _setBtnPressed() async {
     //Check if goal class exists
     if (classSavings == null) {
       _promptUser("You haven't told us what you're saving towards");
-    } else if (classSavings == 'custom' && goalName == null) {
+    } else if (classSavings == 'Custom' && goalName == null) {
       addGoalName();
     } else if (typeSavings == null) {
       _promptUser("You haven't selected the goal type");
@@ -202,35 +202,16 @@ class _SavingsGoalState extends State<SavingsGoal> {
           goalAmountSaved: 0,
           goalAllocation: 0);
 
-      //Create an activity
-      ActivityModel investmentAct = new ActivityModel(
-          activity: 'You created a new Savings Goal in the $classSavings class',
-          activityDate: Timestamp.fromDate(rightNow));
-      await authService.postActivity(widget.uid, investmentAct);
-
-      //Show a dialog
-      _showUserProgress('Creating your goal...');
-
       //  //Retrieve USER DOC
       //   DocumentSnapshot userDoc = await _firestore.collection("users").document(widget.uid).get();
       //   User user = User.fromJson(userDoc.data);
 
-      _createSavingsGoal(goalModel).whenComplete(() {
-        //Pop that dialog
+      _createSavingsGoal(goalModel).then((value) {
         //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
-
-        //Show a success message for two seconds
-        Timer(
-            Duration(seconds: 4),
-            () => _promptUserSuccess(
-                'Your savings goal has been created successfully'));
+        _promptUserSuccess(
+                'Your savings goal has been created successfully');
       }).catchError((error) {
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 3), () => Navigator.of(context).pop());
-
-        //Show a success message for two seconds
-        Timer(Duration(seconds: 4), () => _promptUser(error));
+        _promptUser(error);
       });
     }
   }
@@ -608,7 +589,7 @@ class _SavingsGoalState extends State<SavingsGoal> {
                   )
                 : Container(),
             Text(
-              classSavings == 'custom' && goalName != null
+              classSavings == 'Custom' && goalName != null
                   ? 'I have decided to create my own goal titled: ${goalName.toUpperCase()}'
                   : '',
               textAlign: TextAlign.left,

@@ -55,24 +55,49 @@ class Helper {
   }
 
   //Loan Lender Update Document
-  Future updateLoanDoc(String docId, num amount, num interest) async {
-    double amountToPay = (amount * (1 + (interest / 100)));
+  Future updateLoanDoc(
+      Map<String, dynamic> loanData, num amount, num interest) async {
+    String docId = loanData['docId'];
+    String token = loanData['tokenMe'];
+    String name = loanData['nameMe'];
+    String uid = loanData['uid'];
+    var interestAmt = amount * (interest / 100);
+    var sortikaInterest = interestAmt * 0.2;
+    var clientInterest = interestAmt * 0.8;
+    var totalAmount = amount + interestAmt;
     await _firestore.collection('loans').document(docId).updateData({
       'loanStatus': 'Revised',
       'loanAmountTaken': amount,
       'loanInterest': interest,
-      'totalAmountToPay': amountToPay
+      'totalAmountToPay': totalAmount,
+      'sortikaInterestComputed': sortikaInterest,
+      'clientInterestComputed': clientInterest,
+      'lfrepaymentAmount': amount,
+      'loanBalance': totalAmount,
+      'loanInvitees': null,
+      'loanInviteeName': null,
+      'tokenInvitee': null,
+      'loanLender': uid,
+      'loanLenderName': name,
+      'loanLenderToken': token
     });
   }
 
   //Loan Borrower Revise Loan
   Future reviseLoanDoc(String docId, num amount, num interest) async {
-    double amountToPay = (amount * (1 + (interest / 100)));
+    var interestAmt = amount * (interest / 100);
+    var sortikaInterest = interestAmt * 0.2;
+    var clientInterest = interestAmt * 0.8;
+    var totalAmount = amount + interestAmt;
     await _firestore.collection('loans').document(docId).updateData({
       'loanStatus': 'Revised2',
       'loanAmountTaken': amount,
       'loanInterest': interest,
-      'totalAmountToPay': amountToPay
+      'totalAmountToPay': totalAmount,
+      'sortikaInterestComputed': sortikaInterest,
+      'clientInterestComputed': clientInterest,
+      'lfrepaymentAmount': amount,
+      'loanBalance': totalAmount,
     });
   }
 
@@ -263,11 +288,9 @@ class Helper {
   }
 
   //Retrieve user investment summary
-  Future<Map<String, dynamic>> goalSummaryData(
+  Future<List<Map<String, dynamic>>> goalSummaryData(
       String category, String uid) async {
     try {
-      //final placeholder
-      Map<String, dynamic> allData = {};
       //All investments
       QuerySnapshot queryInvestments =
           await _firestore.collection('investments').getDocuments();
@@ -282,19 +305,40 @@ class Helper {
           .getDocuments();
       List<DocumentSnapshot> goalDocs = userGoalQuery.documents;
 
+      List<Map<String, dynamic>> superData = [];
       for (int i = 0; i < investmentDocs.length; i++) {
         DocumentSnapshot currentInvestDoc = investmentDocs[i];
         String title = currentInvestDoc.data['title'];
         List<dynamic> types = currentInvestDoc.data['types'];
-        // print(types);
-
+        // print('$title - $types');
         for (int index = 0; index < goalDocs.length; index++) {
           DocumentSnapshot currentGoalDoc = goalDocs[index];
-          GoalModel model = GoalModel.fromJson(currentGoalDoc.data);
-          if (model.goalClass == title) {}
+          GoalModel singleGoal = GoalModel.fromJson(currentGoalDoc.data);
+          num amtSaved = singleGoal.goalAmountSaved;
+          if (singleGoal.goalClass == title) {
+            String type = singleGoal.goalType;
+            Map<String, dynamic> one = {
+              'title': title 
+            };
+            List<Map<String, dynamic>> two = [];
+            for (int ind = 0; ind < types.length; ind++) {
+              if (type == types[ind]['name']) {
+                print('$title - $type - $amtSaved KES - ${types[ind]['booking']}');
+                Map<String, dynamic> three = {
+                  'name': type,
+                  'booking': types[ind]['booking'],
+                  'amountSaved': amtSaved
+                };
+                two.add(three);
+              }
+            }
+            one.putIfAbsent('data', () => two);
+            superData.add(one);
+          }
         }
       }
-      // return allData;
+      print(superData);
+      return superData;
     } catch (e) {
       print(
         'Error ${e.toString()}',
@@ -584,4 +628,29 @@ class Helper {
         .document(uid)
         .setData({'uid': uid, 'redeemableID': docID});
   }
+
+  //Redeem Goal
+  Future redeemMyGoal(
+      String uid, String docId, String token, var amount) async {
+    await _firestore
+        .collection('users')
+        .document(uid)
+        .collection('redeem')
+        .document()
+        .setData({
+      'uid': uid,
+      'goal': docId,
+      'amount': amount,
+      'token': token,
+      'time': Timestamp.now()
+    });
+
+    ActivityModel redeemAct = new ActivityModel(
+        activity: 'You have submitted a redeem request of $amount KES',
+        activityDate: Timestamp.now());
+
+    await authService.postActivity(uid, redeemAct);
+  }
+
+
 }

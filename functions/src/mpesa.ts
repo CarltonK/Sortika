@@ -400,20 +400,6 @@ export function mpesaLnmCallback(request: Request, response: Response) {
     }
 }
 
-export function mpesaB2cTimeout(request: Request, response: Response) {
-    try {
-        console.log('---Received Safaricom M-PESA Webhook For B2C Timeout---')
-        console.log(`---B2C Timeout---\n${request.body}`)
-        const message = {
-            "ResponseCode": "00000000",
-	        "ResponseDesc": "success"
-        }
-        response.json(message)
-    } catch (error) {
-        console.error('There was an error in mpesaB2cTimeout',error)
-    }
-}
-
 export function mpesaB2cResult(request: Request, response: Response) {
     try {
         console.log('---Received Safaricom M-PESA Webhook For B2C---')
@@ -529,3 +515,46 @@ export function mpesaB2cResult(request: Request, response: Response) {
         console.error('There was an error in mpesaB2cResult',error)
     }
 }
+
+export function mpesaB2cTimeout(request: Request, response: Response) {
+    try {
+        console.log('---Received Safaricom M-PESA Webhook For B2C Timeout---')
+        console.log(`---B2C Timeout---\n${request.body}`)
+        const message = {
+            "ResponseCode": "00000000",
+	        "ResponseDesc": "success"
+        }
+        response.json(message)
+    } catch (error) {
+        console.error('There was an error in mpesaB2cTimeout',error)
+    }
+}
+
+export function mpesaC2bValidation(request: Request, response: Response) {
+    try {
+        console.log('---Received Safaricom M-PESA Webhook For C2B Validation---')
+        console.log(`---C2B Validation---\n${request.body}`)
+        const message = {
+            "ResultCode": 0,
+            "ResultDesc": "Accepted"
+        }
+        response.json(message)
+    } catch (error) {
+        console.error('There was an error in mpesaC2bValidation',error)
+    }
+}
+
+export function mpesaC2bConfirmation(request: Request, response: Response) {
+    try {
+        console.log('---Received Safaricom M-PESA Webhook For C2B Confirmation---')
+        console.log(`---C2B Confirmation---\n${request.body}`)
+        const message = {
+            "ResultCode": 0,
+            "ResultDesc": "Accepted"
+        }
+        response.json(message)
+    } catch (error) {
+        console.error('There was an error in mpesaC2bConfirmation',error)
+    }
+}
+

@@ -518,6 +518,12 @@ class _GroupSavingsState extends State<GroupSavings> {
 
       //Save group to groups collection
       await _firestore.collection("groups").document().setData(model.toJson());
+
+      //Create an activity
+      ActivityModel groupSavingsAct = new ActivityModel(
+          activity: 'You created a group called $_name',
+          activityDate: Timestamp.fromDate(rightNow));
+      await authService.postActivity(widget.uid, groupSavingsAct);
     } catch (e) {
       print(e.toString());
       return e;
@@ -560,25 +566,9 @@ class _GroupSavingsState extends State<GroupSavings> {
             goalAmount: _amount,
             targetAmountPerp: _amountpp);
 
-        //Create an activity
-        ActivityModel groupSavingsAct = new ActivityModel(
-            activity: 'You created a group called $_name',
-            activityDate: Timestamp.fromDate(rightNow));
-        await authService.postActivity(widget.uid, groupSavingsAct);
-
-        //Show a dialog
-        _showUserProgress('Creating your group...');
-
-        _createGroupGoal(model).whenComplete(() {
-          //Pop that dialog
-          //Show a success message for two seconds
-          Timer(Duration(seconds: 2), () => Navigator.of(context).pop());
-
-          //Show a success message for two seconds
-          Timer(
-              Duration(seconds: 3),
-              () => _promptUserSuccess(
-                  'Your group has been created successfully'));
+        _createGroupGoal(model).then((value) {
+          _promptUserSuccess(
+                  'Your group has been created successfully');
         }).catchError((error) {
           _promptUser(error);
         });

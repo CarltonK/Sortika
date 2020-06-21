@@ -56,15 +56,6 @@ class _AchievePreferenceState extends State<AchievePreference> {
       ),
     ),
     DropdownMenuItem(
-      value: 'Lend Money',
-      child: Text(
-        'Lend Money',
-        style: GoogleFonts.muli(
-            textStyle:
-                TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
-      ),
-    ),
-    DropdownMenuItem(
       value: 'Save Money',
       child: Text(
         'Save Money',
@@ -156,9 +147,6 @@ class _AchievePreferenceState extends State<AchievePreference> {
                 if (value == 'Borrow Money') {
                   color = Colors.brown;
                 }
-                if (value == 'Lend Money') {
-                  color = Colors.red[600];
-                }
                 if (value == 'Save Money') {
                   color = Colors.green;
                 }
@@ -187,9 +175,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
             phone: phone,
             name: name,
           )
-        : goal == 'Lend Money'
-            ? LendPage(uid: uid, token: token)
-            : goal == 'Save Money'
+        : goal == 'Save Money'
                 ? SavingsGoal(uid: uid)
                 : goal == 'Invest Money'
                     ? AutoCreate(uid: uid)

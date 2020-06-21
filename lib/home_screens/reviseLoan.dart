@@ -9,6 +9,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/loanModel.dart';
 import 'package:wealth/utilities/styles.dart';
@@ -287,28 +289,8 @@ class _ReviseLoanState extends State<ReviseLoan> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 100,
-                  color: Colors.green,
-                ),
-                Text(
-                  'Your loan revision has been sent successfully',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(
+              message: 'Your loan revision has been sent successfully');
         });
   }
 
@@ -316,13 +298,7 @@ class _ReviseLoanState extends State<ReviseLoan> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return CupertinoAlertDialog(
-            content: Text(
-              '$message',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-            ),
-          );
+          return WarningMessage(message: message);
         });
   }
 
@@ -331,20 +307,13 @@ class _ReviseLoanState extends State<ReviseLoan> {
     if (form.validate()) {
       form.save();
 
-      //Change Loan Updated
-      _showUserProgress();
       //Create an activity
       ActivityModel updateAct = new ActivityModel(
           activity: 'You sent a loan revision',
           activityDate: Timestamp.fromDate(rightNow));
       await authService.postActivity(loanData['uid'], updateAct);
 
-      helper
-          .reviseLoanDoc(loanData['docId'], _amount, _interest)
-          .whenComplete(() {
-        //Pop that dialog
-        Navigator.of(context).pop();
-
+      helper.reviseLoanDoc(loanData['docId'], _amount, _interest).then((value) {
         //Show a success message
         _promptUserSuccess();
       }).catchError((error) {

@@ -15,6 +15,7 @@ import 'package:sms/sms.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/home_screens/autoCreateHolder.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
 import 'package:wealth/home_screens/deposit.dart';
@@ -460,6 +461,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     //Add uid to this map
     editData["uid"] = uid;
     editData["docId"] = doc.documentID;
+    editData['token'] = userData.token;
 
     //Date Parsing and Formatting
     Timestamp dateRetrieved = model.goalEndDate;
@@ -821,7 +823,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ),
           RichText(
               text: TextSpan(children: [
-            diff >= 2
+            diff >= 1
                 ? TextSpan(
                     text: 'Your current savings rate is  ',
                     style: GoogleFonts.muli(
@@ -831,7 +833,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         'We went ahead and setup for you a loan fund goal of  ',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(color: Colors.black))),
-            diff >= 2
+            diff >= 1
                 ? TextSpan(
                     text: '${userData.dailySavingsTarget.toStringAsFixed(2)}%',
                     style: GoogleFonts.muli(
@@ -940,130 +942,191 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               padding: EdgeInsets.only(
                 top: 30,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _appBar('Loans'),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Limits',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.black,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold)),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _appBar('Loans'),
+                    SizedBox(
+                      height: 10,
                     ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  _loanLimits(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Borrowing History',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.black,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Limits',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold)),
+                      ),
                     ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Expanded(
-                      child: StreamBuilder<QuerySnapshot>(
-                    stream: _firestore
-                        .collection("loans")
-                        .where("loanBorrower", isEqualTo: uid)
-                        .orderBy("loanEndDate")
-                        .snapshots(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasData) {
-                        if (snapshot.data.documents.length == 0) {
-                          return Center(
-                            child: Text(
-                              'You have sent any loan requests',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.muli(
-                                  textStyle: TextStyle(fontSize: 16)),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    _loanLimits(),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Borrowing History',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: _firestore
+                          .collection("loans")
+                          .where("loanBorrower", isEqualTo: uid)
+                          .orderBy("loanEndDate")
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.hasData) {
+                          if (snapshot.data.documents.length == 0) {
+                            return Center(
+                              child: Text(
+                                'You have not sent any loan requests',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(fontSize: 16)),
+                              ),
+                            );
+                          }
+                          return Container(
+                            height: MediaQuery.of(context).size.height * 0.3,
+                            child: PageView(
+                              scrollDirection: Axis.horizontal,
+                              controller:
+                                  PageController(viewportFraction: 0.85),
+                              children: snapshot.data.documents
+                                  .map((map) => _singleLoanTaken(map))
+                                  .toList(),
                             ),
                           );
                         }
-                        return PageView(
-                          scrollDirection: Axis.horizontal,
-                          controller: PageController(viewportFraction: 0.85),
-                          children: snapshot.data.documents
-                              .map((map) => _singleLoanTaken(map))
-                              .toList(),
+                        return SpinKitDoubleBounce(
+                          color: Colors.greenAccent[700],
+                          size: 100,
                         );
-                      }
-                      return SpinKitDoubleBounce(
-                        color: Colors.greenAccent[700],
-                        size: 100,
-                      );
-                    },
-                  )),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Lending History',
-                      style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.black,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold)),
+                      },
                     ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Expanded(
-                      child: StreamBuilder<QuerySnapshot>(
-                    stream: _firestore
-                        .collection("loans")
-                        .where("loanInvitees", arrayContains: uid)
-                        .snapshots(),
-                    builder: (BuildContext context,
-                        AsyncSnapshot<QuerySnapshot> snapshot) {
-                      if (snapshot.hasData) {
-                        if (snapshot.data.documents.length == 0) {
-                          return Center(
-                            child: Text(
-                              'You have not received any loan requests',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.muli(
-                                  textStyle: TextStyle(fontSize: 16)),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Invitation History',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: _firestore
+                          .collection("loans")
+                          .where("loanInvitees", arrayContains: uid)
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.hasData) {
+                          if (snapshot.data.documents.length == 0) {
+                            return Center(
+                              child: Text(
+                                'You have not received any loan invitation requests',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(fontSize: 16)),
+                              ),
+                            );
+                          }
+                          return Container(
+                            height: MediaQuery.of(context).size.height * 0.3,
+                            child: PageView(
+                              scrollDirection: Axis.horizontal,
+                              controller:
+                                  PageController(viewportFraction: 0.85),
+                              children: snapshot.data.documents.map((map) {
+                                return _singleLoanInvited(map);
+                              }).toList(),
                             ),
                           );
                         }
-                        return PageView(
-                          scrollDirection: Axis.horizontal,
-                          controller: PageController(viewportFraction: 0.85),
-                          children: snapshot.data.documents.map((map) {
-                            return _singleLoanGiven(map);
-                          }).toList(),
+                        return SpinKitDoubleBounce(
+                          color: Colors.greenAccent[700],
+                          size: 100,
                         );
-                      }
-                      return SpinKitDoubleBounce(
-                        color: Colors.greenAccent[700],
-                        size: 100,
-                      );
-                    },
-                  ))
-                ],
+                      },
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Lending History',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: _firestore
+                          .collection("loans")
+                          .where("loanLender", isEqualTo: uid)
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.hasData) {
+                          if (snapshot.data.documents.length == 0) {
+                            return Center(
+                              child: Text(
+                                'You have not received any loan requests',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(fontSize: 16)),
+                              ),
+                            );
+                          }
+                          return Container(
+                            height: MediaQuery.of(context).size.height * 0.3,
+                            child: PageView(
+                              scrollDirection: Axis.horizontal,
+                              controller:
+                                  PageController(viewportFraction: 0.85),
+                              children: snapshot.data.documents.map((map) {
+                                return _singleLoanGiven(map);
+                              }).toList(),
+                            ),
+                          );
+                        }
+                        return SpinKitDoubleBounce(
+                          color: Colors.greenAccent[700],
+                          size: 100,
+                        );
+                      },
+                    )
+                  ],
+                ),
               ),
             ),
           ),
@@ -1188,7 +1251,11 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               child: Text(
                 model.loanLender == uid
                     ? 'Self Loan'
-                    : '${model.loanInviteeName}',
+                    : model.loanLender != null
+                        ? "${model.loanLenderName}"
+                        : model.loanInvitees.length == 1
+                            ? '${model.loanInviteeName[0]}'
+                            : '${model.loanInvitees.length} lenders found',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(fontWeight: FontWeight.w600)),
               ),
@@ -1366,7 +1433,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             value:
                                 double.parse(model.loanAmountRepaid.toString()),
                             min: 0,
-                            max: model.totalAmountToPay,
+                            max:
+                                double.parse(model.totalAmountToPay.toString()),
                             onChanged: (value) {}),
                       ),
                       Text(
@@ -1451,28 +1519,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                EvilIcons.check,
-                color: Colors.greenAccent[700],
-                size: 100,
-              ),
-              Text(
-                  'We will send ${data['loanAmountTaken'].toString()} KES to ${data['borrowerName']}',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          fontWeight: FontWeight.normal, color: Colors.black)),
-                  textAlign: TextAlign.center)
-            ],
-          ),
-        );
+        return SuccessMessage(
+            message:
+                'We will send ${data['loanAmountTaken'].toString()} KES to ${data['borrowerName']}');
       },
     );
   }
@@ -1481,95 +1530,50 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                EvilIcons.check,
-                color: Colors.greenAccent[700],
-                size: 100,
-              ),
-              Text(
-                  'You have rejected a loan request from ${data['borrowerName']}',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(
-                          fontWeight: FontWeight.normal, color: Colors.black)),
-                  textAlign: TextAlign.center)
-            ],
-          ),
-        );
+        return ErrorMessage(
+            message:
+                'You have rejected a loan request from ${data['borrowerName']}');
       },
     );
   }
 
-  Future _showUserProgress(String action) {
+  Future _updateLoanDoc(String docId) async {
+    //Change loanStatus to true
+    await _firestore.collection("loans").document(docId).updateData({
+      'loanStatus': true,
+      'loanLender': uid,
+      'loanLenderName': userData.fullName.split(' ')[0],
+      'loanLenderToken': userData.token,
+      'loanInvitees': null,
+      'loanInviteeName': null,
+      'tokenInvitee': null
+    });
+  }
+
+  Future _updateRevision(String docId, String borrower) async {
+    //Change loanStatus to true
+    await _firestore.collection("loans").document(docId).updateData({
+      'loanStatus': true,
+      'loanInvitees': null,
+      'loanInviteeName': null,
+      'tokenInvitee': null
+    });
+
+    ActivityModel loanAcceptedAct = new ActivityModel(
+        activity: 'Loan request accepted', activityDate: Timestamp.now());
+    await authService.postActivity(borrower, loanAcceptedAct);
+  }
+
+  Future _promptUser(String message) {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  '$action...',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                SpinKitDualRing(
-                  color: Colors.greenAccent[700],
-                  size: 100,
-                )
-              ],
-            ),
-          );
+          return WarningMessage(message: message);
         });
   }
 
-  Future _updateLoanDoc(
-      String docId, String uid, String lenderName, String borrower) async {
-    //Change loanStatus to true
-    await _firestore.collection("loans").document(docId).updateData({
-      'loanStatus': true,
-      'loanLender': uid,
-      'loanLenderName': lenderName,
-      'loanLenderToken': userData.token
-    });
-
-    ActivityModel loanAcceptedAct = new ActivityModel(
-        activity: 'Loan request accepted', activityDate: Timestamp.now());
-    await authService.postActivity(borrower, loanAcceptedAct);
-  }
-
-  Future _updateRevision(
-      String docId, String uid, String lenderName, String borrower) async {
-    //Change loanStatus to true
-    await _firestore.collection("loans").document(docId).updateData({
-      'loanStatus': true,
-      'loanLender': uid,
-      'loanLenderName': lenderName,
-      'loanLenderToken': userData.token
-    });
-
-    ActivityModel loanAcceptedAct = new ActivityModel(
-        activity: 'Loan request accepted', activityDate: Timestamp.now());
-    await authService.postActivity(borrower, loanAcceptedAct);
-  }
-
   Future _lendingOptions(Map<String, dynamic> loanData) {
-    // print('Loan Data: ${loanData['docId']}');
+    print('Loan Data: $loanData');
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
@@ -1586,19 +1590,12 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     Navigator.of(context).pop();
                     loanData['loanStatus'] == 'Revised'
                         ? _updateRevision(
-                                loanData['docId'],
-                                loanData['loanInvitees'],
-                                loanData['loanInviteeName'],
-                                loanData['loanBorrower'])
+                                loanData['docId'], loanData['loanBorrower'])
                             .whenComplete(() => _loanAcceptance(loanData))
-                        : _updateLoanDoc(
-                                loanData['docId'],
-                                uid,
-                                userData.fullName.split(' ')[0],
-                                loanData['loanBorrower'])
-                            .whenComplete(() {
+                        : _updateLoanDoc(loanData['docId']).then((value) {
                             _loanAcceptance(loanData);
-                          });
+                          }).catchError(
+                            (error) => _promptUser(error.toString()));
                   },
                   child: Text(
                     'ACCEPT',
@@ -1634,7 +1631,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   await authService.postActivity(uid, rejectAct);
                   await helper
                       .rejectLoanDoc(loanData['docId'])
-                      .whenComplete(() => _loanRejection(loanData));
+                      .catchError((error) => _promptUser(error.toString()));
                   await funnel.logLoanRejection(
                       loanData['loanAmountTaken'],
                       loanData['loanTakenDate'].toDate().toString(),
@@ -1650,7 +1647,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         });
   }
 
-  Widget _singleLoanGiven(DocumentSnapshot doc) {
+  Widget _singleLoanInvited(DocumentSnapshot doc) {
     //Retrieve LoanModel from doc
     LoanModel model = LoanModel.fromJson(doc.data);
     print(model.loanStatus);
@@ -1659,6 +1656,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     Map<String, dynamic> loanData = doc.data;
     loanData["uid"] = uid;
     loanData["docId"] = doc.documentID;
+    loanData['tokenMe'] = userData.token;
+    loanData['nameMe'] = userData.fullName.split(' ')[0];
 
     //Date Parsing and Formatting
     Timestamp dateRetrieved = model.loanEndDate;
@@ -1760,7 +1759,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         TextSpan(
                             text: model.loanAmountRepaid == null
                                 ? 'Pending'
-                                : '${model.loanAmountTaken.toInt().toString()}',
+                                : '${model.loanAmountRepaid.toInt().toString()}',
                             style: GoogleFonts.muli(
                               textStyle: TextStyle(
                                   color: Colors.white,
@@ -1794,7 +1793,238 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 : double.parse(
                                     model.loanAmountRepaid.toString()),
                             min: 0,
-                            max: model.totalAmountToPay,
+                            max:
+                                double.parse(model.totalAmountToPay.toString()),
+                            onChanged: (value) {}),
+                      ),
+                      Text(
+                        '${model.totalAmountToPay.toInt().toString()}',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20)),
+                  color: Colors.transparent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Ends on',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                  Text(
+                    '$date',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20)),
+                  color: Colors.transparent),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    'Interest',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w600)),
+                  ),
+                  Text(
+                    model.loanInterest == null
+                        ? 'Pending'
+                        : '${model.loanInterest.toString()} %',
+                    style: GoogleFonts.muli(
+                        textStyle: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _singleLoanGiven(DocumentSnapshot doc) {
+    //Retrieve LoanModel from doc
+    LoanModel model = LoanModel.fromJson(doc.data);
+    print(model.loanStatus);
+
+    //Placeholder Map to be passed to pay loan page
+    Map<String, dynamic> loanData = doc.data;
+    loanData["uid"] = uid;
+    loanData["docId"] = doc.documentID;
+    loanData['tokenMe'] = userData.token;
+    loanData['nameMe'] = userData.fullName.split(' ')[0];
+
+    //Date Parsing and Formatting
+    Timestamp dateRetrieved = model.loanEndDate;
+    var formatter = new DateFormat('d MMM y');
+    String date = formatter.format(dateRetrieved.toDate());
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+            tileMode: TileMode.clamp,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.lightBlue[400], Colors.greenAccent[400]],
+            stops: [0, 1.0]),
+      ),
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.topLeft,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              decoration: BoxDecoration(
+                  borderRadius:
+                      BorderRadius.only(bottomRight: Radius.circular(20)),
+                  color: Colors.white),
+              child: Text(
+                model.loanBorrower == null
+                    ? 'Pending'
+                    : '${model.borrowerName}',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: model.loanStatus == true
+                ? Container()
+                : model.loanStatus == 'Revised'
+                    ? Padding(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        child: Text(
+                          'Revised',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white)),
+                        ),
+                      )
+                    : model.loanStatus == 'Completed'
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 8),
+                            child: Text(
+                              'Completed',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600)),
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              _lendingOptions(loanData);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 4),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                      bottomLeft: Radius.circular(20)),
+                                  color: Colors.transparent),
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+          ),
+          Align(
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                model.loanStatus != 'Completed'
+                    ? RichText(
+                        text: TextSpan(children: [
+                        TextSpan(
+                            text: model.loanStatus == true
+                                ? 'They have repaid '
+                                : 'They have requested ',
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(color: Colors.white))),
+                        TextSpan(
+                            text: model.loanAmountRepaid == null
+                                ? 'Pending'
+                                : '${model.loanAmountRepaid.toInt().toString()}',
+                            style: GoogleFonts.muli(
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
+                            )),
+                      ]))
+                    : Text(
+                        'This loan has been paid in full',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: <Widget>[
+                      Text(
+                        '0',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      Expanded(
+                        child: Slider(
+                            value: model.loanAmountRepaid == null
+                                ? 0
+                                : double.parse(
+                                    model.loanAmountRepaid.toString()),
+                            min: 0,
+                            max:
+                                double.parse(model.totalAmountToPay.toString()),
                             onChanged: (value) {}),
                       ),
                       Text(
@@ -1891,7 +2121,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     String day = numberTime.toString().substring(6, 8);
     String hour = numberTime.toString().substring(8, 10);
     String minutes = numberTime.toString().substring(10, 12);
-    String seconds = numberTime.toString().substring(12);
 
     String date =
         year + "-" + month + "-" + day + " at " + hour + ":" + minutes;
@@ -1956,7 +2185,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     ],
                   ),
                   Text(
-                    '$amount KES',
+                    '${double.parse(amount.toString()).toStringAsFixed(1)} KES',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.black, fontWeight: FontWeight.w600)),
@@ -2024,7 +2253,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ));
   }
 
-  Widget _walletWithdrawTF(int amount) {
+  Widget _walletWithdrawTF(var amount) {
     return Form(
       key: _formWithdrawWallet,
       child: Column(
@@ -2050,6 +2279,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 }
                 if (double.parse(value) < 10) {
                   return 'You cannot withdraw less than 10 KES';
+                }
+                if (amount < double.parse(value) + 79) {
+                  return 'Insufficient funds\nAmount >= 1000 ? Transaction = 79 KES\nAmount < 1000 ? Transaction = 40';
                 }
                 return null;
               },
@@ -2190,7 +2422,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                           height: 5,
                                         ),
                                         Text(
-                                          '$amount KES',
+                                          '${double.parse(amount.toString()).toStringAsFixed(2)} KES',
                                           style: GoogleFonts.muli(
                                               textStyle: TextStyle(
                                                   fontSize: 20,
@@ -2226,6 +2458,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     walletHeader('Deposit', Colors.green),
                     walletHeader('Payment', Colors.red),
                     walletHeader('Redemption', Colors.green),
+                    walletHeader('Loan', Colors.red),
                   ],
                 ),
               ),
@@ -2255,7 +2488,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               padding: EdgeInsets.only(
                 top: 30,
               ),
-              height: MediaQuery.of(context).size.height,
+              height: double.infinity,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

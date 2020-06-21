@@ -18,8 +18,7 @@ class PayLoan extends StatefulWidget {
 
 class _PayLoanState extends State<PayLoan> {
   Map<String, dynamic> loanData;
-  double totalAmount;
-  double amtToPay;
+  num totalAmount;
   final _formKey = GlobalKey<FormState>();
 
   Helper helper = new Helper();
@@ -49,7 +48,7 @@ class _PayLoanState extends State<PayLoan> {
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(color: Colors.white))),
             TextSpan(
-                text: '${amtToPay.ceilToDouble()} KES',
+                text: '${totalAmount.ceilToDouble()} KES',
                 style: GoogleFonts.muli(
                     textStyle: TextStyle(
                         color: Colors.white,
@@ -97,6 +96,9 @@ class _PayLoanState extends State<PayLoan> {
               //Check if phone is available
               if (value.isEmpty) {
                 return 'Amount is required';
+              }
+              if (double.parse(value) > totalAmount.ceil()) {
+                return 'The loan balance is ${totalAmount.ceil()} KES';
               }
               if (double.parse(value) > amount) {
                 return 'You have insuffient funds, please deposit your wallet';
@@ -157,10 +159,9 @@ class _PayLoanState extends State<PayLoan> {
   Widget build(BuildContext context) {
     //Retrieve Loan Data
     loanData = ModalRoute.of(context).settings.arguments;
-    totalAmount = loanData["totalAmountToPay"];
-    amtToPay = totalAmount - loanData['loanAmountRepaid'];
+    totalAmount = loanData["loanBalance"];
     walletDoc = helper.getWalletBalance(loanData['loanBorrower']);
-    print('Retrieved Loan Data: $loanData');
+    // print('Retrieved Loan Data: $loanData');
 
     return Scaffold(
         appBar: AppBar(

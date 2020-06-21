@@ -7,8 +7,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
+import 'package:wealth/global/progressDialog.dart';
+import 'package:wealth/global/successMessage.dart';
+import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/activityModel.dart';
+import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/utilities/styles.dart';
+import 'package:wealth/widgets/redeemGoal.dart';
 
 class EditGoal extends StatefulWidget {
   @override
@@ -24,6 +29,9 @@ class _EditGoalState extends State<EditGoal> {
 
   //Retrieved data identifier
   Map<String, dynamic> data;
+  GoalModel goalModel;
+  String goalDocId;
+  String token;
 
   DateTime _date;
   String _dateDay = '04';
@@ -470,31 +478,7 @@ class _EditGoalState extends State<EditGoal> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Icon(
-                  Icons.done,
-                  size: 50,
-                  color: Colors.green,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Your goal has been updated',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
+          return SuccessMessage(message: 'Your goal has been updated');
         });
   }
 
@@ -502,30 +486,7 @@ class _EditGoalState extends State<EditGoal> {
     return showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  'Updating your goal...',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black, fontSize: 16)),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                SpinKitDualRing(
-                  color: Colors.greenAccent[700],
-                  size: 100,
-                )
-              ],
-            ),
-          );
+          return CustomProgressDialog(message: 'Updating your goal...');
         });
   }
 
@@ -686,11 +647,40 @@ class _EditGoalState extends State<EditGoal> {
     );
   }
 
+  Future redeemPressed() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: RedeemGoal(
+            docId: goalDocId,
+            goalModel: goalModel,
+            token: token,
+          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        );
+      },
+    );
+  }
+
+  Future cannotRedeemPressed(String message) {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return WarningMessage(message: message);
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     //Retrieve the data
     data = ModalRoute.of(context).settings.arguments;
-    //print('EDIT GOAL PAGE DATA: $data');
+    goalDocId = data['docId'];
+    token = data['token'];
+    goalModel = GoalModel.fromJson(data);
+    // print('EDIT GOAL PAGE DATA: $data');
 
     return Scaffold(
       appBar: AppBar(
@@ -710,108 +700,75 @@ class _EditGoalState extends State<EditGoal> {
         ],
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _goalSummary(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    // _tipsWidget(),
-                    // SizedBox(
-                    //   height: 30,
-                    // ),
-                    _typeWidget(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _specificGoalWidget(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _amountWidget(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _maturityDateWidget(),
-                    _updateBtn()
-                  ],
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _goalSummary(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _typeWidget(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _specificGoalWidget(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _amountWidget(),
+                      SizedBox(
+                        height: 30,
+                      ),
+                      _maturityDateWidget(),
+                      _updateBtn()
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
           value: SystemUiOverlayStyle.light),
-      floatingActionButton: MaterialButton(
-        color: Colors.greenAccent[700],
-        elevation: 16,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Container(
-          padding: EdgeInsets.all(8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Redeem',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.white))),
-              SizedBox(
-                width: 5,
-              ),
-              Icon(Icons.redeem, color: Colors.white)
-            ],
-          ),
-        ),
-        onPressed: () {
-          showCupertinoModalPopup(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                title: Text('How much do you want to redeem?',
+      floatingActionButton: goalModel.goalCategory == 'Group' 
+      ? Container()
+      : goalModel.goalAmount == goalModel.goalAmountSaved
+      ? MaterialButton(
+          color: Colors.greenAccent[700],
+          elevation: 16,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            padding: EdgeInsets.all(8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Redeem',
                     style: GoogleFonts.muli(
-                        textStyle:
-                            TextStyle(color: Colors.black, fontSize: 12))),
-                content: Form(
-                    child: TextFormField(
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.black)),
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: '200',
-                    suffixText: ' KES',
-                    suffixStyle: GoogleFonts.muli(
-                        textStyle: TextStyle(color: Colors.black)),
-                    hintStyle: GoogleFonts.muli(
-                        textStyle: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w300,
-                            fontSize: 12)),
-                    border: UnderlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black)),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black)),
-                  ),
-                )),
-                actions: [
-                  FlatButton(
-                      onPressed: () {},
-                      child: Text('REDEEM',
-                          style: GoogleFonts.muli(
-                              textStyle: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold))))
-                ],
-              );
-            },
-          );
-        },
-      ),
+                        textStyle: TextStyle(color: Colors.white))),
+                SizedBox(
+                  width: 5,
+                ),
+                Icon(Icons.redeem, color: Colors.white)
+              ],
+            ),
+          ),
+          onPressed: goalModel.goalCategory == 'Loan Fund'
+              ? goalModel.goalAmountSaved > 200
+                  ? redeemPressed
+                  : () => cannotRedeemPressed(
+                      'We hold a non-redeemable fee of 200 KES for all Loan Fund Goals. You have saved ${goalModel.goalAmountSaved} KES')
+              : goalModel.goalAmountSaved > 0
+                  ? redeemPressed
+                  : () => cannotRedeemPressed(
+                      'You have not saved enough to be able to redeem'))
+        : Container(),
     );
   }
 }

@@ -50,3 +50,4 @@ app.*.map.json
 #Node
 /functions/node_modules/
 /functions/lib/
+/functions/src/

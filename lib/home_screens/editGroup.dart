@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/api/helper.dart';
+import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/groupModel.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share/share.dart';
 import 'package:wealth/utilities/styles.dart';
+import 'package:wealth/widgets/redeemGoal.dart';
 
 class EditGroup extends StatefulWidget {
   @override
@@ -27,6 +29,12 @@ class _EditGroupState extends State<EditGroup> {
   Future<DocumentSnapshot> singleUserDoc;
   List<Map> users = [];
   Helper _helper = new Helper();
+
+  static String userID;
+  static String token;
+
+  static GroupModel groupModel;
+  static GoalModel goalModel;
 
   Future _leaveGroup() async {
     if (data["groupAdmin"] == data["uid"]) {
@@ -566,60 +574,104 @@ class _EditGroupState extends State<EditGroup> {
     }
   }
 
+  Future redeemPressed() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: RedeemGoal(
+            docId: userID,
+            goalModel: groupModel,
+            token: token,
+          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     //Retrieve data
     data = ModalRoute.of(context).settings.arguments;
+    groupModel = GroupModel.fromJson(data);
+    userID = data['uid'];
     print('Single Group Data: $data');
 
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: commonColor,
-          title: Text('${data["goalName"]}',
-              style: GoogleFonts.muli(textStyle: TextStyle())),
-          actions: [
-            data["groupAdmin"] == data["uid"]
-                ? IconButton(
-                    icon: Icon(Icons.share),
-                    color: Colors.red,
-                    onPressed: _sendInvite,
-                  )
-                : Container(),
-            IconButton(
-              icon: Icon(Icons.delete),
-              color: Colors.red,
-              onPressed: _deleteGroup,
-            ),
-          ],
-        ),
-        body: AnnotatedRegion<SystemUiOverlayStyle>(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _groupSummary(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _objectiveWidget(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _endDateWidget(),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    data['groupAdmin'] == data['uid']
-                        ? _groupMembers()
-                        : Container(),
-                    //_updateBtn()
-                  ],
+      appBar: AppBar(
+        backgroundColor: commonColor,
+        title: Text('${data["goalName"]}',style: GoogleFonts.muli(textStyle: TextStyle())),
+        actions: [
+          data["groupAdmin"] == data["uid"]
+              ? IconButton(
+                icon: Icon(Icons.share),
+                color: Colors.red,
+                onPressed: _sendInvite,
+              )
+              : Container(),
+          IconButton(
+            icon: Icon(Icons.delete),
+            color: Colors.red,
+            onPressed: _deleteGroup,
+          ),
+        ],
+      ),
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _groupSummary(),
+                SizedBox(
+                  height: 30,
                 ),
-              ),
+                _objectiveWidget(),
+                SizedBox(
+                  height: 30,
+                ),
+                _endDateWidget(),
+                SizedBox(
+                  height: 30,
+                ),
+                data['groupAdmin'] == data['uid']
+                    ? _groupMembers()
+                    : Container(),
+                //_updateBtn()
+              ],
             ),
-            value: SystemUiOverlayStyle.light));
+          ),
+        ),
+          value: SystemUiOverlayStyle.light
+      ),
+      floatingActionButton: groupModel.groupAdmin == data['uid']
+      ? MaterialButton(
+        color: Colors.greenAccent[700],
+        elevation: 16,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          padding: EdgeInsets.all(8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Redeem',
+                  style: GoogleFonts.muli(
+                      textStyle: TextStyle(color: Colors.white))),
+              SizedBox(
+                width: 5,
+              ),
+              Icon(Icons.redeem, color: Colors.white)
+            ],
+          ),
+        ),
+        onPressed: null
+      )
+      : Container(),
+      );
   }
 }
