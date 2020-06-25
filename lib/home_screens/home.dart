@@ -18,6 +18,7 @@ import 'package:wealth/api/helper.dart';
 import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/home_screens/autoCreateHolder.dart';
 import 'package:wealth/home_screens/budgetCalc.dart';
+import 'package:wealth/home_screens/create_goal.dart';
 import 'package:wealth/home_screens/deposit.dart';
 import 'package:wealth/home_screens/financialRatios.dart';
 import 'package:wealth/home_screens/help.dart';
@@ -2508,7 +2509,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       });
                     },
                     children: [
-                      MyGroups(uid: uid),
+                      MyGroups(user: userData),
                     ],
                   )),
                 ],
@@ -3391,8 +3392,14 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     CupertinoActionSheetAction(
                         onPressed: () {
                           //Pop the dialog first then open page
-                          Navigator.of(context)
-                              .popAndPushNamed('/create-goal', arguments: uid);
+                          Navigator.of(context).pop();
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CreateGoal(
+                                  uid: uid,
+                                ),
+                              ));
                         },
                         child: Text(
                           'Create a goal',

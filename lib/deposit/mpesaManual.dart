@@ -2,29 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MpesaManual extends StatelessWidget {
-  Widget _btnMpesaManual() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 20),
-      width: double.infinity,
-      child: RaisedButton(
-        elevation: 3,
-        onPressed: () {},
-        padding: EdgeInsets.all(15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        color: Colors.white,
-        child: Text(
-          'TAKE ME THERE',
-          style: GoogleFonts.muli(
-              textStyle: TextStyle(
-            letterSpacing: 1.5,
-            color: Colors.black,
-            fontSize: 20,
-          )),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -47,7 +24,8 @@ class MpesaManual extends StatelessWidget {
           SizedBox(
             height: 15,
           ),
-          Text('Enter your PHONE NUMBER as account number',
+          Text(
+              'Use the following as account numbers\n\n\t\t1) Wallet - SRTKWALLET\n\t\t2) General - SRTKGENERAL',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.white),
               )),
@@ -65,7 +43,6 @@ class MpesaManual extends StatelessWidget {
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.white),
               )),
-          _btnMpesaManual()
         ],
       ),
     );

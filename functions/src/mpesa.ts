@@ -21,8 +21,8 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
             let transactionPhoneFormatted: string = transactionPhone.toString().slice(3)
             transactionPhoneFormatted = "0" + transactionPhoneFormatted
 
-            const sortikaAmount: number = transactionAmount * 0.02
-            transactionAmount = transactionAmount * 0.98
+            const sortikaAmount: number = transactionAmount * 0.05
+            transactionAmount = transactionAmount * 0.95
 
             let uid: string
 
@@ -126,7 +126,7 @@ export function mpesaLnmCallback(request: Request, response: Response) {
             let transactionPhoneFormatted: string = transactionPhone.toString().slice(3)
             transactionPhoneFormatted = "0" + transactionPhoneFormatted
 
-            const sortikaAmount: number = transactionAmount * 0.02
+            const sortikaAmount: number = transactionAmount * 0.07
 
             // console.log(transactionPhoneFormatted)
             let uid: string
@@ -195,7 +195,7 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                             })
                             console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
 
-                            transactionAmount = transactionAmount * 0.98
+                            transactionAmount = transactionAmount * 0.93
 
                             //Update transaction document, id - transaction code
                             console.log(`transaction ${transactionCode} document create begin`)
@@ -256,7 +256,7 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                             })
                             console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
 
-                            transactionAmount = transactionAmount * 0.98
+                            transactionAmount = transactionAmount * 0.93
                             
                             if (goal === 'Loan Fund') {
                                 const userLoanFundQuery: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
@@ -544,10 +544,161 @@ export function mpesaC2bValidation(request: Request, response: Response) {
     }
 }
 
+
+interface MpesaResponse {
+    TransactionType:   string;
+    TransID:           string;
+    TransTime:         string;
+    TransAmount:       string;
+    BusinessShortCode: string;
+    BillRefNumber:     string;
+    InvoiceNumber:     string;
+    OrgAccountBalance: string;
+    ThirdPartyTransID: string;
+    MSISDN:            string;
+    FirstName:         string;
+    MiddleName:        string;
+    LastName:          string;
+}
+
 export function mpesaC2bConfirmation(request: Request, response: Response) {
     try {
         console.log('---Received Safaricom M-PESA Webhook For C2B Confirmation---')
-        console.log(`---C2B Confirmation---\n${request.body}`)
+        const mpesaResp: MpesaResponse = request.body
+
+        let transactionPhoneFormatted: string = mpesaResp.MSISDN.slice(3)
+        transactionPhoneFormatted = "0" + transactionPhoneFormatted
+
+        const transactionAmtString: string = mpesaResp.TransAmount.split('.')[0]
+        let transactionAmount: number = Number(transactionAmtString)
+
+        const sortikaAmount: number = transactionAmount * 0.02
+
+        const transTime: number = Number(mpesaResp.TransTime)
+
+
+        console.log('Phone',transactionPhoneFormatted)
+        console.log('Ref',mpesaResp.BillRefNumber)
+
+        const db = superadmin.firestore()
+
+        db.collection('users').where('phone','==',transactionPhoneFormatted).limit(1).get()
+            .then(async (userValue: FirebaseFirestore.QuerySnapshot) => {
+                const userDocs: DocumentSnapshot[] = userValue.docs
+                if (userDocs.length === 1) {
+                    const userDocument: DocumentSnapshot = userDocs[0]
+                    const uid: string = userDocument.get('uid')
+                    const token: string = userDocument.get('token')
+                    const tokenList: string[] = [token]
+
+                    if (mpesaResp.BillRefNumber.toLowerCase() === 'srtkwallet' || mpesaResp.BillRefNumber.toLowerCase().includes('wallet')) {
+                        //Update transaction document, id - transaction code
+                        await db.collection('transactions').doc(mpesaResp.TransID).set({
+                            'transactionAmount': transactionAmount,
+                            'transactionCode': mpesaResp.TransID,
+                            'transactionTime': transTime,
+                            'transactionAction': 'Deposit',
+                            'transactionCategory': 'Wallet',
+                            'transactionUid': uid
+                        })
+
+                        //Transaction operation to update wallet
+                        const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('wallet').doc(uid)
+                        db.runTransaction(async transaction => {
+                            return transaction.get(docRef)
+                                .then(doc => {
+                                    console.log(`Wallet update begin for user: ${uid}`)
+                                    transaction.update(docRef, {amount: superadmin.firestore.FieldValue.increment(transactionAmount)})
+                                    console.log(`Wallet update end for user: ${uid}`)
+                                });
+                        })
+                        .then(async result => {
+                            //Create a notification for the user
+                            console.log('notification update begin')
+                            await notification.singleNotificationSend(tokenList,`We have received your deposit of ${transactionAmount} KES`,'Good News')
+                            await db.collection('users').doc(uid).collection('notifications').doc().set({
+                                'message': `We have received your deposit of ${transactionAmount} KES`,
+                                'time': superadmin.firestore.Timestamp.now()
+                            })
+                            console.log('notification update end')
+
+                            console.log('Overall wallet update process ended')
+                        })
+                        .catch(err => {
+                            console.log('Wallet update failure:', err)
+                        })
+                    }
+                    if (mpesaResp.BillRefNumber.toLowerCase() === 'srtkgeneral' || mpesaResp.BillRefNumber.toLowerCase().includes('general')) {
+
+                        await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').update({
+                            amount: superadmin.firestore.FieldValue.increment(sortikaAmount)
+                        })
+
+                        await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc().set({
+                            type: 'Deposit',
+                            amount: sortikaAmount,
+                            uid: uid
+                        })
+                        console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
+
+                        transactionAmount = transactionAmount * 0.98
+
+                        //Update transaction document, id - transaction code
+                        await db.collection('transactions').doc(mpesaResp.TransID).set({
+                            'transactionAmount': transactionAmount,
+                            'transactionCode': mpesaResp.TransID,
+                            'transactionTime': transTime,
+                            'transactionAction': 'Deposit',
+                            'transactionCategory': 'General',
+                            'transactionUid': uid
+                        })
+
+
+                        let category: string
+                        let goalName: any 
+                        const userGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals').get()
+                        const userGoalsDocs: Array<DocumentSnapshot> = userGoalsQueries.docs
+                        userGoalsDocs.forEach((element) => {
+                            category = element.get('goalCategory')
+                            goalName = element.get('goalName')
+                            if (goalName === null) {
+                                goalName = category
+                            }
+                            
+                            const docRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(element.id)
+                            db.runTransaction(async transaction => {
+                                return transaction.get(docRef)
+                                    .then(doc => {
+                                        const newIncrement: number = (transactionAmount * doc.get('goalAllocation')) / 100
+                                        transaction.update(docRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(newIncrement)})
+                                    })
+                            })
+                            .then(async result => {
+                                //Create a notification for the user
+                                console.log('Overal  General update success!')
+                            })
+                            .catch(err => {
+                                console.log('General update failure:', err)
+                            })
+                        })
+                        await notification.singleNotificationSend(tokenList,`You have distributed ${transactionAmount} KES based on the goal allocations of each goal`,'Good News')
+                        await db.collection('users').doc(uid).collection('notifications').doc().set({
+                            'message': `You have distributed ${transactionAmount} KES based on the goal allocations of each goal`,
+                            'time': superadmin.firestore.Timestamp.now()
+                        })
+
+                    }
+                    if (mpesaResp.BillRefNumber.toLowerCase().includes('wallet') && mpesaResp.BillRefNumber.toLowerCase().includes('general')) {
+                        await notification.singleNotificationSend(tokenList,'Please enter one of the account numbers provided','Error')
+                        await db.collection('users').doc(uid).collection('notifications').doc().set({
+                            'message': 'Please enter one of the account numbers provided',
+                            'time': superadmin.firestore.Timestamp.now()
+                        })
+                    }
+                }
+            })
+            .catch(userError => console.error('There was an error fetching the user',userError)) 
+
         const message = {
             "ResultCode": 0,
             "ResultDesc": "Accepted"

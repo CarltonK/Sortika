@@ -14,7 +14,8 @@ class RedeemGoal extends StatefulWidget {
   final String docId;
   final String token;
 
-  RedeemGoal({@required this.goalModel, @required this.docId, @required this.token});
+  RedeemGoal(
+      {@required this.goalModel, @required this.docId, @required this.token});
 
   @override
   _RedeemGoalState createState() => _RedeemGoalState();
@@ -89,16 +90,17 @@ class _RedeemGoalState extends State<RedeemGoal> {
 
   Future _promptSuccess() {
     return showCupertinoModalPopup(
-          context: context, 
-          builder: (context) => SuccessMessage(message: 'We have received your request to redeem $amount KES'),
-        );
+      context: context,
+      builder: (context) => SuccessMessage(
+          message: 'We have received your request to redeem $amount KES'),
+    );
   }
 
   Future _promptError(String error) {
     return showCupertinoModalPopup(
-          context: context, 
-          builder: (context) => ErrorMessage(message: error),
-        );
+      context: context,
+      builder: (context) => ErrorMessage(message: error),
+    );
   }
 
   void redeemBtnPressed() async {
@@ -109,9 +111,11 @@ class _RedeemGoalState extends State<RedeemGoal> {
       SystemChannels.textInput.invokeMethod('TextInput.hide');
       //Dismiss the dialog
       Navigator.of(context).pop();
-      helper.redeemMyGoal(widget.goalModel.uid, widget.docId, widget.token, amount)
-        .whenComplete(() => print('success'))
-        .catchError((error) => _promptError(error.toString()));
+      helper
+          .redeemMyGoal(
+              widget.goalModel.uid, widget.docId, widget.token, amount)
+          .whenComplete(() => print('success'))
+          .catchError((error) => _promptError(error.toString()));
       _promptSuccess();
     }
   }
@@ -121,16 +125,16 @@ class _RedeemGoalState extends State<RedeemGoal> {
       onPressed: redeemBtnPressed,
       color: Colors.greenAccent[700],
       padding: EdgeInsets.all(10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12)
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Text('Redeem'),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    redeemableAmount = widget.goalModel.goalCategory == 'Loan Fund' ? widget.goalModel.goalAmountSaved - 200 : widget.goalModel.goalAmountSaved;
+    redeemableAmount = widget.goalModel.goalCategory == 'Loan Fund'
+        ? widget.goalModel.goalAmountSaved - 200
+        : widget.goalModel.goalAmountSaved;
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -138,10 +142,7 @@ class _RedeemGoalState extends State<RedeemGoal> {
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            _amountWidget(),
-            _redeemButton()
-          ],
+          children: <Widget>[_amountWidget(), _redeemButton()],
         ),
       ),
     );

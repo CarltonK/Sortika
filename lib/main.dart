@@ -63,7 +63,6 @@ class MyApp extends StatelessWidget {
           //Home Screens
           '/home': (context) => Home(),
           '/profile': (context) => ProfilePage(),
-          '/create-goal': (context) => CreateGoal(),
           '/settings': (context) => Settings(),
           '/edit-goal': (context) => EditGoal(),
           '/borrow': (context) => BorrowAll(),

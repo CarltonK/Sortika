@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share/share.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/global/errorMessage.dart';
 import 'package:wealth/global/successMessage.dart';
@@ -25,7 +26,7 @@ class _SortikaLotteryState extends State<SortikaLottery> {
   num amount;
   String _selectedClub;
   Future getLottery;
-  Future<LotteryModel> getSingleLottery;
+  Stream getSingleLottery;
   DocumentSnapshot myDoc;
 
   void _acceptBtnPressed(DocumentSnapshot doc) async {
@@ -220,143 +221,154 @@ class _SortikaLotteryState extends State<SortikaLottery> {
                   SizedBox(
                     height: 20,
                   ),
-                  FutureBuilder<LotteryModel>(
-                    future: getSingleLottery,
+                  StreamBuilder(
+                    stream: getSingleLottery,
                     builder: (context, snapshot) {
-                      switch (snapshot.connectionState) {
-                        case ConnectionState.none:
+                      if (snapshot.hasData) {
+                        // print(snapshot.data.data);
+                        LotteryModel lot =
+                            LotteryModel.fromJson(snapshot.data.data);
+                        DateTime now = DateTime.now();
+                        DateTime end = lot.end.toDate();
+
+                        String minRemaining =
+                            end.difference(now).inMinutes.toString() + ' MINS';
+                        if (end.difference(now).inMinutes < 1) {
+                          minRemaining =
+                              end.difference(now).inSeconds.toString() +
+                                  ' SECS';
+                        }
+
+                        if (end.compareTo(now).isNegative) {
                           return UnsuccessfullError(
-                            message: 'Please select a lottery club',
+                            message: 'This lottery is not active',
                           );
-                        case ConnectionState.done:
-                          DateTime now = DateTime.now();
-                          DateTime end = snapshot.data.end.toDate();
+                        }
 
-                          String minRemaining =
-                              end.difference(now).inMinutes.toString() +
-                                  ' MINS';
-                          if (end.difference(now).inMinutes < 1) {
-                            minRemaining =
-                                end.difference(now).inSeconds.toString() +
-                                    ' SECS';
-                          }
-
-                          if (end.compareTo(now).isNegative) {
-                            return UnsuccessfullError(
-                              message: 'This lottery is not active',
-                            );
-                          }
-                          return Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Text(
-                                      'How many people are playing ?',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                        color: Colors.black,
-                                      )),
-                                    ),
-                                    Text(
-                                      snapshot.data.participants.toString(),
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold)),
-                                    )
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Text(
-                                      'Possible Winnings',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                        color: Colors.black,
-                                      )),
-                                    ),
-                                    Text(
-                                      '${snapshot.data.participants * snapshot.data.subscriptionFee} KES',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold)),
-                                    )
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: <Widget>[
-                                    Text(
-                                      'Time remaining: ',
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                        color: Colors.black,
-                                      )),
-                                    ),
-                                    Text(
-                                      minRemaining,
-                                      style: GoogleFonts.muli(
-                                          textStyle: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold)),
-                                    )
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 20,
-                                ),
-                                snapshot.data.winner == null
-                                    ? Center(
-                                        child: Text(
-                                          'The winning ticket will be announced when the lottery ends',
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.muli(
-                                              textStyle: TextStyle(
+                        return Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Text(
+                                    'How many people are playing ?',
+                                    style: GoogleFonts.muli(
+                                        textStyle: TextStyle(
+                                      color: Colors.black,
+                                    )),
+                                  ),
+                                  Text(
+                                    lot.participants.toString(),
+                                    style: GoogleFonts.muli(
+                                        textStyle: TextStyle(
                                             color: Colors.black,
-                                          )),
-                                        ),
-                                      )
-                                    : Container(),
-                                Center(
-                                  child: RaisedButton(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Text(
+                                    'Possible Winnings',
+                                    style: GoogleFonts.muli(
+                                        textStyle: TextStyle(
+                                      color: Colors.black,
+                                    )),
+                                  ),
+                                  Text(
+                                    '${lot.participants * lot.subscriptionFee} KES',
+                                    style: GoogleFonts.muli(
+                                        textStyle: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Text(
+                                    'Time remaining: ',
+                                    style: GoogleFonts.muli(
+                                        textStyle: TextStyle(
+                                      color: Colors.black,
+                                    )),
+                                  ),
+                                  Text(
+                                    minRemaining,
+                                    style: GoogleFonts.muli(
+                                        textStyle: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold)),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              lot.winner == null
+                                  ? Center(
+                                      child: Text(
+                                        'The winning ticket will be announced when the lottery ends',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.muli(
+                                            textStyle: TextStyle(
+                                          color: Colors.black,
+                                        )),
+                                      ),
+                                    )
+                                  : Container(),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: <Widget>[
+                                  RaisedButton(
+                                    elevation: 5,
+                                    padding: EdgeInsets.all(8),
+                                    child: Text('SHARE'),
+                                    onPressed: () {
+                                      try {
+                                        Share.share(
+                                            'Join the ${lot.name} lottery on Sortika');
+                                      } catch (error) {
+                                        print('SHARE ERROR: $error');
+                                      }
+                                    },
+                                  ),
+                                  RaisedButton(
                                     elevation: 5,
                                     padding: EdgeInsets.all(8),
                                     child: Text('JOIN'),
                                     onPressed: () => _depositMoney(myDoc),
                                   ),
-                                )
-                              ],
-                            ),
-                          );
-                        case ConnectionState.active:
-                        case ConnectionState.waiting:
-                          return SpinKitDoubleBounce(
-                            color: Colors.greenAccent[700],
-                            size: 150,
-                          );
-                        default:
-                          return SpinKitDoubleBounce(
-                            color: Colors.greenAccent[700],
-                            size: 150,
-                          );
+                                ],
+                              )
+                            ],
+                          ),
+                        );
                       }
+                      return SpinKitDoubleBounce(
+                        color: Colors.greenAccent[700],
+                        size: 150,
+                      );
                     },
                   )
                 ],

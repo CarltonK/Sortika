@@ -134,5 +134,12 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.resource.data.lenderUid))
         && exists(/databases/$(database)/documents/users/$(request.resource.data.borrowerUid));
     }
+
+
+    // !!!--- TESTING ---!!!
+    // Read-only TEST
+    match /readonly/{docId} {
+      allow read: if true;
+    }
   }
 }

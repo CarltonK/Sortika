@@ -8,6 +8,8 @@ import 'package:wealth/widgets/investment_goal.dart';
 import 'package:wealth/widgets/savings_goal.dart';
 
 class CreateGoal extends StatefulWidget {
+  final String uid;
+  CreateGoal({@required this.uid});
   @override
   _CreateGoalState createState() => _CreateGoalState();
 }
@@ -112,7 +114,7 @@ class _CreateGoalState extends State<CreateGoal> {
   @override
   Widget build(BuildContext context) {
     //Retrieve the UID
-    uid = ModalRoute.of(context).settings.arguments;
+    uid = widget.uid;
     //print('CREATE GOAL UID: $uid');
 
     return Scaffold(

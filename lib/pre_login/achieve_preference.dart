@@ -176,10 +176,10 @@ class _AchievePreferenceState extends State<AchievePreference> {
             name: name,
           )
         : goal == 'Save Money'
-                ? SavingsGoal(uid: uid)
-                : goal == 'Invest Money'
-                    ? AutoCreate(uid: uid)
-                    : GroupSavings(uid: uid);
+            ? SavingsGoal(uid: uid)
+            : goal == 'Invest Money'
+                ? AutoCreate(uid: uid)
+                : GroupSavings(uid: uid);
   }
 
   Future _promptUserToSelectGoal() {

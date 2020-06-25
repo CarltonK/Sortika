@@ -8,7 +8,7 @@ class Deposit {
 final Deposit depoMpesaAuto =
     new Deposit(title: 'M-PESA', subtitle: 'Automatic request');
 final Deposit depoMpesaManual =
-    new Deposit(title: 'M-PESA', subtitle: 'Manual method');
+    new Deposit(title: 'M-PESA Manual', subtitle: 'Manual method');
 final Deposit depoPesaLink = new Deposit(title: 'Pesalink', subtitle: '');
 final Deposit depoCard = new Deposit(title: 'Card', subtitle: '');
 

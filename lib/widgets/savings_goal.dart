@@ -1,14 +1,12 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
-import 'package:wealth/global/progressDialog.dart';
 import 'package:wealth/global/successMessage.dart';
 import 'package:wealth/global/warningMessage.dart';
 import 'package:wealth/models/activityModel.dart';
@@ -145,7 +143,6 @@ class _SavingsGoalState extends State<SavingsGoal> {
         });
   }
 
-
   Future _createSavingsGoal(GoalModel model) async {
     /*
     Before we go to the next page we need to auto create a savings goal
@@ -156,21 +153,26 @@ class _SavingsGoalState extends State<SavingsGoal> {
     final String _collectionLower = 'goals';
     var document = _firestore.collection(_collectionUpper).document(widget.uid);
 
-    //Save goal to goals subcollection
-    await document
-        .collection(_collectionLower)
-        .document()
-        .setData(model.toJson());
+    try {
+      //Save goal to goals subcollection
+      await document
+          .collection(_collectionLower)
+          .document()
+          .setData(model.toJson());
 
-
-     //Create an activity
-    ActivityModel investmentAct = new ActivityModel(
-        activity: 'You created a new Savings Goal in the $classSavings class',
-        activityDate: Timestamp.fromDate(rightNow));
-    await authService.postActivity(widget.uid, investmentAct);
+      // //Create an activity
+      // ActivityModel investmentAct = new ActivityModel(
+      //     activity: 'You created a new Savings Goal in the $classSavings class',
+      //     activityDate: Timestamp.fromDate(rightNow));
+      // await authService.postActivity(widget.uid, investmentAct);
+    } catch (e) {
+      throw e.toString();
+    }
   }
 
   void _setBtnPressed() async {
+    //Dismiss the keyboard
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
     //Check if goal class exists
     if (classSavings == null) {
       _promptUser("You haven't told us what you're saving towards");
@@ -208,10 +210,11 @@ class _SavingsGoalState extends State<SavingsGoal> {
 
       _createSavingsGoal(goalModel).then((value) {
         //Show a success message for two seconds
-        _promptUserSuccess(
-                'Your savings goal has been created successfully');
+        _promptUserSuccess('Your savings goal has been created successfully');
       }).catchError((error) {
-        _promptUser(error);
+        if (error.toString().contains('PERMISSION_DENIED')) {
+          _promptUser('Your session has expired. Please login again');
+        }
       });
     }
   }
@@ -265,6 +268,8 @@ class _SavingsGoalState extends State<SavingsGoal> {
                       form.save();
                       //Remove the dialog
                       Navigator.of(context).pop();
+                      //Dismiss the keyboard
+                      SystemChannels.textInput.invokeMethod('TextInput.hide');
                     }
                   },
                   child: Text(
@@ -541,62 +546,65 @@ class _SavingsGoalState extends State<SavingsGoal> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              'What are you saving towards?',
-              style: styleLabel,
-            ),
-            SizedBox(
-              height: 5,
-            ),
-            _goalClass(),
-            SizedBox(
-              height: 30,
-            ),
-            Text(
-              'Please select the goal type',
-              style: styleLabel,
-            ),
-            SizedBox(
-              height: 5,
-            ),
-            _goalType(),
-            SizedBox(
-              height: 30,
-            ),
-            Text(
-              'How much are you targeting?',
-              style: styleLabel,
-            ),
-            _targetAmountWidget(),
-            SizedBox(
-              height: 30,
-            ),
-            Text(
-              'Please select an end date',
-              style: styleLabel,
-            ),
-            _savingsDurationWidget(),
-            classSavings == 'custom'
-                ? SizedBox(
-                    height: 30,
-                  )
-                : Container(),
-            Text(
-              classSavings == 'Custom' && goalName != null
-                  ? 'I have decided to create my own goal titled: ${goalName.toUpperCase()}'
-                  : '',
-              textAlign: TextAlign.left,
-              style: styleLabel,
-            ),
-            _setGoalBtn()
-          ],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'What are you saving towards?',
+                style: styleLabel,
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              _goalClass(),
+              SizedBox(
+                height: 30,
+              ),
+              Text(
+                'Please select the goal type',
+                style: styleLabel,
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              _goalType(),
+              SizedBox(
+                height: 30,
+              ),
+              Text(
+                'How much are you targeting?',
+                style: styleLabel,
+              ),
+              _targetAmountWidget(),
+              SizedBox(
+                height: 30,
+              ),
+              Text(
+                'Please select an end date',
+                style: styleLabel,
+              ),
+              _savingsDurationWidget(),
+              classSavings == 'custom'
+                  ? SizedBox(
+                      height: 30,
+                    )
+                  : Container(),
+              Text(
+                classSavings == 'Custom' && goalName != null
+                    ? 'I have decided to create my own goal titled: ${goalName.toUpperCase()}'
+                    : '',
+                textAlign: TextAlign.left,
+                style: styleLabel,
+              ),
+              _setGoalBtn()
+            ],
+          ),
         ),
       ),
     );

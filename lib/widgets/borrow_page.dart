@@ -497,12 +497,13 @@ class _BorrowPageState extends State<BorrowPage> {
 
   Future _promptSendToAll() {
     return showCupertinoModalPopup(
-        context: context,
-        builder: (BuildContext context) {
-          return SuccessMessage(
-              message:
-                  'Your request will be sent to everyone on Sortika who can fulfill your request');
-        });
+      context: context,
+      builder: (BuildContext context) {
+        return SuccessMessage(
+            message:
+                'Your request will be sent to everyone on Sortika who can fulfill your request');
+      }
+    );
   }
 
   Future _promptLenderNotFound() {
@@ -584,6 +585,8 @@ class _BorrowPageState extends State<BorrowPage> {
   }
 
   void _applyBtnPressed() async {
+    //Dismiss the keyboard
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
     //Check if loan type is selected
     if (typeLoan == null) {
       _promptUser("Please select the type of loan you want");

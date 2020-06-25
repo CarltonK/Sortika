@@ -736,39 +736,57 @@ class _EditGoalState extends State<EditGoal> {
             ),
           ),
           value: SystemUiOverlayStyle.light),
-      floatingActionButton: goalModel.goalCategory == 'Group' 
-      ? Container()
-      : goalModel.goalAmount == goalModel.goalAmountSaved
-      ? MaterialButton(
-          color: Colors.greenAccent[700],
-          elevation: 16,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Container(
-            padding: EdgeInsets.all(8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Redeem',
-                    style: GoogleFonts.muli(
-                        textStyle: TextStyle(color: Colors.white))),
-                SizedBox(
-                  width: 5,
-                ),
-                Icon(Icons.redeem, color: Colors.white)
-              ],
-            ),
-          ),
-          onPressed: goalModel.goalCategory == 'Loan Fund'
-              ? goalModel.goalAmountSaved > 200
-                  ? redeemPressed
-                  : () => cannotRedeemPressed(
-                      'We hold a non-redeemable fee of 200 KES for all Loan Fund Goals. You have saved ${goalModel.goalAmountSaved} KES')
-              : goalModel.goalAmountSaved > 0
-                  ? redeemPressed
-                  : () => cannotRedeemPressed(
-                      'You have not saved enough to be able to redeem'))
-        : Container(),
+      floatingActionButton: goalModel.goalCategory == 'Group'
+          ? Container()
+          : MaterialButton(
+                  color: Colors.greenAccent[700],
+                  elevation: 16,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Redeem',
+                            style: GoogleFonts.muli(
+                                textStyle: TextStyle(color: Colors.white))),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        Icon(Icons.redeem, color: Colors.white)
+                      ],
+                    ),
+                  ),
+                  onPressed: () {
+                    if (goalModel.goalCategory == 'Loan Fund') {
+                      if (goalModel.goalAmountSaved > 200) {
+                        redeemPressed();
+                      }
+                      else {
+                        cannotRedeemPressed(
+                              'We hold a non-redeemable fee of 200 KES for all Loan Fund Goals. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES');
+                      }
+                    }
+                    if (goalModel.goalCategory == 'Investment' || goalModel.goalCategory == 'Saving') {
+                      if (goalModel.goalAmountSaved > 0) {
+                        if (goalModel.goalAmountSaved >= goalModel.goalAmount) {
+                          redeemPressed();
+                        }
+                        else {
+                          var remaining = goalModel.goalAmount - goalModel.goalAmountSaved;
+                          cannotRedeemPressed(
+                              'You have not hit the harget. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES. You need to save ${remaining.toStringAsFixed(2)} KES to reach the target.');
+                        }
+                      }
+                      else {
+                        var remaining = goalModel.goalAmount - goalModel.goalAmountSaved;
+                          cannotRedeemPressed(
+                              'You have not hit the harget. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES. You need to save ${remaining.toStringAsFixed(2)} KES to reach the target.');
+                      }
+                    }
+                  }
+          )
     );
   }
 }

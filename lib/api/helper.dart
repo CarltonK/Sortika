@@ -317,13 +317,12 @@ class Helper {
           num amtSaved = singleGoal.goalAmountSaved;
           if (singleGoal.goalClass == title) {
             String type = singleGoal.goalType;
-            Map<String, dynamic> one = {
-              'title': title 
-            };
+            Map<String, dynamic> one = {'title': title};
             List<Map<String, dynamic>> two = [];
             for (int ind = 0; ind < types.length; ind++) {
               if (type == types[ind]['name']) {
-                print('$title - $type - $amtSaved KES - ${types[ind]['booking']}');
+                print(
+                    '$title - $type - $amtSaved KES - ${types[ind]['booking']}');
                 Map<String, dynamic> three = {
                   'name': type,
                   'booking': types[ind]['booking'],
@@ -613,11 +612,10 @@ class Helper {
     return queries;
   }
 
-  Future<LotteryModel> getSingleLottery(String docID) async {
-    DocumentSnapshot lotDoc =
-        await _firestore.collection('lottery').document(docID).get();
-    LotteryModel model = LotteryModel.fromJson(lotDoc.data);
-    return model;
+  Stream getSingleLottery(String docID) {
+    Stream<DocumentSnapshot> lotDoc =
+        _firestore.collection('lottery').document(docID).snapshots();
+    return lotDoc;
   }
 
   Future redeemItem(String docID, String uid) async {
@@ -651,6 +649,4 @@ class Helper {
 
     await authService.postActivity(uid, redeemAct);
   }
-
-
 }

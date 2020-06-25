@@ -131,8 +131,15 @@ class Help extends StatelessWidget {
                 throw 'Could not launch $termsUrl';
               }
             }),
-//            _helpItem(Feather.info, 'Goal Descriptions',
-//                'A walkthrough of Sortika', () {})
+           _helpItem(Feather.info, 'Descriptions',
+               'A walkthrough of Sortika', () async {
+
+                 final String srtkYoutubeVideo = 'https://www.youtube.com/channel/UCwPhD6VtpMVDSh0p7kIqY6A';
+                 if (await canLaunch(srtkYoutubeVideo)) {
+                   await launch(srtkYoutubeVideo);
+                 }
+               }
+           )
           ],
         ),
       ),
@@ -158,7 +165,7 @@ class Help extends StatelessWidget {
           try {
             //Launch whatsapp with no message
             FlutterOpenWhatsapp.sendSingleMessage("254727286123",
-                "Hello. I would like to have an app developed for me");
+                "Hello. I would like to have an app developed for me. What is your availability status ?");
           } catch (e) {
             print('This is the exception $e');
           }

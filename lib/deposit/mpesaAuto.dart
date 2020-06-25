@@ -66,6 +66,7 @@ class _MpesaAutoState extends State<MpesaAuto> {
         TextFormField(
             autofocus: false,
             keyboardType: TextInputType.phone,
+            onSaved: _handleSubmittedPhone,
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
               color: Colors.white,

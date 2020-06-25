@@ -7,7 +7,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/api/localPrefs.dart';
-//import 'package:wealth/deposit/bankcard.dart';
 import 'package:wealth/deposit/mpesaAuto.dart';
 import 'package:wealth/deposit/mpesaManual.dart';
 import 'package:wealth/models/depositmethods.dart';
@@ -124,23 +123,6 @@ class _DepositState extends State<Deposit> {
       ),
     ),
   ];
-
-  Widget _depositInfo() {
-    return Container(
-      child: RichText(
-          text: TextSpan(children: [
-        TextSpan(
-            text:
-                'Based on your savings target, we recommend that you deposit ',
-            style: GoogleFonts.muli(textStyle: TextStyle(color: Colors.white))),
-        TextSpan(
-            text: '100 KES',
-            style: GoogleFonts.muli(
-                textStyle:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
-      ])),
-    );
-  }
 
   Widget _singleGoal(DocumentSnapshot document) {
     GoalModel model = GoalModel.fromJson(document.data);
@@ -357,10 +339,13 @@ class _DepositState extends State<Deposit> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // _depositInfo(),
-                        // SizedBox(
-                        //   height: 20,
-                        // ),
+                        Text('Please use the phone number associated with your Sortika Account',
+                            style: GoogleFonts.muli(
+                              textStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                            )),
+                        Divider(
+                          color: Colors.white,
+                        ),
                         Text('Where do you want to deposit?',
                             style: GoogleFonts.muli(
                               textStyle: TextStyle(color: Colors.white),

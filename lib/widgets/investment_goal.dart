@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wealth/api/auth.dart';
@@ -30,7 +32,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
   //Investment Goal
   String goalInvestment;
   //Placeholder of amount
-  double targetAmount = 0;
+  double targetAmount;
 
   Future<List<InvestmentModel>> fetchData;
   Helper helper = new Helper();
@@ -67,6 +69,56 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
     'Nov',
     'Dec'
   ];
+
+   void _handleSubmittedAmount(String value) {
+    targetAmount = double.parse(value.trim());
+    print('Amount: ' + targetAmount.toString());
+  }
+
+    Widget _targetAmountWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        SizedBox(
+          height: 10,
+        ),
+        TextFormField(
+            autofocus: false,
+            keyboardType: TextInputType.number,
+            style: GoogleFonts.muli(
+                textStyle: TextStyle(
+              color: Colors.white,
+            )),
+            onFieldSubmitted: (value) {
+              FocusScope.of(context).unfocus();
+            },
+            onChanged: _handleSubmittedAmount,
+            validator: (value) {
+              //Check if phone is available
+              if (value.isEmpty) {
+                return 'Amount is required';
+              }
+              return null;
+            },
+            autovalidate: true,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white)),
+              errorBorder:
+                  OutlineInputBorder(borderSide: BorderSide(color: Colors.red)),
+              border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white)),
+              prefixIcon:
+                  Icon(FontAwesome5.money_bill_alt, color: Colors.white),
+              suffixText: 'KES',
+              suffixStyle: hintStyle,
+            ))
+      ],
+    );
+  }
 
   Widget _investClassWidget() {
     return Container(
@@ -322,13 +374,6 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         });
   }
 
-  Future _showUserProgress(String message) {
-    return showCupertinoModalPopup(
-        context: context,
-        builder: (BuildContext context) {
-          return CustomProgressDialog(message: message);
-        });
-  }
 
   Future _createInvestmentGoal(GoalModel model) async {
     /*
@@ -346,7 +391,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         .document()
         .setData(model.toJson());
 
-     //Create an activity
+    //Create an activity
     ActivityModel investmentAct = new ActivityModel(
         activity:
             'You created a new Investment Goal in the $classInvestment class',
@@ -355,6 +400,8 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
   }
 
   void _setBtnPressed() async {
+     //Dismiss the keyboard
+      SystemChannels.textInput.invokeMethod('TextInput.hide');
     //Check if class is non null
     if (classInvestment == null) {
       _promptUser("Please specify an investment class");
@@ -383,16 +430,18 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
           goalAmountSaved: 0,
           goalAllocation: 0);
 
-    
       _createInvestmentGoal(goalModel).then((value) {
-        
         _promptUserSuccess(
-                'Your investment goal has been created successfully');
+            'Your investment goal has been created successfully');
       }).catchError((error) {
-        _promptUser(error);
+        if (error.toString().contains('PERMISSION_DENIED')) {
+          _promptUser('Your session has expired. Please login again');
+        }
       });
     }
   }
+
+  
 
   Widget _setGoalBtn() {
     return Container(
@@ -458,7 +507,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
               'How much do you want to invest?',
               style: styleLabel,
             ),
-            _investAmount(),
+            _targetAmountWidget(),
             SizedBox(
               height: 30,
             ),

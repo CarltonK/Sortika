@@ -597,19 +597,21 @@ class _EditGroupState extends State<EditGroup> {
     data = ModalRoute.of(context).settings.arguments;
     groupModel = GroupModel.fromJson(data);
     userID = data['uid'];
+    token = data['token'];
     print('Single Group Data: $data');
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: commonColor,
-        title: Text('${data["goalName"]}',style: GoogleFonts.muli(textStyle: TextStyle())),
+        title: Text('${data["goalName"]}',
+            style: GoogleFonts.muli(textStyle: TextStyle())),
         actions: [
           data["groupAdmin"] == data["uid"]
               ? IconButton(
-                icon: Icon(Icons.share),
-                color: Colors.red,
-                onPressed: _sendInvite,
-              )
+                  icon: Icon(Icons.share),
+                  color: Colors.red,
+                  onPressed: _sendInvite,
+                )
               : Container(),
           IconButton(
             icon: Icon(Icons.delete),
@@ -619,59 +621,57 @@ class _EditGroupState extends State<EditGroup> {
         ],
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _groupSummary(),
-                SizedBox(
-                  height: 30,
-                ),
-                _objectiveWidget(),
-                SizedBox(
-                  height: 30,
-                ),
-                _endDateWidget(),
-                SizedBox(
-                  height: 30,
-                ),
-                data['groupAdmin'] == data['uid']
-                    ? _groupMembers()
-                    : Container(),
-                //_updateBtn()
-              ],
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _groupSummary(),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  _objectiveWidget(),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  _endDateWidget(),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  data['groupAdmin'] == data['uid']
+                      ? _groupMembers()
+                      : Container(),
+                  //_updateBtn()
+                ],
+              ),
             ),
           ),
-        ),
-          value: SystemUiOverlayStyle.light
-      ),
+          value: SystemUiOverlayStyle.light),
       floatingActionButton: groupModel.groupAdmin == data['uid']
-      ? MaterialButton(
-        color: Colors.greenAccent[700],
-        elevation: 16,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Container(
-          padding: EdgeInsets.all(8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Redeem',
-                  style: GoogleFonts.muli(
-                      textStyle: TextStyle(color: Colors.white))),
-              SizedBox(
-                width: 5,
+          ? MaterialButton(
+              color: Colors.greenAccent[700],
+              elevation: 16,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: Container(
+                padding: EdgeInsets.all(8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Redeem',
+                        style: GoogleFonts.muli(
+                            textStyle: TextStyle(color: Colors.white))),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Icon(Icons.redeem, color: Colors.white)
+                  ],
+                ),
               ),
-              Icon(Icons.redeem, color: Colors.white)
-            ],
-          ),
-        ),
-        onPressed: null
-      )
-      : Container(),
-      );
+              onPressed: redeemPressed)
+          : Container(),
+    );
   }
 }

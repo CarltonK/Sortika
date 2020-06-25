@@ -281,6 +281,7 @@ export const LoanCreate = functions.region('europe-west1').firestore
                                                         })
                                                         .then(value => {
                                                             console.log(`Self Loan Transaction completed`)
+                                                            batch.update(sortikaRef, {amount : superadmin.firestore.FieldValue.increment(-100)})
                                                         })
                                                         .catch(error => {
                                                             console.error(`Self Loan Transaction Error: ${error}`)
@@ -353,6 +354,9 @@ export const LoanCreate = functions.region('europe-west1').firestore
                                         await db.collection('users').doc(borrowerUid).collection('notifications').doc().set({
                                             message: `Insufficient funds in your wallet to make this loan request. We charge 100 KES for sending a loan request to All`,
                                             time: superadmin.firestore.Timestamp.now()
+                                        })
+                                        await db.collection('loans').doc(snapshot.id).update({
+                                            loanStatus: 'Rejected'
                                         })
                                     }
                                 })
@@ -581,116 +585,118 @@ export const LoanRepaid = functions.region('europe-west1').firestore
         const loanData = snapshot.after.data()
         const loanModel: Loan = loanData as Loan
 
-        const lender: string = loanModel.loanLender
-        console.log(`The lender is ${lender}`)
+        if (loanModel.loanLender !== null) {
+            const lender: string = loanModel.loanLender
+            console.log(`The lender is ${lender}`)
 
-        const batch = db.batch()
+            const batch = db.batch()
 
-        try {
-            //A reference to this loan document
-            const loanDocRef: FirebaseFirestore.DocumentReference = db.collection('loans').doc(snapshot.after.id)
-            //Get a reference to the lender wallet,lender loan fund goal, sortika document
-            const lenderWalletRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(lender).collection('wallet').doc(lender)
-            const lenderGoalsQuery: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(lender)
-                .collection('goals').where('goalCategory','==','Loan Fund').limit(1).get()
-            const lenderGoalDoc: FirebaseFirestore.DocumentSnapshot = lenderGoalsQuery.docs[0]
-            const lenderGoalDocID: string = lenderGoalDoc.id
-            const lenderLFRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(lender).collection('goals').doc(lenderGoalDocID)
-            const sortikaRef: FirebaseFirestore.DocumentReference = db.collection('private').doc('LhKYJC32tQHAf8qrnGSn')
-            const sortikaTransactionRef: FirebaseFirestore.DocumentReference = db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc()
+            try {
+                //A reference to this loan document
+                const loanDocRef: FirebaseFirestore.DocumentReference = db.collection('loans').doc(snapshot.after.id)
+                //Get a reference to the lender wallet,lender loan fund goal, sortika document
+                const lenderWalletRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(lender).collection('wallet').doc(lender)
+                const lenderGoalsQuery: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(lender)
+                    .collection('goals').where('goalCategory','==','Loan Fund').limit(1).get()
+                const lenderGoalDoc: FirebaseFirestore.DocumentSnapshot = lenderGoalsQuery.docs[0]
+                const lenderGoalDocID: string = lenderGoalDoc.id
+                const lenderLFRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(lender).collection('goals').doc(lenderGoalDocID)
+                const sortikaRef: FirebaseFirestore.DocumentReference = db.collection('private').doc('LhKYJC32tQHAf8qrnGSn')
+                const sortikaTransactionRef: FirebaseFirestore.DocumentReference = db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc()
 
-            const amtBefore: number = snapshot.before.get('loanAmountRepaid')
-            if (amtBefore !== loanModel.loanAmountRepaid) {
-                if (loanModel.loanBalance > 0) {
-                    //Calculate loan allocations
-                    const allcationSortika: number = (loanModel.sortikaInterestComputed / loanModel.totalAmountToPay)
-                    const allcationClient: number = (loanModel.clientInterestComputed / loanModel.totalAmountToPay)
-                    const allcationPrincipal: number = (loanModel.loanAmountTaken / loanModel.totalAmountToPay)
+                const amtBefore: number = snapshot.before.get('loanAmountRepaid')
+                if (amtBefore !== loanModel.loanAmountRepaid) {
+                    if (loanModel.loanBalance > 0) {
+                        //Calculate loan allocations
+                        const allcationSortika: number = (loanModel.sortikaInterestComputed / loanModel.totalAmountToPay)
+                        const allcationClient: number = (loanModel.clientInterestComputed / loanModel.totalAmountToPay)
+                        const allcationPrincipal: number = (loanModel.loanAmountTaken / loanModel.totalAmountToPay)
 
-                    //Amount Paid in a single session
-                    const diff: number = loanModel.loanAmountRepaid - amtBefore
-                    //Loan Balance
-                    const balance: number = loanModel.totalAmountToPay - loanModel.loanAmountRepaid
+                        //Amount Paid in a single session
+                        const diff: number = loanModel.loanAmountRepaid - amtBefore
+                        //Loan Balance
+                        const balance: number = loanModel.totalAmountToPay - loanModel.loanAmountRepaid
 
-                    //Sortika Update
-                    batch.update(loanDocRef, {sortikaInterest : superadmin.firestore.FieldValue.increment(diff * allcationSortika)})
-                    batch.update(sortikaRef, {amount : superadmin.firestore.FieldValue.increment(diff * allcationSortika)})
-                    batch.set(sortikaTransactionRef, {
-                        amount: diff * allcationSortika,
-                        type: 'Loan Repayment',
-                        uid: loanModel.loanBorrower,
-                        time: superadmin.firestore.FieldValue.serverTimestamp()
-                    })
+                        //Sortika Update
+                        batch.update(loanDocRef, {sortikaInterest : superadmin.firestore.FieldValue.increment(diff * allcationSortika)})
+                        batch.update(sortikaRef, {amount : superadmin.firestore.FieldValue.increment(diff * allcationSortika)})
+                        batch.set(sortikaTransactionRef, {
+                            amount: diff * allcationSortika,
+                            type: 'Loan Repayment',
+                            uid: loanModel.loanBorrower,
+                            time: superadmin.firestore.FieldValue.serverTimestamp()
+                        })
 
-                    //Client Update
-                    batch.update(loanDocRef, {clientInterest : superadmin.firestore.FieldValue.increment(diff * allcationClient)})
-                    batch.update(lenderWalletRef, {amount : superadmin.firestore.FieldValue.increment(diff * allcationClient)})
-                    //Categorise under wallet of lender
+                        //Client Update
+                        batch.update(loanDocRef, {clientInterest : superadmin.firestore.FieldValue.increment(diff * allcationClient)})
+                        batch.update(lenderWalletRef, {amount : superadmin.firestore.FieldValue.increment(diff * allcationClient)})
+                        //Categorise under wallet of lender
 
-                    const action: string = 'Earning'
-                    const category: string = 'Wallet'
-                    const code: string = makeid(10)
-                    const transuid: string = loanModel.loanLender
-                    const amount: number = diff * allcationClient
+                        const action: string = 'Earning'
+                        const category: string = 'Wallet'
+                        const code: string = makeid(10)
+                        const transuid: string = loanModel.loanLender
+                        const amount: number = diff * allcationClient
 
-                    //Time Formatting
-                    let time: string = ''
-                    const now: Date = superadmin.firestore.Timestamp.now().toDate()
+                        //Time Formatting
+                        let time: string = ''
+                        const now: Date = superadmin.firestore.Timestamp.now().toDate()
 
-                    const year: string = now.getFullYear().toString()
-                    time += year
+                        const year: string = now.getFullYear().toString()
+                        time += year
 
-                    const month: string = now.getUTCMonth().toString()
-                    time += month
+                        const month: string = now.getUTCMonth().toString()
+                        time += month
 
-                    const day: string = now.getUTCDate().toString()
-                    time += day
+                        const day: string = now.getUTCDate().toString()
+                        time += day
 
-                    const hr: string = now.getUTCHours().toString()
-                    time += hr
+                        const hr: string = now.getUTCHours().toString()
+                        time += hr
 
-                    const min: string = now.getUTCMinutes().toString()
-                    time += min
+                        const min: string = now.getUTCMinutes().toString()
+                        time += min
 
-                    const sec: string = now.getUTCSeconds().toString()
-                    time += sec
+                        const sec: string = now.getUTCSeconds().toString()
+                        time += sec
 
-                    const finalTime: number = Number(time)
+                        const finalTime: number = Number(time)
 
-                    //Transaction Ref
-                    const transactionRef: FirebaseFirestore.DocumentReference = db.collection('transactions').doc(code)
-                    batch.set(transactionRef, {
-                        transactionAction: action,
-                        transactionCategory: category,
-                        transactionCode: code,
-                        transactionTime: finalTime,
-                        transactionUid: transuid,
-                        transactionAmount: amount
-                    })
+                        //Transaction Ref
+                        const transactionRef: FirebaseFirestore.DocumentReference = db.collection('transactions').doc(code)
+                        batch.set(transactionRef, {
+                            transactionAction: action,
+                            transactionCategory: category,
+                            transactionCode: code,
+                            transactionTime: finalTime,
+                            transactionUid: transuid,
+                            transactionAmount: amount
+                        })
 
-                    //Principal Update
-                    batch.update(loanDocRef, {principal : superadmin.firestore.FieldValue.increment(diff * allcationPrincipal)})
-                    batch.update(lenderLFRef, {goalAmountSaved : superadmin.firestore.FieldValue.increment(diff * allcationPrincipal)})
+                        //Principal Update
+                        batch.update(loanDocRef, {principal : superadmin.firestore.FieldValue.increment(diff * allcationPrincipal)})
+                        batch.update(lenderLFRef, {goalAmountSaved : superadmin.firestore.FieldValue.increment(diff * allcationPrincipal)})
 
-                    //Balance Update
-                    batch.update(loanDocRef, {loanBalance : balance})
+                        //Balance Update
+                        batch.update(loanDocRef, {loanBalance : balance})
 
-                    //Send a notification to a Lender that a loan has been repaid
-                    const lenderTokens: string[] = [loanModel.loanLenderToken]
-                    await notification.singleNotificationSend(lenderTokens, `${loanModel.borrowerName} has made a loan payment of ${diff} KES. Loan balance is ${balance} KES`,'Good News')
-                    const notRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(transuid).collection('notifications').doc()
-                    batch.set(notRef, {
-                        message: `${loanModel.borrowerName} has made a loan payment of ${diff} KES. Loan balance is ${balance} KES`,
-                        time: superadmin.firestore.Timestamp.now()
-                    })
+                        //Send a notification to a Lender that a loan has been repaid
+                        const lenderTokens: string[] = [loanModel.loanLenderToken]
+                        await notification.singleNotificationSend(lenderTokens, `${loanModel.borrowerName} has made a loan payment of ${diff} KES. Loan balance is ${balance} KES`,'Good News')
+                        const notRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(transuid).collection('notifications').doc()
+                        batch.set(notRef, {
+                            message: `${loanModel.borrowerName} has made a loan payment of ${diff} KES. Loan balance is ${balance} KES`,
+                            time: superadmin.firestore.Timestamp.now()
+                        })
 
-                    await batch.commit()
+                        await batch.commit()
+                    }
                 }
+            
+            } catch (error) {
+                throw error
             }
 
-        
-        } catch (error) {
-            throw error
         }
     })
 

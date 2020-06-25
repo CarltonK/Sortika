@@ -322,7 +322,7 @@ class _GroupSavingsState extends State<GroupSavings> {
               inactiveColor: Colors.white,
               divisions: 10,
               min: 1,
-              max: 10,
+              max: 500,
               label: members.toInt().toString(),
               onChanged: (value) {
                 setState(() {
@@ -567,10 +567,11 @@ class _GroupSavingsState extends State<GroupSavings> {
             targetAmountPerp: _amountpp);
 
         _createGroupGoal(model).then((value) {
-          _promptUserSuccess(
-                  'Your group has been created successfully');
+          _promptUserSuccess('Your group has been created successfully');
         }).catchError((error) {
-          _promptUser(error);
+          if (error.toString().contains('PERMISSION_DENIED')) {
+          _promptUser('Your session has expired. Please login again');
+        }
         });
       }
     }

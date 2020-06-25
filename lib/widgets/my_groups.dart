@@ -8,10 +8,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/models/groupModel.dart';
+import 'package:wealth/models/usermodel.dart';
 
 class MyGroups extends StatefulWidget {
-  final String uid;
-  MyGroups({Key key, @required this.uid}) : super(key: key);
+  final User user;
+  MyGroups({Key key, @required this.user}) : super(key: key);
   @override
   _MyGroupsState createState() => _MyGroupsState();
 }
@@ -38,8 +39,9 @@ class _MyGroupsState extends State<MyGroups> {
     //Create a map from which you can add as argument to pass into edit goal page
     Map<String, dynamic> editData = doc.data;
     //Add uid to this map
-    editData["uid"] = widget.uid;
+    editData["uid"] = widget.user.uid;
     editData["docId"] = doc.documentID;
+    editData['token'] = widget.user.token;
 
     //Date Parsing and Formatting
     Timestamp dateRetrieved = model.goalEndDate;
@@ -411,7 +413,7 @@ class _MyGroupsState extends State<MyGroups> {
         await _firestore.collection("groups").document(relevantDocId).get();
     //Get members array
     List members = doc.data["members"];
-    if (members.contains(widget.uid)) {
+    if (members.contains(widget.user.uid)) {
       return true;
     } else {
       return false;
@@ -504,7 +506,7 @@ class _MyGroupsState extends State<MyGroups> {
     //Add to group
     DocumentSnapshot doc = retrievedDocument;
     List members = doc.data["members"];
-    members.add(widget.uid);
+    members.add(widget.user.uid);
     await _firestore
         .collection("groups")
         .document(relevantDocId)
@@ -513,7 +515,7 @@ class _MyGroupsState extends State<MyGroups> {
     GroupModel model = GroupModel.fromJson(doc.data);
     await _firestore
         .collection("users")
-        .document(widget.uid)
+        .document(widget.user.uid)
         .collection("goals")
         .document()
         .setData(model.toJson());
@@ -620,7 +622,7 @@ class _MyGroupsState extends State<MyGroups> {
               child: StreamBuilder<QuerySnapshot>(
             stream: Firestore.instance
                 .collection("groups")
-                .where("members", arrayContains: widget.uid)
+                .where("members", arrayContains: widget.user.uid)
                 .orderBy("goalCreateDate")
                 .snapshots(),
             builder:
