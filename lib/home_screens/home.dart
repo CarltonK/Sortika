@@ -5,7 +5,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_icons/flutter_icons.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -50,6 +49,18 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+  //Services
+  // static const MethodChannel platformService = MethodChannel('com.sortika.wealth/service');
+
+  // Future<void> _getSMS() async {
+  //   try {
+  //     final int result = await platformService.invokeMethod('getSMS');
+  //     print('Platform Service Result - $result');
+  //   } on PlatformException catch (e) {
+  //     print('Platform Service ERROR - ${e.details}');
+  //   }
+  // }
+
   //Authentication
   AuthService authService = AuthService();
   Helper helper = new Helper();
@@ -826,7 +837,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
               text: TextSpan(children: [
             diff >= 1
                 ? TextSpan(
-                    text: 'Your current savings rate is  ',
+                    text: 'Your current savings and investment rate is  ',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(color: Colors.black)))
                 : TextSpan(
@@ -3221,24 +3232,29 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void _onMessageReceived(SmsReceiver receiver) {
     receiver.onSmsReceived.listen((message) async {
       //print('A new message has been detected');
-      if (message.address == 'MPESA') {
-        List<Map<String, dynamic>> smsList = [];
-        Map<String, dynamic> map = {
-          'address': message.address,
-          'body': message.body,
-          'date': message.date.millisecondsSinceEpoch,
-          'uid': uid
-        };
-        smsList.add(map);
-        String data = json.encode({'sms_data': smsList});
-        print(data);
-        // //Try HTTP Post
-        String url =
-            'https://europe-west1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
-        var response = await http.post(url, body: data);
-        print('Response status: ${response.statusCode}');
-        print('Response body: ${response.body}');
-      }
+      // if (message.address == 'MPESA') {
+      //   List<Map<String, dynamic>> smsList = [];
+      //   Map<String, dynamic> map = {
+      //     'address': message.address,
+      //     'body': message.body,
+      //     'date': message.date.millisecondsSinceEpoch,
+      //     'uid': uid
+      //   };
+      //   smsList.add(map);
+      //   String data = json.encode({'sms_data': smsList});
+      //   print(data);
+      //   // //Try HTTP Post
+      //   String url =
+      //       'https://europe-west1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
+      //   try {
+      //     await http.post(url, body: data);
+      //   } catch (e) {
+      //     throw e.toString();
+      //   }
+      //   // var response = await http.post(url, body: data);
+      //   // print('Response status: ${response.statusCode}');
+      //   // print('Response body: ${response.body}');
+      // }
     });
   }
 
@@ -3270,6 +3286,29 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
 
     packageInfo = PackageInfo.fromPlatform();
+  }
+
+  Widget _backgroundClr() {
+    return Container(
+      height: screenHeight,
+      width: screenWidth,
+      decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+            Color(0xFF73AEF5),
+            Color(0xFF61A4F1),
+            Color(0xFF478DE0),
+            Color(0xFF398AE5),
+          ],
+              stops: [
+            0.1,
+            0.4,
+            0.7,
+            0.9
+          ])),
+    );
   }
 
   @override
@@ -3305,26 +3344,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     isCollapsed = !isCollapsed;
                   });
                 },
-                child: Container(
-                  height: screenHeight,
-                  width: screenWidth,
-                  decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                        Color(0xFF73AEF5),
-                        Color(0xFF61A4F1),
-                        Color(0xFF478DE0),
-                        Color(0xFF398AE5),
-                      ],
-                          stops: [
-                        0.1,
-                        0.4,
-                        0.7,
-                        0.9
-                      ])),
-                ),
+                child: _backgroundClr(),
               ),
               NetworkSensor(child: _menu(context)),
               _pageSelection == 'main'

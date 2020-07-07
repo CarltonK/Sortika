@@ -61,3 +61,4 @@ export const joinALottery = functions.region('europe-west1').firestore
             throw error
         }
     })
+

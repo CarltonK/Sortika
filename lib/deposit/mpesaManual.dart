@@ -25,7 +25,7 @@ class MpesaManual extends StatelessWidget {
             height: 15,
           ),
           Text(
-              'Use the following as account numbers\n\n\t\t1) Wallet - SRTKWALLET\n\t\t2) General - SRTKGENERAL',
+              'Use the following as account numbers\n\n\t\t1) Wallet - SRTKWALLET\n\t\t2) General - SRTKGENERAL\n\t\t3) Specific - Use a keyword e.g for Cytonn MMF use Cytonn',
               style: GoogleFonts.muli(
                 textStyle: TextStyle(color: Colors.white),
               )),

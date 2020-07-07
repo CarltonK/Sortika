@@ -9,7 +9,6 @@ import 'package:wealth/api/auth.dart';
 import 'package:wealth/api/helper.dart';
 import 'package:wealth/global/successMessage.dart';
 import 'package:wealth/global/warningMessage.dart';
-import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/investmentModel.dart';
 import 'package:wealth/utilities/styles.dart';
@@ -172,7 +171,7 @@ class _SavingsGoalState extends State<SavingsGoal> {
 
   void _setBtnPressed() async {
     //Dismiss the keyboard
-      SystemChannels.textInput.invokeMethod('TextInput.hide');
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
     //Check if goal class exists
     if (classSavings == null) {
       _promptUser("You haven't told us what you're saving towards");

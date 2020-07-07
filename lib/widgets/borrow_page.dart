@@ -497,13 +497,12 @@ class _BorrowPageState extends State<BorrowPage> {
 
   Future _promptSendToAll() {
     return showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        return SuccessMessage(
-            message:
-                'Your request will be sent to everyone on Sortika who can fulfill your request');
-      }
-    );
+        context: context,
+        builder: (BuildContext context) {
+          return SuccessMessage(
+              message:
+                  'Your request will be sent to everyone on Sortika who can fulfill your request');
+        });
   }
 
   Future _promptLenderNotFound() {

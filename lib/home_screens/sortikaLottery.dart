@@ -207,7 +207,7 @@ class _SortikaLotteryState extends State<SortikaLottery> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Lottery',
+                    'Lottery\nStand a chance to win cash prizes participating in lotteries with thousands of sortika users',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.black,
@@ -332,7 +332,27 @@ class _SortikaLotteryState extends State<SortikaLottery> {
                                         )),
                                       ),
                                     )
-                                  : Container(),
+                                  : Center(
+                                      child: Text(
+                                        'The winning ticket is ${lot.winner}',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.muli(
+                                            textStyle: TextStyle(
+                                          color: Colors.black,
+                                        )),
+                                      ),
+                                    ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                'DISCLAIMER\nThe winning ticket number is the ticket number selected on the last minute of this lottery',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.muli(
+                                    textStyle: TextStyle(
+                                  color: Colors.black,
+                                )),
+                              ),
                               SizedBox(
                                 height: 10,
                               ),

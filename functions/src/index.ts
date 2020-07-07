@@ -13,6 +13,8 @@ import * as ratecalc from './savings_rate_calculator'
 import * as lottery from './lottery'
 import * as groups from './groups'
 import * as redeem from './redeem'
+import * as backup from './backup'
+// import * as bookings from './bookings'
 
 const db = superadmin.firestore()
 
@@ -47,7 +49,7 @@ app.post('/wolandehvalidatec2b/eCcjec4GImjejAm9sfAz', mpesa.mpesaC2bValidation)
 // 5) C2B Confirmation URL
 app.post('/wolandehconfirmationc2b/e1wlv2pVt0DheiDAPixv', mpesa.mpesaC2bConfirmation)
 
-// SMS ANALYSIS Endpoints
+// 6) SMS ANALYSIS Endpoints
 app.post('/tusomerecords/9z5JjD9bGODXeSVpdNFW', sms.receiveSMS)
 
 
@@ -322,26 +324,6 @@ export const goalAutoCreate = functions.region('europe-west1').firestore
         }
     })
 
-//Midnight Function
-export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
-
-//Lottery Functions
-export const joinLottery = lottery.joinALottery
-export const announceLottery = lottery.announceLotteryCreation
-
-//Redeem
-export const redeemGoal = redeem.RedeemGoal
-
-//Loan Functions
-export const loanCreated =  loan.LoanCreate
-export const loanUpdate = loan.LoanStatusUpdate
-export const loanRepaid = loan.LoanRepaid
-export const loanPayment = loan.LoanPayment
-
-//Groups functions
-export const groupWrite = groups.groupMembers
-export const groupDeletion = groups.deleteGroup
-
 
 /*
 Sortika Points
@@ -365,6 +347,33 @@ exports.sortikaPoints = functions.region('europe-west1').firestore
             throw error
         }  
     })
+
+//Midnight Function
+export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
+
+//Lottery Functions
+export const joinLottery = lottery.joinALottery
+export const announceLottery = lottery.announceLotteryCreation
+
+//Redeem
+export const redeemGoal = redeem.RedeemGoal
+
+//Loan Functions
+export const loanCreated =  loan.LoanCreate
+export const loanUpdate = loan.LoanStatusUpdate
+export const loanRepaid = loan.LoanRepaid
+export const loanPayment = loan.LoanPayment
+
+//Groups functions
+export const groupWrite = groups.groupMembers
+export const groupDeletion = groups.deleteGroup
+
+//Backup Function
+export const sortikaBackup = backup.SortikaBackup
+
+//Booking Function
+// export const bookingCalulator = bookings.BookingCalculator
+
 
 
 

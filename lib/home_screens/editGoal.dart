@@ -683,110 +683,108 @@ class _EditGoalState extends State<EditGoal> {
     // print('EDIT GOAL PAGE DATA: $data');
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: commonColor,
-        title: Text('Edit ${data["goalCategory"]} Goal',
-            style: GoogleFonts.muli(textStyle: TextStyle())),
-        actions: [
-          data["isGoalDeletable"]
-              ? data['goalAmountSaved'] == 0
-                  ? IconButton(
-                      icon: Icon(Icons.delete),
-                      color: Colors.red,
-                      onPressed: _deleteGoal,
-                    )
-                  : Text('')
-              : Text('')
-        ],
-      ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-          child: GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _goalSummary(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _typeWidget(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _specificGoalWidget(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _amountWidget(),
-                      SizedBox(
-                        height: 30,
-                      ),
-                      _maturityDateWidget(),
-                      _updateBtn()
-                    ],
+        appBar: AppBar(
+          backgroundColor: commonColor,
+          title: Text('Edit ${data["goalCategory"]} Goal',
+              style: GoogleFonts.muli(textStyle: TextStyle())),
+          actions: [
+            data["isGoalDeletable"]
+                ? data['goalAmountSaved'] == 0
+                    ? IconButton(
+                        icon: Icon(Icons.delete),
+                        color: Colors.red,
+                        onPressed: _deleteGoal,
+                      )
+                    : Text('')
+                : Text('')
+          ],
+        ),
+        body: AnnotatedRegion<SystemUiOverlayStyle>(
+            child: GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _goalSummary(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _typeWidget(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _specificGoalWidget(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _amountWidget(),
+                        SizedBox(
+                          height: 30,
+                        ),
+                        _maturityDateWidget(),
+                        _updateBtn()
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          value: SystemUiOverlayStyle.light),
-      floatingActionButton: goalModel.goalCategory == 'Group'
-          ? Container()
-          : MaterialButton(
-                  color: Colors.greenAccent[700],
-                  elevation: 16,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('Redeem',
-                            style: GoogleFonts.muli(
-                                textStyle: TextStyle(color: Colors.white))),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        Icon(Icons.redeem, color: Colors.white)
-                      ],
-                    ),
+            value: SystemUiOverlayStyle.light),
+        floatingActionButton: goalModel.goalCategory == 'Group'
+            ? Container()
+            : MaterialButton(
+                color: Colors.greenAccent[700],
+                elevation: 16,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Redeem',
+                          style: GoogleFonts.muli(
+                              textStyle: TextStyle(color: Colors.white))),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Icon(Icons.redeem, color: Colors.white)
+                    ],
                   ),
-                  onPressed: () {
-                    if (goalModel.goalCategory == 'Loan Fund') {
-                      if (goalModel.goalAmountSaved > 200) {
-                        redeemPressed();
-                      }
-                      else {
-                        cannotRedeemPressed(
-                              'We hold a non-redeemable fee of 200 KES for all Loan Fund Goals. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES');
-                      }
-                    }
-                    if (goalModel.goalCategory == 'Investment' || goalModel.goalCategory == 'Saving') {
-                      if (goalModel.goalAmountSaved > 0) {
-                        if (goalModel.goalAmountSaved >= goalModel.goalAmount) {
-                          redeemPressed();
-                        }
-                        else {
-                          var remaining = goalModel.goalAmount - goalModel.goalAmountSaved;
-                          cannotRedeemPressed(
-                              'You have not hit the harget. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES. You need to save ${remaining.toStringAsFixed(2)} KES to reach the target.');
-                        }
-                      }
-                      else {
-                        var remaining = goalModel.goalAmount - goalModel.goalAmountSaved;
-                          cannotRedeemPressed(
-                              'You have not hit the harget. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES. You need to save ${remaining.toStringAsFixed(2)} KES to reach the target.');
-                      }
+                ),
+                onPressed: () {
+                  if (goalModel.goalCategory == 'Loan Fund') {
+                    if (goalModel.goalAmountSaved > 200) {
+                      redeemPressed();
+                    } else {
+                      cannotRedeemPressed(
+                          'We hold a non-redeemable fee of 200 KES for all Loan Fund Goals. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES');
                     }
                   }
-          )
-    );
+                  if (goalModel.goalCategory == 'Investment' ||
+                      goalModel.goalCategory == 'Saving') {
+                    if (goalModel.goalAmountSaved > 0) {
+                      if (goalModel.goalAmountSaved >= goalModel.goalAmount) {
+                        redeemPressed();
+                      } else {
+                        var remaining =
+                            goalModel.goalAmount - goalModel.goalAmountSaved;
+                        cannotRedeemPressed(
+                            'You have not reached the target. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES. You need to save ${remaining.toStringAsFixed(2)} KES to reach the target.');
+                      }
+                    } else {
+                      var remaining =
+                          goalModel.goalAmount - goalModel.goalAmountSaved;
+                      cannotRedeemPressed(
+                          'You have not reached the target. You have saved ${goalModel.goalAmountSaved.toStringAsFixed(2)} KES. You need to save ${remaining.toStringAsFixed(2)} KES to reach the target.');
+                    }
+                  }
+                }));
   }
 }

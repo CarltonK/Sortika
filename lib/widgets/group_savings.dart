@@ -320,7 +320,7 @@ class _GroupSavingsState extends State<GroupSavings> {
           child: Slider.adaptive(
               value: members,
               inactiveColor: Colors.white,
-              divisions: 10,
+              divisions: 20,
               min: 1,
               max: 500,
               label: members.toInt().toString(),
@@ -570,8 +570,8 @@ class _GroupSavingsState extends State<GroupSavings> {
           _promptUserSuccess('Your group has been created successfully');
         }).catchError((error) {
           if (error.toString().contains('PERMISSION_DENIED')) {
-          _promptUser('Your session has expired. Please login again');
-        }
+            _promptUser('Your session has expired. Please login again');
+          }
         });
       }
     }

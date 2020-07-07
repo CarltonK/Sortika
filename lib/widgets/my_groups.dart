@@ -104,39 +104,70 @@ class _MyGroupsState extends State<MyGroups> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  RichText(
-                      text: TextSpan(children: [
-                    TextSpan(
-                        text: 'You have contributed ',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(color: Colors.white))),
-                    TextSpan(
-                        text:
-                            '${model.goalAmountSaved.toInt().toString()} KES ',
-                        style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18),
-                        )),
-                    TextSpan(
-                        text: 'of ',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(color: Colors.white))),
-                    TextSpan(
-                        text:
-                            '${model.targetAmountPerp.toInt().toString()} KES ',
-                        style: GoogleFonts.muli(
-                          textStyle: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18),
-                        )),
-                    TextSpan(
-                        text: 'individual target contributions ',
-                        style: GoogleFonts.muli(
-                            textStyle: TextStyle(color: Colors.white)))
-                  ])),
+                  model.shouldMemberSeeSavings
+                      ? RichText(
+                          text: TextSpan(children: [
+                          TextSpan(
+                              text: 'Your group total savings are ',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(color: Colors.white))),
+                          TextSpan(
+                              text:
+                                  '${model.goalAmountSaved.toInt().toString()} KES ',
+                              style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18),
+                              )),
+                          TextSpan(
+                              text: 'of ',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(color: Colors.white))),
+                          TextSpan(
+                              text:
+                                  '${model.goalAmount.toInt().toString()} KES ',
+                              style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18),
+                              )),
+                          TextSpan(
+                              text: 'individual target contributions ',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(color: Colors.white)))
+                        ]))
+                      : RichText(
+                          text: TextSpan(children: [
+                          TextSpan(
+                              text: 'You have contributed ',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(color: Colors.white))),
+                          TextSpan(
+                              text:
+                                  '${model.goalAmountSaved.toInt().toString()} KES ',
+                              style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18),
+                              )),
+                          TextSpan(
+                              text: 'of ',
+                              style: GoogleFonts.muli(
+                                  textStyle: TextStyle(color: Colors.white))),
+                          TextSpan(
+                              text: model.groupAdmin == widget.user.uid
+                                  ? '${model.goalAmountSaved.toInt().toString()} KES '
+                                  : '${model.targetAmountPerp.toInt().toString()} KES ',
+                              style: GoogleFonts.muli(
+                                textStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18),
+                              )),
+                        ])),
                   // Padding(
                   //   padding: const EdgeInsets.symmetric(
                   //       horizontal: 8),
@@ -641,7 +672,8 @@ class _MyGroupsState extends State<MyGroups> {
                         color: Colors.red,
                       ),
                       Text(
-                        'You are not a member of any group(s)',
+                        'You are not a member of any group(s). Create a group and invite members to make contributions',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 fontWeight: FontWeight.w700, fontSize: 16)),

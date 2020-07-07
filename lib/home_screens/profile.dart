@@ -888,7 +888,7 @@ class _ProfilePageState extends State<ProfilePage> {
   /// Starts an upload task
   Future<String> _startUploadKinID(File file) async {
     /// Unique file name for the file
-    filePath = 'profiles/$uid/kin/displayPic.png';
+    filePath = 'profiles/$uid/kin/natID.png';
     //Create a storage reference
     StorageReference reference = FirebaseStorage.instance.ref().child(filePath);
     //Create a task that will handle the upload
@@ -905,7 +905,7 @@ class _ProfilePageState extends State<ProfilePage> {
   /// Starts an upload task
   Future<String> _startUploadKinKra(File file) async {
     /// Unique file name for the file
-    filePath = 'profiles/$uid/kin/displayPic.png';
+    filePath = 'profiles/$uid/kin/kraPIN.png';
     //Create a storage reference
     StorageReference reference = FirebaseStorage.instance.ref().child(filePath);
     //Create a task that will handle the upload

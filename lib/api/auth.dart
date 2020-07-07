@@ -100,7 +100,9 @@ class AuthService {
       print("The wallet has been created successfully");
       //Create notifications
       NotificationModel notificationModel = new NotificationModel(
-          message: 'We are glad to have you on board', time: Timestamp.now());
+          message:
+              'We are glad to have you on board. Thank you for joining Sortika. We have awarded you 100 savings points',
+          time: Timestamp.now());
       await postNotification(uid, notificationModel);
       print("A notification has been created successfully");
       //Create an activity model
@@ -124,6 +126,7 @@ class AuthService {
       AuthResult result = await _auth.signInWithEmailAndPassword(
           email: user.email, password: user.password);
       currentUser = result.user;
+      // result.user.getIdToken();
 
       //Check if email is verified before proceeding
       bool emailVerificationStatus = currentUser.isEmailVerified;

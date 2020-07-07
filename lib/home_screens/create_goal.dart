@@ -17,23 +17,12 @@ class CreateGoal extends StatefulWidget {
 class _CreateGoalState extends State<CreateGoal> {
   // Identifier
   int _currentPage = 0;
-  static String uid;
 
   //Goal Pages
-  List<Widget> goalPages = [
-    SavingsGoal(
-      uid: uid,
-    ),
-    InvestmentGoal(
-      uid: uid,
-    ),
-    GroupSavings(
-      uid: uid,
-    )
-  ];
+  List<Widget> goalPages;
 
-  PageController _controller = PageController(viewportFraction: 0.85);
-  PageController _controllerMainPage = PageController(viewportFraction: 1);
+  PageController _controller;
+  PageController _controllerMainPage;
 
   Widget _goalCategoryWidget() {
     return Container(
@@ -112,11 +101,32 @@ class _CreateGoalState extends State<CreateGoal> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    //Retrieve the UID
-    uid = widget.uid;
-    //print('CREATE GOAL UID: $uid');
+  void initState() {
+    super.initState();
+    _controller = PageController(viewportFraction: 0.85);
+    _controllerMainPage = PageController(viewportFraction: 1);
+    goalPages = [
+      SavingsGoal(
+        uid: widget.uid,
+      ),
+      InvestmentGoal(
+        uid: widget.uid,
+      ),
+      GroupSavings(
+        uid: widget.uid,
+      )
+    ];
+  }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    _controllerMainPage.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF73AEF5),

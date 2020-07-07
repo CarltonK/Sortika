@@ -29,5 +29,31 @@
     }
   </script>
   <script src="main.dart.js" type="application/javascript"></script>
+  
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+        https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-firestore.js"></script>
+
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyD3t4muFZN4o3TkrkyuB62gfpVbRPAjO7Q",
+        authDomain: "sortika-c0f5c.firebaseapp.com",
+        databaseURL: "https://sortika-c0f5c.firebaseio.com",
+        projectId: "sortika-c0f5c",
+        storageBucket: "sortika-c0f5c.appspot.com",
+        messagingSenderId: "686615310489",
+        appId: "1:686615310489:web:c682e0724e448875ca4808",
+        measurementId: "G-X375F1ESCW"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+    </script>
 </body>
 </html>

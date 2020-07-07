@@ -8,7 +8,6 @@ import 'package:wealth/home_screens/autoCreate.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/widgets/borrow_page.dart';
 import 'package:wealth/widgets/group_savings.dart';
-import 'package:wealth/widgets/lend_page.dart';
 import 'package:wealth/widgets/savings_goal.dart';
 
 class AchievePreference extends StatefulWidget {
@@ -128,7 +127,7 @@ class _AchievePreferenceState extends State<AchievePreference> {
             ),
             value: goal,
             hint: Text(
-              'Goal',
+              'Select your objective',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                       color: Colors.black,

@@ -17,9 +17,11 @@
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "firebase-admin": "^8.9.0",
-    "firebase-functions": "^3.6.2",
+    "firebase-functions": "^3.7.0",
+    "lodash": "^4.17.15",
     "prettyjson": "^1.2.1",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "simple-firestore-backup": "^1.0.6"
   },
   "devDependencies": {
     "@types/prettyjson": "0.0.29",

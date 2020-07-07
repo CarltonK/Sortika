@@ -148,7 +148,7 @@ export const LoanCreate = functions.region('europe-west1').firestore
                             return creditWalletTransaction.get(borrowerWallerRef)
                                 .then(async docValue => {
                                     const amountInWallet: number = docValue.get('amount')
-                                    if (amountInWallet >= (amount + 100)) {
+                                    if (amountInWallet >= 100) {
                                         //Remove 100 from wallet as fee
                                         creditWalletTransaction.update(borrowerWallerRef, {amount: superadmin.firestore.FieldValue.increment(-100)})
 

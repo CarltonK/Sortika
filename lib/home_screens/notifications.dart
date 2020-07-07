@@ -66,8 +66,33 @@ class _NotificationsState extends State<NotificationsPage> {
                         Timestamp time = doc.data['time'];
 
                         //Date Parsing and Formatting
-                        var formatter = new DateFormat('d MMM y');
+                        var formatter = new DateFormat('d MMM y HH:MM');
                         String date = formatter.format(time.toDate());
+
+                        DateTime now = DateTime.now();
+                        Timestamp dateRetrieved = time;
+                        DateTime retrieved = dateRetrieved.toDate();
+
+                        int timeDiff = now.difference(retrieved).inDays;
+                        String elapsed;
+
+                        if (timeDiff < 1) {
+                          int hours = now.difference(retrieved).inHours;
+                          if (hours < 1) {
+                            int minutes = now.difference(retrieved).inMinutes;
+                            elapsed = '$minutes minutes ago at ';
+                          } else if (hours == 1) {
+                            elapsed = '$hours hour ago at ';
+                          } else {
+                            elapsed = '$hours hours ago at ';
+                          }
+                        } else {
+                          if (timeDiff == 1) {
+                            elapsed = '$timeDiff day ago on ';
+                          } else {
+                            elapsed = '$timeDiff days ago on ';
+                          }
+                        }
 
                         return ListTile(
                           leading: Icon(
@@ -83,7 +108,7 @@ class _NotificationsState extends State<NotificationsPage> {
                             padding:
                                 const EdgeInsets.only(top: 4.0, bottom: 8.0),
                             child: Text(
-                              date,
+                              elapsed + date,
                               style: GoogleFonts.muli(
                                   textStyle: TextStyle(fontSize: 12)),
                             ),

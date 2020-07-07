@@ -35,14 +35,7 @@ class _DepositState extends State<Deposit> {
   static String phone;
   static String userId;
   String goalName;
-  List<Widget> _pages = [
-    MpesaAuto(
-      method: 'M-PESA',
-      uid: userId,
-      phone: phone,
-    ),
-    MpesaManual(),
-  ];
+  List<Widget> _pages;
   Helper _helper = new Helper();
 
   @override
@@ -52,6 +45,14 @@ class _DepositState extends State<Deposit> {
     _controllerPages = PageController(viewportFraction: 1);
     userId = widget.uid;
     phone = widget.phone;
+    _pages = [
+      MpesaAuto(
+        method: 'M-PESA',
+        uid: userId,
+        phone: phone,
+      ),
+      MpesaManual(),
+    ];
   }
 
   @override
@@ -339,9 +340,13 @@ class _DepositState extends State<Deposit> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Please use the phone number associated with your Sortika Account',
+                        Text(
+                            'Please use the phone number associated with your Sortika Account',
                             style: GoogleFonts.muli(
-                              textStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                              textStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
                             )),
                         Divider(
                           color: Colors.white,

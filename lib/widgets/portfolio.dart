@@ -393,7 +393,7 @@ class _PortfolioState extends State<Portfolio> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$amount KES',
+                        '${amount.toStringAsFixed(2)} KES',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,

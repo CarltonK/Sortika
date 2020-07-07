@@ -38,7 +38,8 @@ export function mpesaLnmCallbackForCapture(request: Request, response: Response)
                         await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc().set({
                             type: 'Deposit',
                             amount: sortikaAmount,
-                            uid: uid
+                            uid: uid,
+                            time: superadmin.firestore.Timestamp.now()
                         })
                         console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
 
@@ -128,7 +129,7 @@ export function mpesaLnmCallback(request: Request, response: Response) {
 
             const sortikaAmount: number = transactionAmount * 0.07
 
-            // console.log(transactionPhoneFormatted)
+            console.log(transactionPhoneFormatted)
             let uid: string
 
             const db = superadmin.firestore()
@@ -191,7 +192,8 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                             await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc().set({
                                 type: 'Deposit',
                                 amount: sortikaAmount,
-                                uid: uid
+                                uid: uid,
+                                time: superadmin.firestore.Timestamp.now()
                             })
                             console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
 
@@ -232,8 +234,8 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                                 })
                                 .then(async result => {
                                     //Create a notification for the user
-                                    console.log('notification update begin')
-                                    console.log('notification update end')
+                                    // console.log('notification update begin')
+                                    // console.log('notification update end')
 
                                     console.log('Overal  General update success!')
                                 })
@@ -252,7 +254,8 @@ export function mpesaLnmCallback(request: Request, response: Response) {
                             await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc().set({
                                 type: 'Deposit',
                                 amount: sortikaAmount,
-                                uid: uid
+                                uid: uid,
+                                time: superadmin.firestore.Timestamp.now()
                             })
                             console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
 
@@ -404,8 +407,9 @@ export function mpesaB2cResult(request: Request, response: Response) {
     try {
         console.log('---Received Safaricom M-PESA Webhook For B2C---')
         const serverRequest = request.body
-        // console.log(serverRequest)
+        console.log(serverRequest)
         const code: number = serverRequest['Result']['ResultCode']
+        console.log(`B2C Result Code -> ${code}`)
         if (code === 0) {
             const transactionCode: string = serverRequest['Result']['TransactionID']
             let transactionAmount: number = 0
@@ -414,7 +418,7 @@ export function mpesaB2cResult(request: Request, response: Response) {
             // console.log(transactionCode)
             const params: any[] = serverRequest['Result']['ResultParameters']['ResultParameter']
             params.forEach(singleParam => {
-                // console.log(singleParam)
+                console.log(singleParam)
                 if (singleParam['Key'] === 'TransactionAmount') {
                     transactionAmount = singleParam['Value']
                 }
@@ -427,7 +431,9 @@ export function mpesaB2cResult(request: Request, response: Response) {
             })
 
             const phoneNumSecStr: string = transactionUser.split(' - ')[0]
+            console.log(`Phone -> ${phoneNumSecStr}`)
             const transactionPhone: string = (phoneNumSecStr.startsWith('0')) ? phoneNumSecStr : ('0' + phoneNumSecStr.slice(3))
+            console.log(`Phone Transformed -> ${transactionPhone}`)
 
             //Modify time to match string in transactions
             const transactionTimeDate: string = transactionTime.split(' ')[0]
@@ -477,9 +483,9 @@ export function mpesaB2cResult(request: Request, response: Response) {
 
                                         //Send notifications
                                         const tokens: string[] = [token]
-                                        await notification.singleNotificationSend(tokens,`Your withdrawal request was successful. Your wallet balance is ${walletAmt - totalWithdrawAmount} KES as at ${superadmin.firestore.Timestamp.now().toDate().toUTCString()}`,`Umesortika`)
+                                        await notification.singleNotificationSend(tokens,`Your withdrawal request was successful.`,`Umesortika`)
                                         await db.collection('users').doc(uid).collection('notifications').doc().set({
-                                            'message': `Your withdrawal request was successful. Your wallet balance is ${walletAmt - totalWithdrawAmount} KES as at ${superadmin.firestore.Timestamp.now().toDate().toUTCString()}`,
+                                            'message': `Your withdrawal request was successful.`,
                                             'time': superadmin.firestore.FieldValue.serverTimestamp()
                                         })
                                         
@@ -572,7 +578,7 @@ export function mpesaC2bConfirmation(request: Request, response: Response) {
         const transactionAmtString: string = mpesaResp.TransAmount.split('.')[0]
         let transactionAmount: number = Number(transactionAmtString)
 
-        const sortikaAmount: number = transactionAmount * 0.02
+        const sortikaAmount: number = transactionAmount * 0.05
 
         const transTime: number = Number(mpesaResp.TransTime)
 
@@ -641,7 +647,7 @@ export function mpesaC2bConfirmation(request: Request, response: Response) {
                         })
                         console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
 
-                        transactionAmount = transactionAmount * 0.98
+                        transactionAmount = transactionAmount * 0.95
 
                         //Update transaction document, id - transaction code
                         await db.collection('transactions').doc(mpesaResp.TransID).set({
@@ -695,6 +701,62 @@ export function mpesaC2bConfirmation(request: Request, response: Response) {
                             'time': superadmin.firestore.Timestamp.now()
                         })
                     }
+                    // else {
+
+                    //     await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').update({
+                    //         amount: superadmin.firestore.FieldValue.increment(sortikaAmount)
+                    //     })
+
+                    //     await db.collection('private').doc('LhKYJC32tQHAf8qrnGSn').collection('transactions').doc().set({
+                    //         type: 'Deposit',
+                    //         amount: sortikaAmount,
+                    //         uid: uid
+                    //     })
+                    //     console.log(`Sortika has earned ${sortikaAmount} KES from Deposit of ${uid}`)
+
+                    //     transactionAmount = transactionAmount * 0.95
+
+                    //     const userGoalQuery: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uid).collection('goals')
+                    //         .where('goalType','in',[mpesaResp.BillRefNumber.toLowerCase(),mpesaResp.BillRefNumber.toUpperCase(),mpesaResp.BillRefNumber]).limit(1).get()
+                    //     const userGoalDocs: DocumentSnapshot[] = userGoalQuery.docs
+                    //     console.log(`This is the number of goals we have retrieved ${userGoalDocs.length} under B2C transaction for ${uid}`)
+                    //     if (userGoalDocs.length === 1) {
+                    //         const concernedDoc: DocumentSnapshot = userGoalDocs[0]
+                    //         const concernedDocRef: FirebaseFirestore.DocumentReference = db.collection('users').doc(uid).collection('goals').doc(concernedDoc.id)
+                    //         db.runTransaction(async specificTrans => {
+                    //             return specificTrans.get(concernedDocRef)
+                    //                 .then(async docRetrieved => {
+                    //                     specificTrans.update(concernedDocRef, {goalAmountSaved: superadmin.firestore.FieldValue.increment(transactionAmount)})
+                    //                     await notification.singleNotificationSend(tokenList,`You have deposited ${transactionAmount} KES to your ${concernedDoc.get('goalCategory')} goal`,'Good News')
+                    //                     await db.collection('users').doc(uid).collection('notifications').doc().set({
+                    //                         'message': `You have deposited ${transactionAmount} KES to your ${concernedDoc.get('goalCategory')} goal`,
+                    //                         'time': superadmin.firestore.Timestamp.now()
+                    //                     })
+                                        
+                    //                     const categ: string = docRetrieved.get('goalCategory')
+                    //                     await db.collection('transactions').doc(mpesaResp.TransID).set({
+                    //                         'transactionAmount': transactionAmount,
+                    //                         'transactionCode': mpesaResp.TransID,
+                    //                         'transactionTime': transTime,
+                    //                         'transactionAction': 'Deposit',
+                    //                         'transactionCategory': categ,
+                    //                         'transactionUid': uid
+                    //                     })
+                    //                 })
+                    //                 .catch(transError => console.error('B2C Specific Goal Update ERROR',transError))
+                    //         })
+                    //         .then(value => console.log('B2C Specific has completed successfully'))
+                    //         .catch(errorVal => console.error('B2C Specific has failed',errorVal))
+
+                    //     }
+                    //     else {
+                    //         await notification.singleNotificationSend(tokenList,`You used an ambiguous account number ${mpesaResp.BillRefNumber}. Please contact customer care`,'Warning')
+                    //         await db.collection('users').doc(uid).collection('notifications').doc().set({
+                    //             'message': `You used an ambiguous account number ${mpesaResp.BillRefNumber}. Please contact customer care`,
+                    //             'time': superadmin.firestore.Timestamp.now()
+                    //         })
+                    //     }
+                    // }
                 }
             })
             .catch(userError => console.error('There was an error fetching the user',userError)) 

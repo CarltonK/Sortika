@@ -42,6 +42,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   dynamic result;
   AuthService authService = AuthService();
 
+  static DateTime now = DateTime.now();
+  DateTime monthsAgo = now.subtract(Duration(days: 180));
+
   //Handle Name Input
   void _handleSubmittedName(String value) {
     _names = value.trim();
@@ -156,11 +159,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               //Check if phone number has 10 digits
               if (value.length != 10) {
                 return 'Phone number should be 10 digits';
-              }
-
-              //Check if phone number starts with 07
-              if (!value.startsWith('07')) {
-                return 'Phone number should start with 07';
               }
 
               return null;
@@ -480,7 +478,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           registerDate: Timestamp.fromDate(DateTime.now()),
           loanLimitRatio: 75,
           token: token,
-          points: 0,
+          lastLogin: Timestamp.fromDate(monthsAgo),
+          points: 100,
           passiveSavingsRate: 5,
           platform: Platform.operatingSystem,
           dailySavingsTarget: 0,

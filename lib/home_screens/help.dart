@@ -131,15 +131,14 @@ class Help extends StatelessWidget {
                 throw 'Could not launch $termsUrl';
               }
             }),
-           _helpItem(Feather.info, 'Descriptions',
-               'A walkthrough of Sortika', () async {
-
-                 final String srtkYoutubeVideo = 'https://www.youtube.com/channel/UCwPhD6VtpMVDSh0p7kIqY6A';
-                 if (await canLaunch(srtkYoutubeVideo)) {
-                   await launch(srtkYoutubeVideo);
-                 }
-               }
-           )
+            _helpItem(Feather.info, 'More Material',
+                'Watch videos and investment materials', () async {
+              final String srtkYoutubeVideo =
+                  'https://www.youtube.com/channel/UCwPhD6VtpMVDSh0p7kIqY6A';
+              if (await canLaunch(srtkYoutubeVideo)) {
+                await launch(srtkYoutubeVideo);
+              }
+            })
           ],
         ),
       ),

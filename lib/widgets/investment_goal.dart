@@ -70,12 +70,12 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
     'Dec'
   ];
 
-   void _handleSubmittedAmount(String value) {
+  void _handleSubmittedAmount(String value) {
     targetAmount = double.parse(value.trim());
     print('Amount: ' + targetAmount.toString());
   }
 
-    Widget _targetAmountWidget() {
+  Widget _targetAmountWidget() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -374,7 +374,6 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
         });
   }
 
-
   Future _createInvestmentGoal(GoalModel model) async {
     /*
     Before we go to the next page we need to auto create a investment goal
@@ -400,8 +399,8 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
   }
 
   void _setBtnPressed() async {
-     //Dismiss the keyboard
-      SystemChannels.textInput.invokeMethod('TextInput.hide');
+    //Dismiss the keyboard
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
     //Check if class is non null
     if (classInvestment == null) {
       _promptUser("Please specify an investment class");
@@ -423,6 +422,7 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
           goalCategory: 'Investment',
           goalClass: classInvestment,
           uid: widget.uid,
+          goalName: goalInvestment,
           growth: 0,
           interest: 0,
           goalType: goalInvestment,
@@ -440,8 +440,6 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
       });
     }
   }
-
-  
 
   Widget _setGoalBtn() {
     return Container(

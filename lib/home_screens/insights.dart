@@ -421,16 +421,16 @@ class _InsightsState extends State<Insights> {
           children: [
             //Incomes
             singleColorKey(Colors.green, 'INCOMES',
-                'This is any MPESA message with the keyword "received"'),
+                'These are funds you receive on your digital wallets'),
             //Expenses
             singleColorKey(Colors.red, 'EXPENSES',
-                'This is any MPESA message with the keyword "sent"'),
+                'These are funds that you spend through your digital wallets'),
             //PassiveSavings
             singleColorKey(Colors.blue, 'PASSIVE SAVINGS',
-                'These are savings you make when you complete the M-PESA prompt'),
+                'These are savings captured passively on every expense'),
             //Active Savings
             singleColorKey(Colors.purple, 'ACTIVE SAVINGS',
-                'These are savings you make deposit money via Paybill')
+                'These are savings you make as active deposits on Sortika')
           ],
         ),
       ),

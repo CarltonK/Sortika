@@ -279,15 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
         text: TextSpan(
           children: [
             TextSpan(
-              text: 'Don\'t have an Account? ',
-              style: GoogleFonts.muli(
-                  textStyle: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w400,
-              )),
-            ),
-            TextSpan(
-              text: 'Sign Up',
+              text: 'Create Your Sortika Account',
               style: GoogleFonts.muli(
                   textStyle: TextStyle(
                 color: Colors.white,
@@ -472,7 +464,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }).catchError((error) {
             print('This is the error $error');
             //Show an action sheet with error
-            showErrorSheet(error);
+            showErrorSheet(error.toString());
           });
         } else {
           //print('Failed response: ${result}');

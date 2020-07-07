@@ -7,14 +7,11 @@ import 'package:wealth/authentication_screens/login.dart';
 import 'package:wealth/authentication_screens/passwordreset.dart';
 import 'package:wealth/authentication_screens/registration.dart';
 import 'package:wealth/home_screens/borrowAll.dart';
-import 'package:wealth/home_screens/create_goal.dart';
 import 'package:wealth/home_screens/editGoal.dart';
 import 'package:wealth/home_screens/editGroup.dart';
-import 'package:wealth/home_screens/help.dart';
 import 'package:wealth/home_screens/home.dart';
 import 'package:wealth/home_screens/payLoan.dart';
 import 'package:wealth/home_screens/profile.dart';
-import 'package:wealth/home_screens/rate.dart';
 import 'package:wealth/home_screens/settings.dart';
 import 'package:wealth/home_screens/updateLoan.dart';
 import 'package:wealth/onboarding.dart';
@@ -25,20 +22,12 @@ import 'package:wealth/enums/connectivityStatus.dart';
 import 'package:wealth/services/connectivity_service.dart';
 
 void main() {
-  //Set `enableInDevMode` to true to see reports while in debug mode
-  // This is only to be used for confirming that reports are being
-  // submitted as expected. It is not intended to be used for everyday
-  // development.
   Crashlytics.instance.enableInDevMode = false;
-
-  // Pass all uncaught errors from the framework to Crashlytics.
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  //Initialize Firebase Analytics
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
   @override

@@ -60,7 +60,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
             case ConnectionState.done:
               if (snapshot.data.length == 0) {
                 return UnsuccessfullError(
-                  message: 'You have not made any investments');
+                    message: 'You have not made any investments');
               }
               return ListView.builder(
                 itemCount: snapshot.data.length,
@@ -119,7 +119,8 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                                         textStyle:
                                             TextStyle(color: Colors.white))),
                                 TextSpan(
-                                    text: '${map['amountSaved'].toStringAsFixed(2)} KES',
+                                    text:
+                                        '${map['amountSaved'].toStringAsFixed(2)} KES',
                                     style: GoogleFonts.muli(
                                       textStyle: TextStyle(
                                           color: Colors.white,
@@ -342,7 +343,7 @@ class _InvestmenPortfolioState extends State<InvestmentPortfolio> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$amount KES',
+                        '${amount.toStringAsFixed(2)} KES',
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,

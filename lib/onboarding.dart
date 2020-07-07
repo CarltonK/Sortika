@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
+import 'package:wealth/global/progressDialog.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/services/permissions.dart';
 import 'package:wealth/services/sms.dart';
@@ -19,6 +21,7 @@ class _OnBoardingState extends State<OnBoarding> {
   final PageController _pageController = PageController(initialPage: 0);
   //Define number of screens
   final int _numPages = 4;
+  DateTime rightnow = DateTime.now();
   //Placeholder for current page
   int _currentPage = 0;
   Firestore _firestore = Firestore.instance;
@@ -30,19 +33,31 @@ class _OnBoardingState extends State<OnBoarding> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool _seen = (prefs.getBool('seen') ?? false);
     if (_seen) {
+      showCupertinoModalPopup(
+        context: context,
+        builder: (context) {
+          return CustomProgressDialog(message: 'Loading...');
+        },
+      );
       checkLoginStatus().then((value) async {
         if (value == null) {
+          print(null);
           Navigator.of(context).pushReplacementNamed('/login');
         } else {
           DocumentSnapshot doc =
               await _firestore.collection("users").document(value).get();
           User user = User.fromJson(doc.data);
+          DateTime lastLogin = user.lastLogin.toDate();
           //Analytics Event - LOGIN
           await funnel.logLogin();
-          readSMS.readMPESA(user.uid).then((value) async {
+          readSMS.readMPESA(user.uid, lastLogin).then((value) async {
             if (value) {
-              Navigator.of(context)
-                  .pushReplacementNamed('/home', arguments: user);
+              FirebaseAuth.instance.currentUser().then((valueUser) {
+                valueUser.getIdToken().then((valueTok) {
+                  Navigator.of(context)
+                      .pushReplacementNamed('/home', arguments: user);
+                });
+              });
             } else {
               print('There is an error getting SMS Permissions. Let us retry');
               await permissionService.requestSmsPermission();
@@ -140,6 +155,43 @@ class _OnBoardingState extends State<OnBoarding> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future _permissionsDialog() {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(
+          'ATTENTION',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(
+                  color: Colors.black,
+                  fontSize: 24,
+                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.bold)),
+        ),
+        content: Text(
+          'We wish to notify you that we are requesting the following information from your device to aid in processing and serving you better\n\n'
+          'We require SMS Permissions to scan M-PESA SMS and prompt you to save according to your spending habits'
+          'Sortika complies with data privacy policies as stipulated by our laws and international laws. We only use your data for the prescribed use.',
+          style: GoogleFonts.muli(
+              textStyle: TextStyle(color: Colors.black, fontSize: 16)),
+        ),
+        actions: <Widget>[
+          FlatButton(
+              onPressed: () =>
+                  Navigator.of(context).pushReplacementNamed('/login'),
+              child: Text(
+                'PROCEED',
+                style: GoogleFonts.muli(
+                    textStyle: TextStyle(
+                        color: Colors.green,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+              ))
+        ],
+      ),
+    );
   }
 
   @override
@@ -267,8 +319,8 @@ class _OnBoardingState extends State<OnBoarding> {
                 onTap: () async {
                   //Analytics Event - TUTORIAL COMPLETE
                   await funnel.logOnBoardingEnd();
-                  //Go to Login Page
-                  Navigator.of(context).pushReplacementNamed('/login');
+                  //Show Permissions Popup
+                  _permissionsDialog();
                 },
                 child: Center(
                   child: Text(

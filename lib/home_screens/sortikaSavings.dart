@@ -151,7 +151,7 @@ class _SortikaSavingsState extends State<SortikaSavings> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Savings Points',
+            'Savings Points\nYou earn points with every saving and investment you make',
             style: GoogleFonts.muli(
                 textStyle: TextStyle(
                     color: Colors.black,

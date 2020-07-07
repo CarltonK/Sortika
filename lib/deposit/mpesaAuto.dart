@@ -165,8 +165,8 @@ class _MpesaAutoState extends State<MpesaAuto> {
           //Deposit Model PlaceHolder
           String dest = retrievedValues['destination'];
           String goal = retrievedValues['goal'];
-          print('Mpesa auto destination: $dest');
-          print('Mpesa auto goal: $goal');
+          // print('Mpesa auto destination: $dest');
+          // print('Mpesa auto goal: $goal');
 
           DepositModel depositModel = new DepositModel(
               amount: _amount,
@@ -188,7 +188,7 @@ class _MpesaAutoState extends State<MpesaAuto> {
                     message: error,
                   );
                 });
-          }).whenComplete(() async {
+          }).then((value) async {
             //Dismiss the dialog
             Navigator.of(context).pop();
 
