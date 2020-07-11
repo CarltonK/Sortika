@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wealth/models/bookingModel.dart';
 import 'package:wealth/models/lotteryModel.dart';
 
 class AdminHelper {
@@ -28,6 +29,18 @@ class AdminHelper {
       return queryLotteries;
     } catch (e) {
       print('getAdminLotteries ERROR -> ${e.toString()}');
+      return null;
+    }
+  }
+
+  Future<void> bookInvestment(BookingModel model) async {
+    try {
+      await _firestore
+          .collection('bookings')
+          .document()
+          .setData(model.toJSON());
+    } catch (e) {
+      print('bookInvestment ERROR -> ${e.toString()}');
       return null;
     }
   }

@@ -2,6 +2,7 @@ import 'package:fancy_bottom_navigation/fancy_bottom_navigation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wealth/admin/adminBooking.dart';
 import 'package:wealth/admin/adminLottery.dart';
 import 'package:wealth/api/auth.dart';
 
@@ -11,20 +12,25 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
+  PageController _controller;
   int _selectedPage = 0;
   List<TabData> _tabs = [
     TabData(iconData: Icons.games, title: 'Lottery'),
-    TabData(iconData: Icons.redeem, title: 'Redeemables'),
-    TabData(iconData: Icons.account_balance, title: 'Investments')
+    TabData(iconData: Icons.redeem, title: 'Bookings'),
   ];
 
   List<Widget> _pages = [
     LotteryView(),
-    LotteryView(),
-    LotteryView(),
+    AdminBooking(),
   ];
 
   AuthService service = new AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = PageController(initialPage: 0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,8 +84,8 @@ class _AdminHomeState extends State<AdminHome> {
           )
         ],
       ),
-      backgroundColor: Colors.white,
       body: PageView.builder(
+        controller: _controller,
         itemBuilder: (context, index) {
           index = _selectedPage;
           return _pages[index];
@@ -91,7 +97,11 @@ class _AdminHomeState extends State<AdminHome> {
         circleColor: Colors.blue,
         inactiveIconColor: Colors.blue[200],
         onTabChangedListener: (position) {
-          _selectedPage = position;
+          setState(() {
+            _selectedPage = position;
+            _controller.animateToPage(_selectedPage,
+                duration: Duration(milliseconds: 200), curve: Curves.easeInOut);
+          });
         },
       ),
     );

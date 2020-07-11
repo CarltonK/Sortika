@@ -542,7 +542,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       style: GoogleFonts.muli(
                           textStyle: TextStyle(color: Colors.white))),
                   TextSpan(
-                      text: '${model.goalAmountSaved.toInt().toString()}',
+                      text: '${model.goalAmountSaved.toStringAsFixed(1)}',
                       style: GoogleFonts.muli(
                         textStyle: TextStyle(
                             color: Colors.white,
@@ -2166,7 +2166,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
             padding: EdgeInsets.all(16),
           ),
           SizedBox(
-            width: 20,
+            width: 10,
           ),
           Expanded(
             child: Container(
@@ -2192,6 +2192,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         style: GoogleFonts.muli(
                             textStyle: TextStyle(
                                 color: Colors.black,
+                                fontSize: 12,
                                 fontWeight: FontWeight.normal)),
                       )
                     ],
@@ -2200,7 +2201,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     '${double.parse(amount.toString()).toStringAsFixed(1)} KES',
                     style: GoogleFonts.muli(
                         textStyle: TextStyle(
-                            color: Colors.black, fontWeight: FontWeight.w600)),
+                            fontSize: 13,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600)),
                   )
                 ],
               ),
@@ -2818,7 +2821,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 //Else use share package
                 try {
                   Share.share(
-                      'Check out our app https://appdistribution.firebase.dev/i/e1p93hk6');
+                      'Check out our app https://play.google.com/store/apps/details?id=com.sortika.wealth');
                 } catch (error) {
                   print('SHARE ERROR: $error');
                 }

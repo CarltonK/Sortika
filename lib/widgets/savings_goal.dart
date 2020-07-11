@@ -309,12 +309,27 @@ class _SavingsGoalState extends State<SavingsGoal> {
                     items: _classes
                         .map((map) => DropdownMenuItem(
                               value: map.title,
-                              child: Text(
-                                map.title,
-                                style: GoogleFonts.muli(
-                                    textStyle: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w600)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${map.title}',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.w600)),
+                                    ),
+                                    Text(
+                                      '${map.subtitle}',
+                                      style: GoogleFonts.muli(
+                                          textStyle: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 12)),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ))
                         .toList(),
@@ -572,7 +587,11 @@ class _SavingsGoalState extends State<SavingsGoal> {
               SizedBox(
                 height: 5,
               ),
-              _goalType(),
+              classSavings == 'Custom'
+                  ? IgnorePointer(
+                      child: _goalType(),
+                    )
+                  : _goalType(),
               SizedBox(
                 height: 30,
               ),

@@ -172,7 +172,7 @@ class _OnBoardingState extends State<OnBoarding> {
         ),
         content: Text(
           'We wish to notify you that we are requesting the following information from your device to aid in processing and serving you better\n\n'
-          'We require SMS Permissions to scan M-PESA SMS and prompt you to save according to your spending habits'
+          'We require SMS Permissions to scan M-PESA SMS and prompt you to save according to your spending habits\n\n'
           'Sortika complies with data privacy policies as stipulated by our laws and international laws. We only use your data for the prescribed use.',
           style: GoogleFonts.muli(
               textStyle: TextStyle(color: Colors.black, fontSize: 16)),

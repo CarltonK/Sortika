@@ -330,16 +330,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 return 'Passwords do not match';
               }
 
-              // //Check if password is empty
-              // if (value.isEmpty) {
-              //   return 'Password confirmation is required';
-              // }
-
-              // //Check if password has 7 or more characters
-              // if (value.length < 7) {
-              //   return 'A strong password should be more than 7 characters';
-              // }
-
               return null;
             },
             onSaved: _handleSubmittedConfirmPassword,
@@ -382,49 +372,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   //Return user data
   Future goToNextPage(String uid, String token) async {
-    /*
-    Before we go to the next page we need to auto create a loan fund goal
-    */
-    //This is the name of the collection we will be reading
-    final String _collectionUpper = 'users';
-    final String _collectionLower = 'goals';
-    var document = _fireStore.collection(_collectionUpper).document(uid);
-
-    //Loan Fund Goal ends in one year
-    DateTime rightNow = DateTime.now();
-    DateTime oneYearFromNow = rightNow.add(Duration(days: 365));
-
-    //Create a goals collection and add the loan fund goal
-    GoalModel goalModel = new GoalModel(
-        goalCategory: 'Loan Fund',
-        goalAllocation: 100,
-        goalAmount: 5200,
-        uid: uid,
-        goalAmountSaved: 0,
-        goalCreateDate: Timestamp.fromDate(rightNow),
-        goalEndDate: Timestamp.fromDate(oneYearFromNow),
-        isGoalDeletable: false);
-
-    //Create an activity
-    ActivityModel userRegActivity = new ActivityModel(
-        activity: 'A Loan Fund Goal was autocreated for you',
-        activityDate: Timestamp.fromDate(rightNow));
-    await authService.postActivity(uid, userRegActivity);
-
-    //Save goal to goals subcollection
-    document
-        .collection(_collectionLower)
-        .document()
-        .setData(goalModel.toJson())
-        .whenComplete(() {
-      Map<String, dynamic> dataUser = {
-        'uid': uid,
-        'token': token,
-        'name': _names.split(' ')[0]
-      };
-      Navigator.of(context)
-          .pushReplacementNamed('/achieve-pref', arguments: dataUser);
-    });
+    Map<String, dynamic> dataUser = {
+      'uid': uid,
+      'token': token,
+      'name': _names.split(' ')[0]
+    };
+    Navigator.of(context)
+        .pushReplacementNamed('/achieve-pref', arguments: dataUser);
   }
 
   Future showErrorSheet(String message) {

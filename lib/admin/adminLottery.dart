@@ -44,6 +44,7 @@ class _LotteryViewState extends State<LotteryView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Container(
         height: MediaQuery.of(context).size.height,
         child: FutureBuilder<QuerySnapshot>(

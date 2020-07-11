@@ -76,7 +76,7 @@ class User {
       this.kinNatIdURL});
 
   factory User.fromJson(Map<String, dynamic> json) => User(
-      fullName: json["fullName"],
+      fullName: json["fullName"] ?? ' ',
       phone: json["phone"],
       email: json["email"],
       password: json["password"],

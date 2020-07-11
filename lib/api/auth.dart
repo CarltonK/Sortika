@@ -1,22 +1,34 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
 import 'package:wealth/models/activityModel.dart';
 import 'package:wealth/models/autoCreateModel.dart';
+import 'package:wealth/models/goalmodel.dart';
 import 'package:wealth/models/notificationModel.dart';
 import 'package:wealth/models/usermodel.dart';
 
 class AuthService {
   //Identify current user
   FirebaseUser currentUser;
-
   //create instance of FirebaseAuth
   final FirebaseAuth _auth = FirebaseAuth.instance;
   //create instance of Firestore
   final Firestore _firestore = Firestore.instance;
   //Analytics
   final AnalyticsFunnel funnel = AnalyticsFunnel();
+  //Google Sign In
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  //Messaging
+  final FirebaseMessaging fcm = FirebaseMessaging();
+
+  static DateTime now = DateTime.now();
+  DateTime monthsAgo = now.subtract(Duration(days: 180));
+  DateTime oneYearFromNow = now.add(Duration(days: 365));
 
   //Initialize class
   AuthService() {
@@ -89,28 +101,6 @@ class AuthService {
     user.uid = uid;
     try {
       await _firestore.collection("users").document(uid).setData(user.toJson());
-      print("The user was successfully saved");
-      //Create a wallet
-      await _firestore
-          .collection('users')
-          .document(uid)
-          .collection('wallet')
-          .document(uid)
-          .setData({'amount': 0});
-      print("The wallet has been created successfully");
-      //Create notifications
-      NotificationModel notificationModel = new NotificationModel(
-          message:
-              'We are glad to have you on board. Thank you for joining Sortika. We have awarded you 100 savings points',
-          time: Timestamp.now());
-      await postNotification(uid, notificationModel);
-      print("A notification has been created successfully");
-      //Create an activity model
-      ActivityModel signUpAct = new ActivityModel(
-          activity: 'Welcome to Sortika',
-          activityDate: Timestamp.fromDate(DateTime.now()));
-      await postActivity(uid, signUpAct);
-      print("An activity has been created successfully");
     } catch (e) {
       print("The user was not successfully saved");
       print("This is the error ${e.toString()}");
@@ -178,6 +168,63 @@ class AuthService {
         //print('Negative Response: $response');
       }
       return response;
+    }
+  }
+
+  /*
+  GOOGLE SIGN IN
+  */
+  Future signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount googleSignInAccount =
+          await googleSignIn.signIn();
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.getCredential(
+          idToken: googleSignInAuthentication.idToken,
+          accessToken: googleSignInAuthentication.accessToken);
+
+      final AuthResult authResult =
+          await _auth.signInWithCredential(credential);
+      final FirebaseUser user = authResult.user;
+
+      await _firestore
+          .collection('users')
+          .document(user.uid)
+          .get()
+          .then((value) async {
+        if (value.exists) {
+          print('A user already exists -> ${user.email}');
+        } else {
+          print('Let\'s create a new user');
+          String token = await fcm.getToken();
+          User model = new User(
+            fullName: user.displayName,
+            phone: user.phoneNumber,
+            phoneVerified: false,
+            designation: null,
+            registerDate: Timestamp.fromDate(DateTime.now()),
+            loanLimitRatio: 75,
+            token: token,
+            lastLogin: Timestamp.fromDate(monthsAgo),
+            points: 100,
+            passiveSavingsRate: 5,
+            platform: Platform.operatingSystem,
+            dailySavingsTarget: 0,
+            dailyTarget: 0,
+            weeklyTarget: 0,
+            monthlyTarget: 0,
+            photoURL: user.photoUrl,
+            email: user.email,
+          );
+          await saveUser(model, user.uid);
+        }
+      });
+      return user;
+    } catch (e) {
+      print('signInWithGoogle ERROR -> ${e.toString()}');
+      return null;
     }
   }
 

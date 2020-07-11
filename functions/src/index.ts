@@ -14,7 +14,8 @@ import * as lottery from './lottery'
 import * as groups from './groups'
 import * as redeem from './redeem'
 import * as backup from './backup'
-// import * as bookings from './bookings'
+import * as bookings from './bookings'
+import * as user from './user_management'
 
 const db = superadmin.firestore()
 
@@ -66,7 +67,7 @@ export const allocationsCalculatorV3 = goals.AllocationV3
 
 //Run a task every night midnight. GoalCreateDate update to current date, then recalculate daily, weekly, monthly targets
 // every day 00:01
-export const scheduledFunction = functions.region('europe-west1').pubsub.schedule(`every day 00:01`)
+export const scheduledMidnightFunction = functions.region('europe-west1').pubsub.schedule(`every day 00:01`)
     .timeZone('Africa/Nairobi')
     .onRun(async (context: functions.EventContext) => {
         //every day 00:01
@@ -103,6 +104,48 @@ export const scheduledFunction = functions.region('europe-west1').pubsub.schedul
         }
     })
 
+
+export const scheduledThresholdFunction = functions.region('europe-west1').pubsub.schedule(`every day 01:00`)
+    .timeZone('Africa/Nairobi')
+    .onRun(async (context: functions.EventContext) => {
+        //every day 01:00
+        // console.log(`This will run every day 01:00`)
+        //Retrieve all user documents
+        try {
+            const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
+            const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
+
+            //Placeholder for UIDs
+            const uidList: Array<string> = []
+            userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
+                uidList.push(document.get('uid'))
+            })
+            // console.log(`List of User IDs: ${uidList}`)
+
+            //Iterate through list of USER IDs
+            for (let index: number = 0; index < uidList.length; index ++) {
+                //Retrieve all user goals documents
+                const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
+                const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
+
+                for (let i: number = 0; i < userGoalsDocuments.length; i++) {
+                    //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
+                    const goalAmountSaved: number = userGoalsDocuments[i].get('goalAmountSaved')
+                    const goalAmount: number = userGoalsDocuments[i].get('goalAmount')
+                    const halfWayPoint: number = goalAmount / 2
+                    if (goalAmountSaved >= halfWayPoint) {
+                        await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
+                            'threshold': true
+                        })
+                    } 
+                }
+
+            }
+            // console.log(`Finished updating Timestamps`)
+        } catch (error) {
+            throw error
+        }
+    })
 
 export const goalAutoCreate = functions.region('europe-west1').firestore
     .document('autocreates/{autocreate}')
@@ -348,6 +391,9 @@ exports.sortikaPoints = functions.region('europe-west1').firestore
         }  
     })
 
+//User Registration
+export const newUser = user.userCreated
+
 //Midnight Function
 export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
 
@@ -372,7 +418,7 @@ export const groupDeletion = groups.deleteGroup
 export const sortikaBackup = backup.SortikaBackup
 
 //Booking Function
-// export const bookingCalulator = bookings.BookingCalculator
+export const bookingCalulator = bookings.BookingCalculator
 
 
 

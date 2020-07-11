@@ -248,6 +248,41 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  _googleBtnPressed() {
+    authService.signInWithGoogle().then((value) async {
+      print('Google Press Value -> $value');
+      if (value != null) {
+        final String uid = value.uid;
+        await funnel.logLogin();
+
+        //Retrieve USER DOC
+        await _firestore
+            .collection("users")
+            .document(uid)
+            .get()
+            .then((document) async {
+          User user = User.fromJson(document.data);
+
+          if (user.designation == 'Admin') {
+            Timer(Duration(milliseconds: 500), () {
+              Navigator.of(context)
+                  .pushReplacementNamed('/admin', arguments: user);
+            });
+          } else {
+            //Try save credentials using shared preferences
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            prefs.setString('uid', user.uid);
+
+            Timer(Duration(milliseconds: 500), () {
+              Navigator.of(context)
+                  .pushReplacementNamed('/home', arguments: user);
+            });
+          }
+        });
+      }
+    }).catchError((error) => showErrorSheet(error.toString()));
+  }
+
   Widget _buildSocialBtnRow() {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 20.0),
@@ -261,7 +296,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           _buildSocialBtn(
-            () {},
+            _googleBtnPressed,
             AssetImage(
               'assets/logos/google.png',
             ),
@@ -524,8 +559,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         _passwordTF(),
                         _forgotPasswordBtn(),
                         _loginBtn(),
-                        // _signInWith(),
-                        // _buildSocialBtnRow(),
+                        _signInWith(),
+                        _buildSocialBtnRow(),
                         _buildSignupBtn(),
                       ],
                     ),
