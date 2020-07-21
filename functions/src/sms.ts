@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
+import * as _ from 'lodash'
 import {firestore} from 'firebase-admin'
-import * as _ from "lodash"
 
 interface SMS {
     address: string
@@ -10,6 +10,7 @@ interface SMS {
 }
 
 const db = firestore()
+// const store = storage()
 
 export function receiveSMS(request: Request, response: Response) {
     try {
@@ -42,11 +43,12 @@ export function receiveSMS(request: Request, response: Response) {
             }
         }
 
-        analyzeWanted(wantedSMS) 
-        savePastSMS(arrayPast)
+        //Store Past SMS
+        importPast(arrayPast)
+        //Work on wanted SMS
+        analyzeWanted(wantedSMS)
         //analyzeUnwanted(unwantedSMS)
         //analyzeMisc(miscSMS)
-        
         response.status(200).json({status: true, "message": "SMS data retrieved successfully"})
     } catch (error) {
         response.status(400).json({status: false, "message": `${error}`})
@@ -57,50 +59,39 @@ export function receiveSMS(request: Request, response: Response) {
 //     console.log(`Unwanted SMS Count: ${data.length}`)
 // }
 
-function savePastSMS(data: Array<SMS>) {
-    // const batch = db.batch()
-    // let counter: number = 0
-    // for (const doc of data) {
-    //     if (doc.body.includes('confirmed')) {
-    //         let trx_code: string = doc.body.toLowerCase().split(' confirmed')[0].toUpperCase()
-    //         trx_code = (trx_code.includes('CONGRATULATIONS')) ? trx_code.split('CONGRATULATIONS! ')[1] : trx_code
-    //         const docRef: FirebaseFirestore.DocumentReference = db.collection('sms').doc(doc.uid).collection('history').doc(trx_code)
-    //         batch.set(docRef, {
-    //             'address': doc.address,
-    //             'body': doc.body,
-    //             'date': doc.date
-    //         })
-    //         counter++
-    //         if (counter === 450) {
-    //             batch.commit()
-    //                 .then(value => {
-    //                     console.log('A batch has been committed successfully')
-    //                     counter = 0
-    //                 })
-    //                 .catch(error => console.error('A batch operation has failed', error))
-    //         }
-    //     }
-    // }
-    const batches = _.chunk(data, 450).map(async docs => {
-        const batch = db.batch()
-        docs.forEach(doc => {
-            if (doc.body.includes('confirmed')) {
-                let trx_code: string = doc.body.toLowerCase().split(' confirmed')[0].toUpperCase()
-                const docRef: FirebaseFirestore.DocumentReference = db.collection('sms').doc(doc.uid).collection('history').doc(trx_code)
-                batch.set(docRef, {
-                    'address': doc.address,
-                    'body': doc.body,
-                    'date': doc.date
+function importPast(data: Array<SMS>) {
+    if (data.length >= 1) {
+        const uid: string = data[0].uid
+        console.log(`savePastSMS triggered by ${uid}, Count -> ${data.length}`)
+        //Generate the right amount of batches
+        const batches = _.chunk(data, 450)
+            .map(postSnapshots => {
+                const writeBatch = db.batch()
+                postSnapshots.forEach(sms => {
+                    const array_trx_con: Array<string> = sms.body.toLowerCase().split(' confirmed')
+                    const trx_code: string =  array_trx_con[0].toUpperCase()
+                    const docRef: FirebaseFirestore.DocumentReference = db.collection('sms').doc(uid).collection('history').doc(trx_code)
+                    writeBatch.set(docRef, {
+                        'address': sms.address,
+                        'body': sms.body,
+                        'date': sms.date,
+                        'uid': sms.uid
+                    })
                 })
-            }
-        })
-        await batch.commit()
-    })
-    
-    Promise.all(batches)
-        .then(value => console.log('past SMS ingested'))
-        .catch(error => console.error('write past sms batch ERROR', error))
+                return writeBatch.commit()
+            })
+        Promise.all(batches)
+            .then(async value => {
+                console.log(`Past SMS ingested for ${uid}`)
+                const now: firestore.Timestamp = firestore.Timestamp.now()
+                const userRef = db.collection('users').doc(uid)
+                await userRef.update({lastLogin: now})
+            })
+            .catch(error => console.error(`Past SMS ingest ERROR for ${uid}`, error))
+        
+    }
 }
+
 
 function analyzeWanted(data: Array<SMS>) {
     //console.log(`Wanted SMS Count: ${wantedSMS.length}`)

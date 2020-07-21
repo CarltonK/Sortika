@@ -514,7 +514,16 @@ class _InvestmentGoalState extends State<InvestmentGoal> {
               style: styleLabel,
             ),
             _investmentDurationWidget(),
-            _setGoalBtn()
+            _setGoalBtn(),
+            SizedBox(
+              height: 30,
+            ),
+            Text(
+              'Investment disclaimer:\n'
+              '% interest indicates the volatility of the asset in the last 1 year.\n'
+              "NB: past performance of an asset doesn't indicate future performance.",
+              textAlign: TextAlign.center,
+            )
           ],
         ),
       ),

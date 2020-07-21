@@ -43,7 +43,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   AuthService authService = AuthService();
 
   static DateTime now = DateTime.now();
-  DateTime monthsAgo = now.subtract(Duration(days: 180));
 
   //Handle Name Input
   void _handleSubmittedName(String value) {
@@ -432,7 +431,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           registerDate: Timestamp.fromDate(DateTime.now()),
           loanLimitRatio: 75,
           token: token,
-          lastLogin: Timestamp.fromDate(monthsAgo),
           points: 100,
           passiveSavingsRate: 5,
           platform: Platform.operatingSystem,

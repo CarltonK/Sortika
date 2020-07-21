@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "686615310489-g46rc77jje1nm4ssujilq3rsl42csks1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sortika.wealth",
+            "certificate_hash": "9e655cf770860f6924c65612ae1060b91d57ab0c"
+          }
+        },
+        {
+          "client_id": "686615310489-bnqsqgi5cmn2knb1nu1kg6v6bn22abto.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sortika.wealth",
+            "certificate_hash": "4d283a667d2e33f1beaf378dc024c31af9c1d2a8"
+          }
+        },
+        {
           "client_id": "686615310489-nk5927dhen4joetpe9qjf3g227eip36k.apps.googleusercontent.com",
           "client_type": 3
         }

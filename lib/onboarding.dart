@@ -36,7 +36,9 @@ class _OnBoardingState extends State<OnBoarding> {
       showCupertinoModalPopup(
         context: context,
         builder: (context) {
-          return CustomProgressDialog(message: 'Loading...');
+          return CustomProgressDialog(
+              message:
+                  'Loading...\n\nBe patient, we are computing your passive savings');
         },
       );
       checkLoginStatus().then((value) async {

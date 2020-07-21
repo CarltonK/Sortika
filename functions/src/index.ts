@@ -9,7 +9,7 @@ import * as goals from './goal_allocations'
 import * as mpesa from './mpesa'
 import * as sms from './sms'
 import * as loan from './loan'
-import * as ratecalc from './savings_rate_calculator'
+import * as scheduled from './scheduled'
 import * as lottery from './lottery'
 import * as groups from './groups'
 import * as redeem from './redeem'
@@ -30,6 +30,9 @@ const main = express()
 // */
 main.use('/api/v1', app)
 main.use(express.json())
+
+//Expose the db
+export const firestoreInstance = db
 
 // /*
 // API
@@ -64,88 +67,6 @@ Version 3: onWrite - Whenever goalAmountSaved or goalCreateDate changes
 export const allocationsCalculatorV1 = goals.AllocationV1
 export const allocationsCalculatorV2 = goals.AllocationV2
 export const allocationsCalculatorV3 = goals.AllocationV3
-
-//Run a task every night midnight. GoalCreateDate update to current date, then recalculate daily, weekly, monthly targets
-// every day 00:01
-export const scheduledMidnightFunction = functions.region('europe-west1').pubsub.schedule(`every day 00:01`)
-    .timeZone('Africa/Nairobi')
-    .onRun(async (context: functions.EventContext) => {
-        //every day 00:01
-        // console.log(`This will run every day 00:01`)
-        //Retrieve all user documents
-        try {
-            const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
-            const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
-
-            //Placeholder for UIDs
-            const uidList: Array<string> = []
-            userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
-                uidList.push(document.get('uid'))
-            })
-            // console.log(`List of User IDs: ${uidList}`)
-
-            //Iterate through list of USER IDs
-            for (let index: number = 0; index < uidList.length; index ++) {
-                //Retrieve all user goals documents
-                const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
-                const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
-
-                for (let i: number = 0; i < userGoalsDocuments.length; i++) {
-                    //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
-                    await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
-                        'goalCreateDate': superadmin.firestore.Timestamp.now()
-                    })
-                }
-
-            }
-            // console.log(`Finished updating Timestamps`)
-        } catch (error) {
-            throw error
-        }
-    })
-
-
-export const scheduledThresholdFunction = functions.region('europe-west1').pubsub.schedule(`every day 01:00`)
-    .timeZone('Africa/Nairobi')
-    .onRun(async (context: functions.EventContext) => {
-        //every day 01:00
-        // console.log(`This will run every day 01:00`)
-        //Retrieve all user documents
-        try {
-            const usersQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').get()
-            const userDocuments: Array<DocumentSnapshot> = usersQueries.docs
-
-            //Placeholder for UIDs
-            const uidList: Array<string> = []
-            userDocuments.forEach((document: FirebaseFirestore.DocumentSnapshot) => {
-                uidList.push(document.get('uid'))
-            })
-            // console.log(`List of User IDs: ${uidList}`)
-
-            //Iterate through list of USER IDs
-            for (let index: number = 0; index < uidList.length; index ++) {
-                //Retrieve all user goals documents
-                const usersGoalsQueries: FirebaseFirestore.QuerySnapshot = await db.collection('users').doc(uidList[index]).collection('goals').get()
-                const userGoalsDocuments: Array<DocumentSnapshot> = usersGoalsQueries.docs
-
-                for (let i: number = 0; i < userGoalsDocuments.length; i++) {
-                    //console.log(`GOAL DOCUMENT: ${userGoalsDocuments[i].id} \nUPDATE: ${superadmin.firestore.Timestamp.now()}`)
-                    const goalAmountSaved: number = userGoalsDocuments[i].get('goalAmountSaved')
-                    const goalAmount: number = userGoalsDocuments[i].get('goalAmount')
-                    const halfWayPoint: number = goalAmount / 2
-                    if (goalAmountSaved >= halfWayPoint) {
-                        await db.collection('users').doc(uidList[index]).collection('goals').doc(userGoalsDocuments[i].id).update({
-                            'threshold': true
-                        })
-                    } 
-                }
-
-            }
-            // console.log(`Finished updating Timestamps`)
-        } catch (error) {
-            throw error
-        }
-    })
 
 export const goalAutoCreate = functions.region('europe-west1').firestore
     .document('autocreates/{autocreate}')
@@ -394,8 +315,12 @@ exports.sortikaPoints = functions.region('europe-west1').firestore
 //User Registration
 export const newUser = user.userCreated
 
-//Midnight Function
-export const currentSavingsRateCalculator = ratecalc.scheduledRateCalculator
+//Scheduled Functions
+export const currentSavingsRateCalculator = scheduled.scheduledRateCalculator
+export const scheduledMidnightFunction =  scheduled.ScheduledMidnightFunction
+export const scheduledThresholdFunction =  scheduled.ScheduledThresholdFunction
+export const scheduledNotifierFunctionMorning = scheduled.MorningNotifier
+export const scheduledNotifierFunctionEvening = scheduled.EveningNotifier
 
 //Lottery Functions
 export const joinLottery = lottery.joinALottery
@@ -419,6 +344,7 @@ export const sortikaBackup = backup.SortikaBackup
 
 //Booking Function
 export const bookingCalulator = bookings.BookingCalculator
+
 
 
 

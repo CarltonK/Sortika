@@ -188,6 +188,7 @@ class AuthService {
       final AuthResult authResult =
           await _auth.signInWithCredential(credential);
       final FirebaseUser user = authResult.user;
+      print(user.email);
 
       await _firestore
           .collection('users')
@@ -207,7 +208,6 @@ class AuthService {
             registerDate: Timestamp.fromDate(DateTime.now()),
             loanLimitRatio: 75,
             token: token,
-            lastLogin: Timestamp.fromDate(monthsAgo),
             points: 100,
             passiveSavingsRate: 5,
             platform: Platform.operatingSystem,

@@ -2473,7 +2473,6 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     walletHeader('Deposit', Colors.green),
                     walletHeader('Payment', Colors.red),
                     walletHeader('Redemption', Colors.green),
-                    walletHeader('Loan', Colors.red),
                   ],
                 ),
               ),
@@ -3232,34 +3231,34 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
-  void _onMessageReceived(SmsReceiver receiver) {
-    receiver.onSmsReceived.listen((message) async {
-      //print('A new message has been detected');
-      // if (message.address == 'MPESA') {
-      //   List<Map<String, dynamic>> smsList = [];
-      //   Map<String, dynamic> map = {
-      //     'address': message.address,
-      //     'body': message.body,
-      //     'date': message.date.millisecondsSinceEpoch,
-      //     'uid': uid
-      //   };
-      //   smsList.add(map);
-      //   String data = json.encode({'sms_data': smsList});
-      //   print(data);
-      //   // //Try HTTP Post
-      //   String url =
-      //       'https://europe-west1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
-      //   try {
-      //     await http.post(url, body: data);
-      //   } catch (e) {
-      //     throw e.toString();
-      //   }
-      //   // var response = await http.post(url, body: data);
-      //   // print('Response status: ${response.statusCode}');
-      //   // print('Response body: ${response.body}');
-      // }
-    });
-  }
+  // void _onMessageReceived(SmsReceiver receiver) {
+  //   receiver.onSmsReceived.listen((message) async {
+  //     //print('A new message has been detected');
+  //     // if (message.address == 'MPESA') {
+  //     //   List<Map<String, dynamic>> smsList = [];
+  //     //   Map<String, dynamic> map = {
+  //     //     'address': message.address,
+  //     //     'body': message.body,
+  //     //     'date': message.date.millisecondsSinceEpoch,
+  //     //     'uid': uid
+  //     //   };
+  //     //   smsList.add(map);
+  //     //   String data = json.encode({'sms_data': smsList});
+  //     //   print(data);
+  //     //   // //Try HTTP Post
+  //     //   String url =
+  //     //       'https://europe-west1-sortika-c0f5c.cloudfunctions.net/sortikaMain/api/v1/tusomerecords/9z5JjD9bGODXeSVpdNFW';
+  //     //   try {
+  //     //     await http.post(url, body: data);
+  //     //   } catch (e) {
+  //     //     throw e.toString();
+  //     //   }
+  //     //   // var response = await http.post(url, body: data);
+  //     //   // print('Response status: ${response.statusCode}');
+  //     //   // print('Response body: ${response.body}');
+  //     // }
+  //   });
+  // }
 
   @override
   void initState() {
@@ -3271,8 +3270,8 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _slideAnimation = Tween<Offset>(begin: Offset(-1, 0), end: Offset(0, 0))
         .animate(_controller);
 
-    _smsReceiver = new SmsReceiver();
-    _onMessageReceived(_smsReceiver);
+    // _smsReceiver = new SmsReceiver();
+    // _onMessageReceived(_smsReceiver);
 
     //Handle Notifications
     _fcm.configure(

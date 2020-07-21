@@ -10,58 +10,52 @@ service cloud.firestore {
     function isUserAuthorised() {
     	return request.auth.uid != null;
     }
+    //Check if the user is admin
+    function isUserAdmin() {
+    	return isUserAuthorised()
+      	&& get(/databases/$(database)/documents/users/$(request.auth.uid)).data.designation == 'Admin';
+    }
     
-    //USERS Collection
+    //USERS
     match /users/{user} {
     	allow write: if isSignedInOwner(user);
       allow read: if isUserAuthorised();
-      //Goals subcollection
       match /goals/{goal} {
       	allow write: if isSignedInOwner(user);
         allow read: if isUserAuthorised();
       }
-      //Preferences subcollection
-      match /preferences/{pref} {
-      	allow read, write: if isSignedInOwner(user);
-      }
-      //Activity subcollection
       match /activity/{act} {
       	allow read, write: if isSignedInOwner(user);
       }
-      //Wallet subcollection
       match /wallet/{user} {
-      	allow create: if isSignedInOwner(user);
-        allow update: if isSignedInOwner(user);
-        allow read: if isUserAuthorised();
+      	allow update, read: if isSignedInOwner(user);
       }
-      //Notifications subcollection
       match /notifications/{notification} {
       	allow read, write: if isSignedInOwner(user);
       }
-      //Activity subcollection
-      match /activity/{activityDoc} {
-      	allow read, write: if isSignedInOwner(user);
+      match /redeem/{redeemDoc} {
+      	allow write: if isSignedInOwner(user);
       }
     }
     
-    //VERIFICATIONS Collection
+    //VERIFICATIONS
     match /verifications/{verify} {
     	allow read, write: if isSignedInOwner(verify);
     }
     
-    //TRANSACTIONS Collection
+    //TRANSACTIONS
     match /transactions/{transaction} {
     	allow read: if 
         isUserAuthorised()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
     
-    //LOANS Collection
+    //LOANS
     match /loans/{loan} {
     	allow read, write: if isUserAuthorised();
     }
     
-    //GROUPS Collection
+    //GROUPS
     match /groups/{group} {
     	allow read, write: if isUserAuthorised();
       match /members/{member} {
@@ -69,42 +63,46 @@ service cloud.firestore {
       }
     }
     
-    //REEDEMABLES Collection
-    match /redeemables/{redeemable} {
+    //REEDEMABLES
+    match /redeemables/{redeemable=**} {
     	allow read, write: if isUserAuthorised();
     }
     
-    //INVESTMENTS Collection
+    //INVESTMENTS
     match /investments/{investment=**} {
     	allow read: if isUserAuthorised();
     }
     
-    //SAVINGS Collection
+    //SAVINGS
     match /savings/{save=**} {
     	allow read: if isUserAuthorised();
     }
     
-    //DEPOSITS Collection
+    //DEPOSITS
     match /deposits/{deposit} {
     	allow read: if 
         isUserAuthorised() 
         && exists(/databases/$(database)/documents/users/$(request.auth.uid));
       allow create: if 
         isUserAuthorised() 
-        && (request.resource.data.uid == request.auth.uid);
+        && (request.resource.data.uid == request.auth.uid)
+        && (request.resource.data.amount is number)
+        && exists(/databases/$(database)/documents/users/$(request.resource.data.uid));
     }
     
-    //AUTOCREATES Collection
+    //AUTOCREATES
     match /autocreates/{autocreate} {
     	allow read, write: if isUserAuthorised();
     }
     
-    //WITHDRAWALS Collection
+    //WITHDRAWALS
     match /withdrawals/{withdraw} {
-    	allow write: if isUserAuthorised();
+    	allow create: if isSignedInOwner(withdraw)
+      && (request.resource.data.amount is number && request.resource.data.amount >= 10)
+      && get(/databases/$(database)/documents/users/$(request.resource.data.uid)).data.phone == request.resource.data.phone;
     }
     
-    //CAPTURES Collection
+    //CAPTURES
     match /captures/{capture} {
     	allow read: if 
         isUserAuthorised() 
@@ -114,14 +112,21 @@ service cloud.firestore {
         && (request.resource.data.transaction_user == request.auth.uid);
     }
     
-    //REVIEWS Collection
+    //CAPTURE PUSHES
+    match /capturepushes/{capture} {
+    	allow create: if 
+        (request.resource.data.transaction_amount is number && request.resource.data.transaction_amount >= 1)
+        && exists(/databases/$(database)/documents/users/$(request.resource.data.transaction_user)) 
+    }
+    
+    //REVIEWS
     match /reviews/{review} {
     	allow write: if 
         isSignedInOwner(review)
         && request.resource.data.review != null;
     }
     
-    //LOANPAYMENTS Collection
+    //LOANPAYMENTS
     match /loanpayments/{payment} {
     	allow create: if 
       	isUserAuthorised()
@@ -134,12 +139,23 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.resource.data.lenderUid))
         && exists(/databases/$(database)/documents/users/$(request.resource.data.borrowerUid));
     }
-
-
-    // !!!--- TESTING ---!!!
-    // Read-only TEST
-    match /readonly/{docId} {
-      allow read: if true;
+    
+    //LOTTERY
+    match /lottery/{lottery} {
+    	allow read: if isUserAuthorised();
+      allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.designation == 'Admin';
+      match /participants/{participant} {
+      	allow create: if isSignedInOwner(participant);
+      }
+    }
+    
+    //BOOKINGS
+    match /bookings/{booking} {
+    	allow write: if isUserAdmin()
+      	&& exists(/databases/$(database)/documents/investments/$(request.resource.data.title))
+        && request.resource.data.booking is number
+        && request.resource.data.returnVal is number
+        && request.resource.data.size() == 4;
     }
   }
 }

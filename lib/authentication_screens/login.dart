@@ -290,7 +290,9 @@ class _LoginScreenState extends State<LoginScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           _buildSocialBtn(
-            () {},
+            () {
+              showErrorSheet('Coming soon');
+            },
             AssetImage(
               'assets/logos/facebook.jpg',
             ),
@@ -559,9 +561,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         _passwordTF(),
                         _forgotPasswordBtn(),
                         _loginBtn(),
+                        _buildSignupBtn(),
                         _signInWith(),
                         _buildSocialBtnRow(),
-                        _buildSignupBtn(),
                       ],
                     ),
                   ),

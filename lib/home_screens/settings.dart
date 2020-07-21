@@ -487,12 +487,6 @@ class _SettingsState extends State<Settings> {
                     if (value.length != 10) {
                       return 'Phone number should be 10 digits';
                     }
-
-                    //Check if phone number starts with 07
-                    if (!value.startsWith('07')) {
-                      return 'Phone number should start with 07';
-                    }
-
                     return null;
                   },
                   autovalidate: true,
