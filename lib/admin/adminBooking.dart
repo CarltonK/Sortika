@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -234,6 +235,24 @@ class _AdminBookingState extends State<AdminBooking> {
     );
   }
 
+  Future dialogError(String message) {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return ErrorMessage(message: message);
+      },
+    );
+  }
+
+  Future dialogSuccess(String message) {
+    return showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return SuccessMessage(message: message);
+      },
+    );
+  }
+
   bookInvestment() {
     if (_booking == 0) {
       dialogInfo('Please select the booking value');
@@ -245,15 +264,15 @@ class _AdminBookingState extends State<AdminBooking> {
       BookingModel model = BookingModel(
           booking: _booking,
           name: goalInvestment,
+          time: Timestamp.now(),
           title: classInvestment,
           returnVal: returnVal);
-
+      // print(model.toJSON());
       adminHelp
           .bookInvestment(model)
-          .then((value) => SuccessMessage(
-              message:
-                  'You have successfully booked a return for $goalInvestment'))
-          .catchError((error) => ErrorMessage(message: error.toString()));
+          .then((value) => dialogSuccess(
+              'You have successfully booked a return for $goalInvestment'))
+          .catchError((error) => dialogError(error.toString()));
     }
   }
 

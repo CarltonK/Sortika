@@ -14,9 +14,11 @@ class User {
   String password;
   Timestamp registerDate;
   String designation;
+  bool preExisting;
   var passiveSavingsRate;
   int points;
   Timestamp lastLogin;
+  bool smsPulled;
   //Firebase user metadata
   String uid;
   //Account Page
@@ -46,6 +48,8 @@ class User {
   User(
       {this.fullName,
       this.phone,
+      this.smsPulled,
+      this.preExisting,
       this.email,
       this.password,
       this.registerDate,
@@ -78,6 +82,8 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) => User(
       fullName: json["fullName"] ?? ' ',
       phone: json["phone"],
+      preExisting: json["pre_existing"] ?? false,
+      smsPulled: json["smsPulled"],
       email: json["email"],
       password: json["password"],
       registerDate: json["registerDate"],
@@ -111,6 +117,8 @@ class User {
   Map<String, dynamic> toJson() => {
         "fullName": fullName,
         "phone": phone,
+        "pre_exisiting": preExisting,
+        "smsPulled": smsPulled,
         "email": email,
         "password": password,
         "registerDate": registerDate,

@@ -85,7 +85,11 @@ function importPast(data: Array<SMS>) {
                 console.log(`Past SMS ingested for ${uid}`)
                 const now: firestore.Timestamp = firestore.Timestamp.now()
                 const userRef = db.collection('users').doc(uid)
-                await userRef.update({lastLogin: now})
+                await userRef.update({
+                    lastLogin: now,
+                    smsPulled: true
+                })
+                
             })
             .catch(error => console.error(`Past SMS ingest ERROR for ${uid}`, error))
         
@@ -156,7 +160,7 @@ async function parseMessage(data: SMS): Promise<number> {
                 const concernedSection: string = origArray[1]
                 let amount: string = concernedSection.split(' sent to ')[0]
                 amount = (amount.includes(',')) ? (amount.split(',')[0] + amount.split(',')[1]) : amount
-                console.log(`Amount - ${amount}`)
+                // console.log(`Amount - ${amount}`)
 
                 await db.collection('captures').doc().set({
                     'transaction_date': date,
@@ -187,7 +191,7 @@ async function parseMessage(data: SMS): Promise<number> {
                 const concernedSection: string = origArray[0]
                 let amount: string = concernedSection.split('ksh')[1]
                 amount = (amount.includes(',')) ? (amount.split(',')[0] + amount.split(',')[1]) : amount
-                console.log(`Amount - ${amount}`)
+                // console.log(`Amount - ${amount}`)
 
                 await db.collection('captures').doc().set({
                     'transaction_date': date,

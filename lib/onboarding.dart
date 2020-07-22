@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wealth/analytics/analytics_funnels.dart';
+import 'package:wealth/api/helper.dart';
 import 'package:wealth/global/progressDialog.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:wealth/models/usermodel.dart';
 import 'package:wealth/services/permissions.dart';
 import 'package:wealth/services/sms.dart';
@@ -28,13 +30,18 @@ class _OnBoardingState extends State<OnBoarding> {
   AnalyticsFunnel funnel = AnalyticsFunnel();
   ReadSMS readSMS = new ReadSMS();
   PermissionService permissionService = new PermissionService();
+  final FirebaseMessaging fcm = FirebaseMessaging();
+  Helper helper = new Helper();
+  String token;
 
   Future checkFirstSeen() async {
+    token = await fcm.getToken();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool _seen = (prefs.getBool('seen') ?? false);
     if (_seen) {
-      showCupertinoModalPopup(
+      showDialog(
         context: context,
+        barrierDismissible: false,
         builder: (context) {
           return CustomProgressDialog(
               message:
@@ -50,10 +57,15 @@ class _OnBoardingState extends State<OnBoarding> {
               await _firestore.collection("users").document(value).get();
           User user = User.fromJson(doc.data);
           DateTime lastLogin = user.lastLogin.toDate();
+          bool smsPulled = user.smsPulled;
           //Analytics Event - LOGIN
           await funnel.logLogin();
-          readSMS.readMPESA(user.uid, lastLogin).then((value) async {
+          readSMS.readMPESA(user.uid, lastLogin, smsPulled).then((value) async {
             if (value) {
+              if (user.preExisting) {
+                print('The new token for ${user.uid} is $token');
+                await helper.updateToken(user.uid, token);
+              }
               FirebaseAuth.instance.currentUser().then((valueUser) {
                 valueUser.getIdToken().then((valueTok) {
                   Navigator.of(context)

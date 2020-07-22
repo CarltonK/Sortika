@@ -13,7 +13,7 @@ class ReadSMS {
     print('A new instance of readSMS class');
   }
 
-  Future<bool> readMPESA(String uid, DateTime lastLogin) async {
+  Future<bool> readMPESA(String uid, DateTime lastLogin, bool smsPulled) async {
     var status = await _permissionsService.requestSmsPermission();
     if (status == true) {
       // This function handles reading MPESA messages
@@ -46,12 +46,15 @@ class ReadSMS {
             // print(data);
             smsList.add(data);
           } else {
-            pastSmsList.add(data);
+            if (!smsPulled) {
+              pastSmsList.add(data);
+            }
           }
           //print(data);
           //Populate the List
         }
         print('Accepted Messages Count: ${smsList.length}');
+        print('Messages accepted for storage Count: ${pastSmsList.length}');
         String data =
             json.encode({'sms_data': smsList, 'past_data': pastSmsList});
         // print(data);

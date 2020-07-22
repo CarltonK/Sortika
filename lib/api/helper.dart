@@ -649,4 +649,11 @@ class Helper {
 
     await authService.postActivity(uid, redeemAct);
   }
+
+  Future<void> updateToken(String uid, String token) async {
+    return await _firestore
+        .collection('users')
+        .document(uid)
+        .updateData({'token': token});
+  }
 }
