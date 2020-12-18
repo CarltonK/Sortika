@@ -3,7 +3,7 @@
   "scripts": {
     "lint": "tslint --project tsconfig.json",
     "build": "tsc",
-    "serve": "npm run build && firebase emulators:start",
+    "serve": "npm run build && firebase emulators:start --import data",
     "shell": "npm run build && firebase functions:shell",
     "sortika": "npm run build && firebase deploy --only functions:sortikaMain",
     "start": "npm run shell",
