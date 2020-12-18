@@ -144,6 +144,7 @@ service cloud.firestore {
     match /lottery/{lottery} {
     	allow read: if isUserAuthorised();
       allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.designation == 'Admin';
+      
       match /participants/{participant} {
       	allow create: if isSignedInOwner(participant);
       }
@@ -155,7 +156,12 @@ service cloud.firestore {
       	&& exists(/databases/$(database)/documents/investments/$(request.resource.data.title))
         && request.resource.data.booking is number
         && request.resource.data.returnVal is number
-        && request.resource.data.size() == 4;
+        && request.resource.data.size() == 5;
+    }
+    
+    // SMS
+    match /sms/{sms} {
+    	allow write: if true;
     }
   }
 }
